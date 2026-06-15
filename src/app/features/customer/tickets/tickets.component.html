@@ -1,0 +1,94 @@
+<div>
+  <div class="ph">
+    <div style="display: flex; align-items: center; justify-content: space-between">
+      <div>
+        <div class="pt">Tickets</div>
+        <div class="ps">{{ tickets().length }} total · {{ openCount() }} open</div>
+      </div>
+      <button type="button" class="btn bp" (click)="createTicket()">
+        <app-icon name="plus" [size]="14" color="#fff" />
+        New Ticket
+      </button>
+    </div>
+  </div>
+
+  <div style="display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap">
+    <div class="srch" style="max-width: 260px">
+      <app-icon name="search" [size]="14" color="var(--t3)" />
+      <input
+        placeholder="Search tickets…"
+        [ngModel]="search()"
+        (ngModelChange)="search.set($event)"
+      />
+    </div>
+    <select
+      class="inp"
+      style="width: auto; padding: 7px 12px"
+      [ngModel]="statusFilter()"
+      (ngModelChange)="statusFilter.set($event)"
+    >
+      <option value="all">All Status</option>
+      <option value="open">Open</option>
+      <option value="inprogress">In Progress</option>
+      <option value="testing">Testing</option>
+      <option value="resolved">Resolved</option>
+    </select>
+    <select
+      class="inp"
+      style="width: auto; padding: 7px 12px"
+      [ngModel]="priorityFilter()"
+      (ngModelChange)="priorityFilter.set($event)"
+    >
+      <option value="all">All Priority</option>
+      <option value="critical">Critical</option>
+      <option value="high">High</option>
+      <option value="medium">Medium</option>
+      <option value="low">Low</option>
+    </select>
+  </div>
+
+  <div class="card" style="overflow: hidden">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Issue</th>
+          <th>Site</th>
+          <th>Type</th>
+          <th>Priority</th>
+          <th>Status</th>
+          <th>Owner</th>
+          <th>Age</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (filteredTickets().length === 0) {
+          <tr>
+            <td colspan="8" style="text-align: center; padding: 32px; color: var(--t3)">No tickets match your filters</td>
+          </tr>
+        }
+        @for (t of filteredTickets(); track t.id) {
+          <tr style="cursor: pointer" (click)="viewTicket(t)">
+            <td>
+              <span style="font-family: 'DM Mono', monospace; font-size: 11.5px; color: var(--acc); font-weight: 600">{{ t.id }}</span>
+            </td>
+            <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; color: var(--t1); font-size: 13">{{ t.title }}</td>
+            <td>
+              <span style="font-size: 11.5px; background: var(--s2); padding: 2px 7px; border-radius: 6px; border: 1px solid var(--bd)">{{ t.site }}</span>
+            </td>
+            <td><app-badge [variant]="ticketTypeBadge(t.type)">{{ t.type }}</app-badge></td>
+            <td>
+              <app-badge [variant]="priorityBadge(t.pri)">
+                <span style="width: 6px; height: 6px; border-radius: 50%; display: inline-block" [style.background]="priorityColor(t.pri)"></span>
+                {{ t.pri }}
+              </app-badge>
+            </td>
+            <td><app-badge [variant]="ticketStatusBadge(t.status)">{{ ticketStatusLabel(t.status) }}</app-badge></td>
+            <td style="font-size: 12.5px">{{ t.who }}</td>
+            <td style="font-size: 12px; color: var(--t3)">{{ t.ago }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

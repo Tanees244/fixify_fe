@@ -1,0 +1,118 @@
+@if (facade.wpState(); as state) {
+  <div class="site-manage-page u">
+    <div class="site-manage-page-hd">
+      <div>
+        <div class="st">Plugin Management</div>
+        <div class="ps">
+          {{ state.plugins.length }} installed · {{ facade.pendingPluginCount() }} need updates
+        </div>
+      </div>
+      <div style="display: flex; gap: 8px; flex-wrap: wrap">
+        @if (selectedUpdatableCount() > 0) {
+          <button type="button" class="btn bp bs" [disabled]="facade.busy()" (click)="updateSelected()">
+            <app-icon name="refresh" [size]="13" color="#fff" />
+            Update Selected ({{ selectedUpdatableCount() }})
+          </button>
+        }
+        @if (updatableIds().length > 0) {
+          <button type="button" class="btn bg bs" [disabled]="facade.busy()" (click)="updateAll()">
+            <app-icon name="layers" [size]="13" />
+            Update All ({{ updatableIds().length }})
+          </button>
+        }
+      </div>
+    </div>
+
+    <div class="flt-bar">
+      @for (chip of filterChips; track chip.id) {
+        <span class="flt-chip" [class.on]="filter() === chip.id" (click)="setFilter(chip.id)">
+          {{ chip.label }}
+        </span>
+      }
+      <span style="margin-left: auto; display: flex; gap: 8px">
+        <button type="button" class="btn bg bs" style="font-size: 12px" (click)="selectAllUpdatable()">
+          Select updatable
+        </button>
+        @if (selected().size) {
+          <button type="button" class="btn bg bs" style="font-size: 12px" (click)="clearSelection()">
+            Clear selection
+          </button>
+        }
+      </span>
+    </div>
+
+    @if (facade.busy()) {
+      <div class="site-manage-busy">
+        <app-icon name="loader" [size]="16" color="var(--acc)" />
+        Updating plugins…
+      </div>
+    }
+
+    <div class="card site-manage-panel u" style="overflow: hidden">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 40px">
+              <input
+                type="checkbox"
+                [checked]="allFilteredSelected()"
+                (change)="toggleSelectAllFiltered()"
+                aria-label="Select all visible plugins"
+              />
+            </th>
+            <th>Plugin</th>
+            <th>Version</th>
+            <th>Latest</th>
+            <th>Status</th>
+            <th>Active</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (p of filteredPlugins(); track p.id) {
+            <tr [class.site-manage-row-selected]="isSelected(p.id)">
+              <td>
+                <input
+                  type="checkbox"
+                  [checked]="isSelected(p.id)"
+                  (change)="togglePlugin(p.id)"
+                  [attr.aria-label]="'Select ' + p.name"
+                />
+              </td>
+              <td style="font-weight: 600; color: var(--t1)">{{ p.name }}</td>
+              <td class="wp-mono">{{ p.version }}</td>
+              <td class="wp-mono">{{ p.latestVersion }}</td>
+              <td>
+                <app-badge [variant]="pluginBadge(p.status)">{{ pluginStatusLabel(p.status) }}</app-badge>
+              </td>
+              <td>{{ p.active ? 'Yes' : 'No' }}</td>
+              <td>
+                @if (canUpdate(p)) {
+                  <button type="button" class="btn bg bs" [disabled]="facade.busy()" (click)="updateOne(p)">
+                    Update
+                  </button>
+                } @else {
+                  <span style="font-size: 12px; color: var(--t3)">—</span>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="7" style="text-align: center; padding: 28px; color: var(--t3)">
+                No plugins match this filter
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="wp-summary u" style="margin-top: 18px">
+      <strong style="color: var(--t1); font-size: 13px">Bulk vs individual updates</strong>
+      <p style="margin: 8px 0 0; font-size: 12.5px; color: var(--t2); line-height: 1.6">
+        Select plugins with checkboxes and use <em>Update Selected</em>, or update one plugin at a time with the row action.
+        All updates sync to the customer portal under Fixify Team Updates.
+      </p>
+    </div>
+  </div>
+}

@@ -1,0 +1,138 @@
+<div>
+  <div class="ph">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start">
+      <div>
+        <div class="pt">All Tickets</div>
+        <div class="ps">{{ tickets.length }} total · {{ openCount() }} open</div>
+      </div>
+      <button class="btn bp" type="button" (click)="createTicket()">
+        <app-icon name="plus" [size]="13" color="#fff" />
+        New Ticket
+      </button>
+    </div>
+  </div>
+
+  <div style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap">
+    <div class="srch" style="max-width: 240px">
+      <app-icon name="search" [size]="14" color="var(--t3)" />
+      <input
+        placeholder="Search…"
+        [value]="search()"
+        (input)="onSearch($any($event.target).value)"
+      />
+    </div>
+    <select
+      class="inp"
+      style="width: auto; padding: 7px 12px"
+      [value]="customerFilter()"
+      (change)="setCustomerFilter($any($event.target).value)"
+    >
+      <option value="all">All Customers</option>
+      @for (c of customers; track c.id) {
+        <option [value]="c.id">{{ c.name }}</option>
+      }
+    </select>
+    <select
+      class="inp"
+      style="width: auto; padding: 7px 12px"
+      [value]="statusFilter()"
+      (change)="setStatusFilter($any($event.target).value)"
+    >
+      <option value="all">All Status</option>
+      <option value="open">Open</option>
+      <option value="inprogress">In Progress</option>
+      <option value="testing">Testing</option>
+      <option value="resolved">Resolved</option>
+    </select>
+    <select
+      class="inp"
+      style="width: auto; padding: 7px 12px"
+      [value]="priorityFilter()"
+      (change)="setPriorityFilter($any($event.target).value)"
+    >
+      <option value="all">All Priority</option>
+      <option value="critical">Critical</option>
+      <option value="high">High</option>
+      <option value="medium">Medium</option>
+      <option value="low">Low</option>
+    </select>
+  </div>
+
+  <div class="card" style="overflow: hidden">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Issue</th>
+          <th>Site</th>
+          <th>Customer</th>
+          <th>Type</th>
+          <th>Priority</th>
+          <th>Status</th>
+          <th>Assigned</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (filteredTickets().length === 0) {
+          <tr>
+            <td colspan="9" style="text-align: center; padding: 32px; color: var(--t3)">
+              No tickets match filters
+            </td>
+          </tr>
+        }
+        @for (t of filteredTickets(); track t.id) {
+          <tr style="cursor: pointer">
+            <td (click)="viewTicket(t)">
+              <span
+                style="font-family: 'DM Mono', monospace; font-size: 11px; color: var(--acc); font-weight: 600"
+                >{{ t.id }}</span
+              >
+            </td>
+            <td
+              (click)="viewTicket(t)"
+              style="max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; font-size: 12.5px; color: var(--t1)"
+            >
+              {{ t.title }}
+            </td>
+            <td style="font-size: 12px">{{ t.site }}</td>
+            <td style="font-size: 12px; color: var(--t2)">
+              {{ customerFor(t.custId)?.name || '—' }}
+            </td>
+            <td>
+              <app-badge [variant]="typeBadge(t.type)">{{ t.type }}</app-badge>
+            </td>
+            <td>
+              <app-badge [variant]="priorityBadge(t.pri)">{{ t.pri }}</app-badge>
+            </td>
+            <td>
+              <select
+                style="border: 1px solid var(--bd); border-radius: 6px; padding: 3px 7px; font-size: 11.5px; color: var(--t2); background: var(--s2); cursor: pointer; outline: none"
+                [value]="t.status"
+                (change)="updateStatus(t.id, $any($event.target).value, $event)"
+              >
+                <option value="open">Open</option>
+                <option value="inprogress">In Progress</option>
+                <option value="testing">Testing</option>
+                <option value="resolved">Resolved</option>
+              </select>
+            </td>
+            <td style="font-size: 12px">{{ t.who }}</td>
+            <td>
+              <div style="display: flex; gap: 5px">
+                <button
+                  class="btn bg bs"
+                  type="button"
+                  (click)="$event.stopPropagation(); viewTicket(t)"
+                >
+                  <app-icon name="edit" [size]="11" />
+                  Edit
+                </button>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

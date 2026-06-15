@@ -1,0 +1,50 @@
+<div class="card cp" [style.border-left]="'3px solid ' + (proc.enabled ? 'var(--acc)' : 'var(--bd)')">
+  <div style="display: flex; align-items: flex-start; gap: 12px">
+    <div
+      style="width: 42px; height: 42px; border-radius: 11px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.2s"
+      [style.background]="proc.enabled ? 'var(--acl)' : 'var(--b2)'"
+    >
+      <app-icon name="refresh" [size]="19" [color]="proc.enabled ? 'var(--acc)' : 'var(--t3)'" />
+    </div>
+    <div style="flex: 1">
+      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px">
+        <span style="font-weight: 700; font-size: 14px; color: var(--t1)">{{ proc.name }}</span>
+        <app-badge [variant]="proc.enabled ? 'bac' : 'bgr'">{{ proc.enabled ? 'Active' : 'Paused' }}</app-badge>
+      </div>
+      <div style="font-size: 12.5px; color: var(--t3); margin-bottom: 10px">{{ proc.desc }}</div>
+      <div style="display: flex; gap: 18px; flex-wrap: wrap; margin-bottom: 10px; font-size: 12.5px">
+        <span><span style="color: var(--t3)">Trigger: </span><strong style="color: var(--t2)">{{ proc.triggerDetail }}</strong></span>
+        <span><span style="color: var(--t3)">Sites: </span><strong style="color: var(--t2)">{{ sitesLabel }}</strong></span>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px">
+        @for (action of proc.actions; track action; let i = $index) {
+          <span style="display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; padding: 3px 10px; background: var(--s2); border-radius: 99px; border: 1px solid var(--bd); color: var(--t2)">
+            <span style="width: 16px; height: 16px; border-radius: 50%; background: var(--acc); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 8px; font-weight: 700; flex-shrink: 0">{{ i + 1 }}</span>
+            {{ action }}
+          </span>
+        }
+      </div>
+      <div style="display: flex; align-items: center; gap: 14px; padding-top: 10px; border-top: 1px solid var(--b2)">
+        <div style="flex: 1; display: flex; gap: 14px; flex-wrap: wrap">
+          <span style="font-size: 11.5px; color: var(--t3)">Last: <strong style="color: var(--t2)">{{ proc.lastRun }}</strong></span>
+          <span style="font-size: 11.5px; color: var(--t3)">Next: <strong style="color: var(--acc)">{{ proc.nextRun }}</strong></span>
+          <span style="font-size: 11.5px; color: var(--t3)">
+            Success:
+            <strong [style.color]="successPct >= 80 ? 'var(--ok)' : 'var(--wn)'">{{ successPct }}% ({{ proc.success }}/{{ proc.runs }} runs)</strong>
+          </span>
+        </div>
+        <div style="display: flex; gap: 6px; align-items: center">
+          <button type="button" class="btn bg bs" (click)="run.emit(proc)">
+            <app-icon name="zap" [size]="11" />
+            Run Now
+          </button>
+          <button type="button" class="btn bg bs" (click)="edit.emit(proc)">
+            <app-icon name="edit" [size]="11" />
+            Edit
+          </button>
+          <app-toggle [checked]="proc.enabled" (toggled)="onToggle()" />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

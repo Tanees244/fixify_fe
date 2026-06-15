@@ -1,0 +1,89 @@
+<div>
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px" class="u">
+    <div class="ps" style="margin: 0">Recommendations appear on the customer portal and guide site improvements</div>
+    <button type="button" class="btn bp bs" (click)="toggleForm()">
+      <app-icon name="plus" [size]="13" color="#fff" />
+      Add Recommendation
+    </button>
+  </div>
+
+  @if (showForm()) {
+    <div class="card cp u" style="padding: 18px; margin-bottom: 18px">
+      <div style="font-weight: 700; font-size: 14px; margin-bottom: 14px">New Recommendation</div>
+      <div class="g2">
+        <div class="fld">
+          <label>Site *</label>
+          <select class="inp" [ngModel]="siteId()" (ngModelChange)="siteId.set($event)">
+            <option value="">Select site…</option>
+            @for (s of sites(); track s.id) {
+              <option [value]="s.id">{{ s.name }}</option>
+            }
+          </select>
+        </div>
+        <div class="fld">
+          <label>Category</label>
+          <select class="inp" [ngModel]="category()" (ngModelChange)="category.set($event)">
+            <option>Performance</option>
+            <option>Security</option>
+            <option>SEO</option>
+            <option>Uptime</option>
+            <option>General</option>
+          </select>
+        </div>
+      </div>
+      <div class="g2">
+        <div class="fld">
+          <label>Title *</label>
+          <input class="inp" placeholder="e.g. Upgrade PHP to 8.2" [ngModel]="title()" (ngModelChange)="title.set($event)" />
+        </div>
+        <div class="fld">
+          <label>Priority</label>
+          <select class="inp" [ngModel]="priority()" (ngModelChange)="priority.set($event)">
+            <option value="critical">Critical</option>
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+          </select>
+        </div>
+      </div>
+      <div class="fld">
+        <label>Recommendation *</label>
+        <textarea class="inp" rows="3" placeholder="Describe the recommended action…" [ngModel]="body()" (ngModelChange)="body.set($event)"></textarea>
+      </div>
+      <div style="display: flex; gap: 8px; justify-content: flex-end">
+        <button type="button" class="btn bg" (click)="toggleForm()">Cancel</button>
+        <button type="button" class="btn bp" (click)="submit()">Save Recommendation</button>
+      </div>
+    </div>
+  }
+
+  <div style="display: flex; flex-direction: column; gap: 10px" class="u">
+    @for (r of recommendations(); track r.id) {
+      <div class="card cp" style="padding: 16px 18px">
+        <div style="display: flex; align-items: flex-start; gap: 12px">
+          <div style="flex: 1">
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px">
+              <span style="font-weight: 700; font-size: 14px; color: var(--t1)">{{ r.title }}</span>
+              <app-badge [variant]="recBadge(r.status)">{{ r.status }}</app-badge>
+              <app-badge [variant]="priorityBadge(r.priority)">{{ r.priority }}</app-badge>
+              <app-badge variant="bac">{{ r.category }}</app-badge>
+            </div>
+            <div style="font-size: 12px; color: var(--t3); margin-bottom: 8px">{{ r.siteName }} · {{ r.createdAt }}</div>
+            <div style="font-size: 13px; color: var(--t2); line-height: 1.55">{{ r.body }}</div>
+          </div>
+          @if (r.status === 'open') {
+            <div style="display: flex; gap: 6px; flex-shrink: 0">
+              <button type="button" class="btn bg bs" (click)="dismiss(r.id)">Dismiss</button>
+              <button type="button" class="btn bp bs" (click)="apply(r.id)">
+                <app-icon name="check" [size]="12" color="#fff" />
+                Mark Applied
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+    } @empty {
+      <div class="card u" style="padding: 32px; text-align: center; color: var(--t3)">No recommendations yet</div>
+    }
+  </div>
+</div>

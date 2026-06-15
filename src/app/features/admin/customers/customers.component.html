@@ -1,0 +1,134 @@
+<div>
+  <div class="ph">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px">
+      <div>
+        <div class="pt">Customers</div>
+        <div class="ps">
+          {{ customers.length }} total · {{ activeCount() }} active
+          @if (pendingCount()) {
+            · <span style="color: var(--wn); font-weight: 600">{{ pendingCount() }} pending approval</span>
+          }
+        </div>
+      </div>
+      <button class="btn bp" type="button" (click)="onboardCustomer()">
+        <app-icon name="plus" [size]="13" color="#fff" />
+        Onboard Customer
+      </button>
+    </div>
+  </div>
+
+  <div class="g3 u" style="margin-bottom: 22px">
+    @for (item of plans(); track item.id) {
+      <div class="stat-card">
+        <div class="slbl" [style.color]="item.color">{{ item.name }} · {{ item.priceLabel }}</div>
+        <div class="sval" [style.color]="item.color">{{ planCount(item.id) }}</div>
+        <div class="ssub">{{ planCount(item.id) === 1 ? 'subscriber' : 'subscribers' }}</div>
+      </div>
+    }
+  </div>
+
+  <div class="admin-tabs u">
+    <button type="button" class="admin-tab" [class.on]="tab() === 'all'" (click)="setTab('all')">
+      All Customers
+    </button>
+    <button type="button" class="admin-tab" [class.on]="tab() === 'pending'" (click)="setTab('pending')">
+      Pending Approval
+      @if (pendingCount()) {
+        <span class="admin-tab-badge">{{ pendingCount() }}</span>
+      }
+    </button>
+    <button type="button" class="admin-tab" [class.on]="tab() === 'active'" (click)="setTab('active')">
+      Active
+    </button>
+  </div>
+
+  <div style="display: flex; gap: 10px; margin-bottom: 16px" class="u">
+    <div class="srch">
+      <app-icon name="search" [size]="14" color="var(--t3)" />
+      <input
+        placeholder="Search by name, company, or email…"
+        [value]="search()"
+        (input)="onSearch($any($event.target).value)"
+      />
+    </div>
+  </div>
+
+  <div class="card u" style="overflow: hidden">
+    <table>
+      <thead>
+        <tr>
+          <th>Customer</th>
+          <th>Subscription</th>
+          <th>Approval</th>
+          <th>Sites</th>
+          <th>Avg Health</th>
+          <th>Joined</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (c of filteredCustomers(); track c.id) {
+          <tr>
+            <td>
+              <div style="display: flex; align-items: center; gap: 10px">
+                <div class="av" style="width: 36px; height: 36px; font-size: 13px; border-radius: 10px">{{ c.avatar }}</div>
+                <div>
+                  <div style="font-weight: 600; color: var(--t1); font-size: 13px">{{ c.name }}</div>
+                  <div style="font-size: 11.5px; color: var(--t3)">{{ c.company }} · {{ c.email }}</div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <span
+                class="admin-plan-pill"
+                [style.background]="planColor(c.plan) + '18'"
+                [style.color]="planColor(c.plan)"
+              >
+                {{ planLabel(c.plan) }} · ${{ planPrice(c.plan) }}/mo
+              </span>
+            </td>
+            <td>
+              <app-badge [variant]="approvalBadge(c.approvalStatus)">{{ c.approvalStatus }}</app-badge>
+            </td>
+            <td style="font-weight: 700; color: var(--acc)">{{ customerSites(c.id).length }}</td>
+            <td
+              style="font-weight: 700"
+              [style.color]="avgHealth(c.id) !== null ? scoreColor(avgHealth(c.id)!) : 'var(--t3)'"
+            >
+              {{ avgHealth(c.id) ?? '—' }}
+            </td>
+            <td style="color: var(--t2); font-size: 13px">{{ c.joined }}</td>
+            <td>
+              <div style="display: flex; gap: 6px; flex-wrap: wrap">
+                <button type="button" class="btn bg bs" (click)="viewCustomer(c)" title="View profile">
+                  <app-icon name="users" [size]="12" />
+                </button>
+                <button type="button" class="btn bg bs" (click)="viewDashboard(c)" title="Dashboard view">
+                  <app-icon name="eye" [size]="12" />
+                </button>
+                @if (c.approvalStatus === 'pending') {
+                  <button type="button" class="btn bp bs" (click)="approve(c)" title="Approve">
+                    <app-icon name="check" [size]="12" color="#fff" />
+                  </button>
+                  <button type="button" class="btn bg bs" (click)="reject(c)" title="Reject">
+                    <app-icon name="x" [size]="12" />
+                  </button>
+                } @else {
+                  <button type="button" class="btn bg bs" (click)="manageCustomer(c)" title="Edit">
+                    <app-icon name="edit" [size]="12" />
+                  </button>
+                }
+              </div>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="7" style="text-align: center; padding: 32px; color: var(--t3)">
+              No customers match your filters
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

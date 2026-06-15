@@ -1,0 +1,96 @@
+<div>
+  <div class="ph">
+    <div class="pt">Admin Settings</div>
+    <div class="ps">Platform configuration & preferences</div>
+  </div>
+
+  <div class="g2 u">
+    <div style="display: flex; flex-direction: column; gap: 18px">
+      <div class="card cp">
+        <div class="st" style="margin-bottom: 14px">Scan Configuration</div>
+        <div class="fld">
+          <label>Scan Interval (minutes)</label>
+          <select
+            class="inp"
+            [value]="scan().interval"
+            (change)="setScanInterval($any($event.target).value)"
+          >
+            <option value="5">Every 5 minutes</option>
+            <option value="15">Every 15 minutes</option>
+            <option value="30">Every 30 minutes</option>
+            <option value="60">Every hour</option>
+          </select>
+        </div>
+        @for (item of scanToggles; track item.key) {
+          <div
+            style="display: flex; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--b2)"
+          >
+            <div style="flex: 1">
+              <div style="font-size: 13.5px; font-weight: 500">{{ item.label }}</div>
+              <div style="font-size: 11.5px; color: var(--t3); margin-top: 2px">{{ item.desc }}</div>
+            </div>
+            <app-toggle
+              [checked]="scan()[item.key]"
+              (toggled)="toggleScan(item.key)"
+            />
+          </div>
+        }
+        <button class="btn bp" type="button" style="margin-top: 14px" (click)="saveScanSettings()">
+          Save Settings
+        </button>
+      </div>
+
+      <div class="card cp">
+        <div class="st" style="margin-bottom: 14px">API Configuration</div>
+        <div class="fld">
+          <label>API Key</label>
+          <div style="display: flex; gap: 8px">
+            <input
+              class="inp"
+              value="fx_live_••••••••••••••••"
+              readonly
+              style="flex: 1; letter-spacing: 2px"
+            />
+            <button class="btn bg bs" type="button" (click)="copyApiKey()">Copy</button>
+          </div>
+        </div>
+        <div class="fld">
+          <label>Webhook URL</label>
+          <input
+            class="inp"
+            placeholder="https://your-server.com/webhook"
+            [value]="webhookUrl()"
+            (input)="setWebhookUrl($any($event.target).value)"
+          />
+        </div>
+        <button class="btn bp" type="button" (click)="saveApiSettings()">Save</button>
+      </div>
+    </div>
+
+    <div class="card cp u u1" style="height: fit-content">
+      <div class="st" style="margin-bottom: 14px">Admin Notifications</div>
+      @for (item of notificationToggles; track item.key) {
+        <div
+          style="display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--b2)"
+        >
+          <div style="flex: 1">
+            <div style="font-size: 13.5px; font-weight: 500">{{ item.label }}</div>
+            <div style="font-size: 11.5px; color: var(--t3); margin-top: 2px">{{ item.desc }}</div>
+          </div>
+          <app-toggle
+            [checked]="notifications()[item.key]"
+            (toggled)="toggleNotification(item.key)"
+          />
+        </div>
+      }
+      <button
+        class="btn bp"
+        type="button"
+        style="margin-top: 14px; width: 100%; justify-content: center"
+        (click)="saveNotificationPrefs()"
+      >
+        Save Preferences
+      </button>
+    </div>
+  </div>
+</div>

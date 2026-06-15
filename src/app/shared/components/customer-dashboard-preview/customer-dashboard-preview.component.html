@@ -1,0 +1,152 @@
+<div class="admin-dash-preview">
+  <div class="admin-dash-preview-banner">
+    <app-icon name="eye" [size]="14" color="var(--acc)" />
+    Customer dashboard preview — read-only view of what {{ customerFirstName() }} sees
+  </div>
+
+  <div class="g4 u" style="margin-bottom: 22px">
+    @for (stat of [
+      { lbl: 'Healthy Sites', val: okCount(), sub: 'All systems go', col: 'var(--ok)', ic: 'check' },
+      { lbl: 'Warnings', val: warnCount(), sub: 'Needs attention', col: 'var(--wn)', ic: 'alert' },
+      { lbl: 'Critical', val: badCount(), sub: 'Act now', col: 'var(--er)', ic: 'zap' },
+      { lbl: 'Open Issues', val: totalIssues(), sub: 'Across all sites', col: 'var(--acc)', ic: 'clip' }
+    ]; track stat.lbl) {
+      <div class="stat-card">
+        <div class="slbl">
+          <app-icon [name]="stat.ic" [size]="13" [color]="stat.col" />
+          {{ stat.lbl }}
+        </div>
+        <div class="sval" [style.color]="stat.col">{{ stat.val }}</div>
+        <div class="ssub">{{ stat.sub }}</div>
+      </div>
+    }
+  </div>
+
+  @if (sites().length === 0) {
+    <div class="card u" style="padding: 32px; text-align: center; margin-bottom: 22px">
+      <div style="font-size: 14px; color: var(--t2); margin-bottom: 6px">No websites yet</div>
+      <div style="font-size: 12.5px; color: var(--t3)">
+        This customer hasn't added any sites. Their dashboard will appear here once they onboard websites.
+      </div>
+    </div>
+  } @else {
+    <div class="sh">
+      <div class="st">Websites ({{ sites().length }})</div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 26px">
+      @for (s of sites(); track s.id; let i = $index) {
+        <div class="card u" [class.u1]="i === 0" [class.u2]="i === 1" [class.u3]="i === 2">
+          <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px">
+            <div style="display: flex; align-items: center; gap: 10px">
+              <app-site-avatar [fa]="s.fa" [size]="40" />
+              <div>
+                <div style="font-weight: 700; font-size: 14px; color: var(--t1)">{{ s.name }}</div>
+                <div style="font-size: 11.5px; color: var(--t3); margin-top: 2px">
+                  {{ s.plan }} · Scanned {{ s.scan }}
+                </div>
+              </div>
+            </div>
+            <app-badge [variant]="siteStatusBadge(s.st)">{{ siteStatusLabel(s.st) }}</app-badge>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 18px; margin-bottom: 16px">
+            <app-progress-ring [score]="s.health" [size]="72" [strokeWidth]="7" />
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 9px">
+              @for (m of [
+                { l: 'Performance', v: s.perf },
+                { l: 'Security', v: s.sec },
+                { l: 'SEO', v: s.seo }
+              ]; track m.l) {
+                <div>
+                  <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--t2); margin-bottom: 3px">
+                    <span>{{ m.l }}</span>
+                    <span style="font-weight: 700" [style.color]="scoreColor(m.v)">{{ m.v }}</span>
+                  </div>
+                  <app-progress-bar [value]="m.v" />
+                </div>
+              }
+            </div>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; padding-top: 12px; border-top: 1px solid var(--b2); font-size: 12.5px">
+            <span style="color: var(--t3)">
+              Uptime
+              <strong [style.color]="s.up >= 99.5 ? 'var(--ok)' : 'var(--wn)'">{{ s.up }}%</strong>
+            </span>
+            <span [style.color]="s.issues > 0 ? 'var(--er)' : 'var(--ok)'" style="font-weight: 500">
+              {{ s.issues > 0 ? s.issues + ' issues' : 'No issues ✓' }}
+            </span>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  @if (insights().length) {
+    <div class="sh">
+      <div class="st">Latest AI Insights</div>
+    </div>
+
+    <div style="background: var(--sr); border: 1px solid var(--bd); border-radius: 14px; overflow: hidden; margin-bottom: 26px; box-shadow: var(--s1)">
+      @for (ins of insights(); track ins.id; let last = $last) {
+        <div
+          style="padding: 14px 18px; display: flex; gap: 12px; align-items: flex-start"
+          [style.border-bottom]="last ? 'none' : '1px solid var(--b2)'"
+        >
+          <div
+            style="width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 13px"
+            [style.background]="severityBg(ins.sev)"
+          >
+            {{ severityIcon(ins.sev) }}
+          </div>
+          <div style="flex: 1; min-width: 0">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 3px; flex-wrap: wrap">
+              <span style="font-weight: 600; font-size: 13.5px; color: var(--t1)">{{ ins.title }}</span>
+              <app-badge [variant]="severityBadge(ins.sev)">{{ ins.sev }}</app-badge>
+              <span style="font-size: 11px; color: var(--t3); margin-left: auto">{{ ins.site }} · {{ ins.time }}</span>
+            </div>
+            <div style="font-size: 13px; color: var(--t2); line-height: 1.55">{{ ins.body }}</div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  @if (recentTickets().length) {
+    <div class="sh">
+      <div class="st">Recent Tickets</div>
+    </div>
+
+    <div class="card" style="overflow: hidden">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Issue</th>
+            <th>Type</th>
+            <th>Priority</th>
+            <th>Status</th>
+            <th>Owner</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (t of recentTickets(); track t.id) {
+            <tr>
+              <td>
+                <span style="font-family: 'DM Mono', monospace; font-size: 11.5px; color: var(--acc); font-weight: 600">{{ t.id }}</span>
+              </td>
+              <td style="max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--t1); font-weight: 500; font-size: 13">
+                {{ t.title }}
+              </td>
+              <td><app-badge [variant]="ticketTypeBadge(t.type)">{{ t.type }}</app-badge></td>
+              <td><app-badge [variant]="priorityBadge(t.pri)">{{ t.pri }}</app-badge></td>
+              <td><app-badge [variant]="ticketStatusBadge(t.status)">{{ ticketStatusLabel(t.status) }}</app-badge></td>
+              <td style="font-size: 12.5px">{{ t.who }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

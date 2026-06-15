@@ -1,0 +1,125 @@
+@if (wpSites().length === 0) {
+  <div class="card cp site-manage-panel u" style="padding: 36px; text-align: center">
+    <div class="site-manage-action-icon" style="margin: 0 auto 14px">
+      <app-icon name="globe" [size]="22" color="var(--acc)" />
+    </div>
+    <div style="font-size: 15px; font-weight: 600; color: var(--t1); margin-bottom: 6px">No WordPress sites</div>
+    <div style="font-size: 13px; color: var(--t3); line-height: 1.5">
+      Onboard this customer with a WordPress site to manage plugins, core updates, and cache.
+    </div>
+  </div>
+} @else {
+  <div class="wp-manage-hub u">
+    <div class="card cp site-manage-panel wp-manage-toolbar">
+      <div class="wp-manage-toolbar-main">
+        @if (selectedSite(); as site) {
+          <app-site-avatar [fa]="site.fa" [size]="40" />
+        }
+        <div class="fld wp-manage-select-wrap">
+          <label>WordPress site</label>
+          <select class="inp" [value]="selectedSiteId() ?? ''" (change)="onSiteChange($event)">
+            @for (s of wpSites(); track s.id) {
+              <option [value]="s.id">{{ s.name }} · Health {{ s.health }}</option>
+            }
+          </select>
+        </div>
+        @if (selectedSite(); as site) {
+          <div class="wp-manage-meta">
+            <span class="tb-site-badge">
+              Health
+              <span [style.color]="scoreColor(site.health)" style="font-weight: 700">{{ site.health }}</span>
+            </span>
+            <span class="tb-site-badge">{{ site.issues }} issue{{ site.issues === 1 ? '' : 's' }}</span>
+            <span class="tb-site-badge">Last scan {{ site.scan }}</span>
+          </div>
+        }
+      </div>
+      <button type="button" class="btn bp" (click)="openFullManage()">
+        <app-icon name="cog" [size]="14" color="#fff" />
+        Open Site Manager
+      </button>
+    </div>
+
+    @if (wpState(); as state) {
+      @if (hasPendingWork()) {
+        <div class="admin-dash-preview-banner u">
+          <app-icon name="alert" [size]="14" color="var(--wn)" />
+          Updates available for {{ selectedSite()?.name }} —
+          @if (pendingPluginCount()) {
+            {{ pendingPluginCount() }} plugin{{ pendingPluginCount() === 1 ? '' : 's' }}
+          }
+          @if (wpCoreOutdated()) {
+            @if (pendingPluginCount()) { · } WordPress core
+          }
+          @if (themeOutdated()) {
+            @if (pendingPluginCount() || wpCoreOutdated()) { · } theme
+          }
+        </div>
+      }
+
+      <div class="g4 u" style="margin-bottom: 22px">
+        <div class="stat-card">
+          <div class="slbl">
+            <app-icon name="refresh" [size]="13" color="var(--acc)" />
+            WordPress
+          </div>
+          <div class="sval" [style.color]="wpCoreOutdated() ? 'var(--wn)' : 'var(--ok)'">{{ state.wpVersion }}</div>
+          <div class="ssub">{{ wpCoreOutdated() ? 'Update to ' + state.latestWpVersion : 'Up to date' }}</div>
+        </div>
+        <div class="stat-card">
+          <div class="slbl">
+            <app-icon name="layers" [size]="13" color="var(--acc)" />
+            Plugins
+          </div>
+          <div class="sval" [style.color]="pendingPluginCount() ? 'var(--wn)' : 'var(--ok)'">{{ pendingPluginCount() }}</div>
+          <div class="ssub">Updates pending</div>
+        </div>
+        <div class="stat-card">
+          <div class="slbl">
+            <app-icon name="file" [size]="13" color="var(--acc)" />
+            Theme
+          </div>
+          <div class="sval" [style.color]="themeOutdated() ? 'var(--wn)' : 'var(--t1)'">{{ state.activeTheme }}</div>
+          <div class="ssub">v{{ state.themeVersion }}</div>
+        </div>
+        <div class="stat-card">
+          <div class="slbl">
+            <app-icon name="zap" [size]="13" color="var(--acc)" />
+            Cache
+          </div>
+          <div class="sval" style="color: var(--acc)">{{ state.cachePlugin }}</div>
+          <div class="ssub">Cleared {{ state.lastCacheClear }}</div>
+        </div>
+      </div>
+
+      <div class="sh u">
+        <div class="st">Management Screens</div>
+        <button type="button" class="btn bg bs" (click)="openFullManage()">
+          Full manager
+          <app-icon name="chevR" [size]="13" />
+        </button>
+      </div>
+
+      <div class="site-manage-card-grid u">
+        @for (section of manageSections(); track section.path) {
+          <a [routerLink]="section.path" class="site-manage-card card cp">
+            <div class="site-manage-card-top">
+              <div class="site-manage-card-icon">
+                <app-icon [name]="section.icon" [size]="18" color="var(--acc)" />
+              </div>
+              @if (section.badge) {
+                <span class="nct w">{{ section.badge }}</span>
+              }
+            </div>
+            <div class="site-manage-card-title">{{ section.title }}</div>
+            <div class="site-manage-card-desc">{{ section.desc }}</div>
+            <div class="site-manage-card-link">
+              Open
+              <app-icon name="chevR" [size]="13" />
+            </div>
+          </a>
+        }
+      </div>
+    }
+  </div>
+}

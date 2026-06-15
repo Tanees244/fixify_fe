@@ -1,0 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300..700&family=DM+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+@import './styles-fixify.css';
+
+html, body, app-root {
+  height: 100%;
+  min-height: 100vh;
+  display: block;
+}

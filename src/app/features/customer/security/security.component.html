@@ -1,0 +1,89 @@
+@if (site(); as site) {
+  <div>
+    <div class="ph">
+      <div class="pt">Security</div>
+      <div class="ps">{{ site.name }} · SSL, vulnerabilities & hardening</div>
+    </div>
+
+    <div class="g4 u" style="margin-bottom: 22px">
+      @for (stat of [
+        { l: 'Security Score', v: site.sec, col: scoreColor(site.sec), sub: 'vs avg: 60' },
+        { l: 'SSL Certificate', v: 'Valid', col: 'var(--ok)', sub: 'Expires in 189 days' },
+        { l: 'Vulnerabilities', v: activeVulns().length, col: activeVulns().length > 0 ? 'var(--er)' : 'var(--ok)', sub: criticalCount() + ' critical' },
+        { l: 'Last Scan', v: site.scan, col: 'var(--acc)', sub: 'Daily scans active' }
+      ]; track stat.l) {
+        <div class="stat-card">
+          <div class="slbl">{{ stat.l }}</div>
+          <div class="sval" [style.color]="stat.col">{{ stat.v }}</div>
+          <div class="ssub">{{ stat.sub }}</div>
+        </div>
+      }
+    </div>
+
+    <div class="g2 u u1" style="margin-bottom: 18px">
+      <div class="card cp">
+        <div style="font-weight: 700; font-size: 14px; margin-bottom: 14px">Security Checklist</div>
+        @for (item of checklist(); track item.label) {
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid var(--b2)">
+            <span style="font-size: 13.5px; color: var(--t2)">{{ item.label }}</span>
+            <app-badge [variant]="item.ok ? 'bok' : 'ber'">{{ item.ok ? '✓ Pass' : '✗ Fail' }}</app-badge>
+          </div>
+        }
+      </div>
+
+      <div class="card cp">
+        <div style="font-weight: 700; font-size: 14px; margin-bottom: 14px">SSL Certificate</div>
+        @for (row of [
+          { l: 'Issuer', v: "Let's Encrypt" },
+          { l: 'Issued', v: '2024-03-15' },
+          { l: 'Expires', v: '2024-09-12' },
+          { l: 'Grade', v: 'A+' },
+          { l: 'Protocol', v: 'TLS 1.3' },
+          { l: 'Days Remaining', v: '189 days' }
+        ]; track row.l) {
+          <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--b2); font-size: 13.5px">
+            <span style="color: var(--t3)">{{ row.l }}</span>
+            <span style="font-weight: 600">{{ row.v }}</span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="u u2">
+      <div class="sh">
+        <div class="st">Vulnerabilities ({{ activeVulns().length }})</div>
+        <button type="button" class="btn bp bs" (click)="rescan()" [disabled]="ctx.scanning()">
+          {{ ctx.scanning() ? 'Scanning…' : 'Re-scan' }}
+        </button>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        @for (v of activeVulns(); track v.key) {
+          <div style="background: var(--sr); border: 1px solid var(--bd); border-radius: 12px; padding: 14px 18px; display: flex; align-items: center; gap: 12px; box-shadow: var(--s1)">
+            <div
+              style="width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0"
+              [style.background]="severityBg(v.sev)"
+            >
+              {{ severityIcon(v.sev) }}
+            </div>
+            <div style="flex: 1; min-width: 0">
+              <div style="font-weight: 600; font-size: 13.5px; color: var(--t1); margin-bottom: 4px">{{ v.title }}</div>
+              <app-badge variant="bgr">{{ v.type }}</app-badge>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center; flex-shrink: 0">
+              <app-badge [variant]="severityBadge(v.sev)">{{ v.sev }}</app-badge>
+              <button type="button" class="btn bp bs" (click)="applyFix(v)">Apply Fix</button>
+            </div>
+          </div>
+        }
+
+        @if (activeVulns().length === 0) {
+          <div style="text-align: center; padding: 40px; color: var(--t3); background: var(--sr); border-radius: 12px; border: 1px solid var(--bd)">
+            <app-icon name="shield" [size]="32" color="var(--ok)" style="margin-bottom: 8px" />
+            <div style="font-weight: 600; color: var(--ok)">All vulnerabilities resolved!</div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}

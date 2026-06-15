@@ -1,0 +1,40 @@
+@if (facade.wpState(); as state) {
+  <div class="site-manage-page u">
+    <div class="site-manage-page-hd">
+      <div>
+        <div class="st">Cache Management</div>
+        <div class="ps">Plugin: {{ state.cachePlugin }} · last cleared {{ state.lastCacheClear }}</div>
+      </div>
+    </div>
+
+    <div class="g2 u">
+      <div class="card cp site-manage-panel">
+        <div class="site-manage-action-icon">
+          <app-icon name="zap" [size]="22" color="var(--acc)" />
+        </div>
+        <div style="font-weight: 700; font-size: 15px; margin: 12px 0 6px">Page Cache</div>
+        <p style="font-size: 13px; color: var(--t2); line-height: 1.6; margin: 0 0 16px">
+          Clears full page cache and minified CSS/JS via {{ state.cachePlugin }}.
+        </p>
+        <button type="button" class="btn bp bs" [disabled]="facade.busy()" (click)="clearPageCache()">
+          <app-icon name="zap" [size]="13" color="#fff" />
+          Clear Page Cache
+        </button>
+      </div>
+
+      <div class="card cp site-manage-panel">
+        <div class="site-manage-action-icon">
+          <app-icon name="activity" [size]="22" color="var(--acc)" />
+        </div>
+        <div style="font-weight: 700; font-size: 15px; margin: 12px 0 6px">Object Cache</div>
+        <p style="font-size: 13px; color: var(--t2); line-height: 1.6; margin: 0 0 16px">
+          Flushes Redis/Memcached object cache. Use after plugin updates or database changes.
+        </p>
+        <button type="button" class="btn bg bs" [disabled]="facade.busy()" (click)="clearObjectCache()">
+          <app-icon name="activity" [size]="13" />
+          Clear Object Cache
+        </button>
+      </div>
+    </div>
+  </div>
+}

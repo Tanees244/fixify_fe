@@ -1,0 +1,184 @@
+@if (customer(); as c) {
+  <div>
+    <div class="ph">
+      <button type="button" class="btn bg bs admin-back-btn" (click)="goBack()">
+        <app-icon name="chevL" [size]="13" />
+        Back to Customers
+      </button>
+
+      <div class="admin-detail-header">
+        <div class="av admin-detail-avatar">{{ c.avatar }}</div>
+        <div style="flex: 1; min-width: 0">
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px">
+            <div class="pt" style="margin: 0">{{ c.name }}</div>
+            <app-badge [variant]="statusBadge(c.status)">{{ c.status }}</app-badge>
+            <app-badge [variant]="approvalBadge(c.approvalStatus)">{{ c.approvalStatus }}</app-badge>
+            <span
+              class="admin-plan-pill"
+              [style.background]="planColor(c.plan) + '18'"
+              [style.color]="planColor(c.plan)"
+            >
+              {{ planLabel(c.plan) }} · ${{ planPrice(c.plan) }}/mo
+            </span>
+          </div>
+          <div class="ps">{{ c.company }} · {{ c.email }} · Joined {{ c.joined }}</div>
+        </div>
+
+        <div style="display: flex; gap: 8px; flex-shrink: 0; flex-wrap: wrap">
+          @if (c.approvalStatus === 'pending') {
+            <button type="button" class="btn bg bs" (click)="reject()">
+              <app-icon name="x" [size]="13" />
+              Reject
+            </button>
+            <button type="button" class="btn bp bs" (click)="approve()">
+              <app-icon name="check" [size]="13" color="#fff" />
+              Approve
+            </button>
+          }
+          <button type="button" class="btn bg bs" (click)="manageCustomer()">
+            <app-icon name="edit" [size]="12" />
+            Edit
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-tabs u">
+      <button type="button" class="admin-tab" [class.on]="tab() === 'overview'" (click)="setTab('overview')">Overview</button>
+      <button type="button" class="admin-tab" [class.on]="tab() === 'wordpress'" (click)="setTab('wordpress')">
+        <app-icon name="globe" [size]="13" /> WordPress
+      </button>
+      <button type="button" class="admin-tab" [class.on]="tab() === 'reports'" (click)="setTab('reports')">Reports</button>
+      <button type="button" class="admin-tab" [class.on]="tab() === 'recommendations'" (click)="setTab('recommendations')">Recommendations</button>
+      <button type="button" class="admin-tab" [class.on]="tab() === 'activity'" (click)="setTab('activity')">Activity Log</button>
+      <button type="button" class="admin-tab" [class.on]="tab() === 'dashboard'" (click)="setTab('dashboard')">
+        <app-icon name="eye" [size]="13" /> Dashboard View
+      </button>
+    </div>
+
+    @if (tab() === 'overview') {
+      <div class="g4 u" style="margin-bottom: 22px">
+        <div class="stat-card">
+          <div class="slbl">Websites</div>
+          <div class="sval" style="color: var(--acc)">{{ sites().length }}</div>
+          <div class="ssub">Monitored sites</div>
+        </div>
+        <div class="stat-card">
+          <div class="slbl">Avg Health</div>
+          <div class="sval" [style.color]="avgHealth() !== null ? scoreColor(avgHealth()!) : 'var(--t3)'">
+            {{ avgHealth() ?? '—' }}
+          </div>
+          <div class="ssub">Portfolio score</div>
+        </div>
+        <div class="stat-card">
+          <div class="slbl">Tickets</div>
+          <div class="sval" style="color: var(--t1)">{{ tickets().length }}</div>
+          <div class="ssub">All time</div>
+        </div>
+        <div class="stat-card">
+          <div class="slbl">Subscription</div>
+          <div class="sval" [style.color]="planColor(c.plan)">{{ planLabel(c.plan) }}</div>
+          <div class="ssub">${{ planPrice(c.plan) }}/month</div>
+        </div>
+      </div>
+
+      <div class="g2 u" style="margin-bottom: 22px">
+        <div class="card cp" style="padding: 20px">
+          <div style="font-weight: 700; font-size: 14px; margin-bottom: 14px">Contact & Account</div>
+          <div class="admin-info-grid">
+            <div><span class="admin-info-label">Email</span><span>{{ c.email }}</span></div>
+            <div><span class="admin-info-label">Phone</span><span>{{ c.phone || '—' }}</span></div>
+            <div><span class="admin-info-label">Company</span><span>{{ c.company }}</span></div>
+            <div><span class="admin-info-label">Status</span><span>{{ c.status }}</span></div>
+          </div>
+        </div>
+
+        <div class="card cp" style="padding: 20px">
+          <div style="font-weight: 700; font-size: 14px; margin-bottom: 14px">Assign Subscription</div>
+          <div class="fld">
+            <label>Plan</label>
+            <select class="inp" [value]="c.plan" (change)="onPlanChange($event)">
+              @for (p of plans; track p.id) {
+                <option [value]="p.id">{{ p.name }} — {{ p.priceLabel }}</option>
+              }
+            </select>
+          </div>
+          <div style="margin-top: 12px; font-size: 12.5px; color: var(--t3); line-height: 1.5">
+            @for (feat of currentPlanFeatures(); track feat) {
+              <div>✓ {{ feat }}</div>
+            }
+          </div>
+        </div>
+      </div>
+
+      @if (sites().length) {
+        <div class="sh u">
+          <div class="st">Websites</div>
+        </div>
+        <div class="card u" style="overflow: hidden; margin-bottom: 22px">
+          <table>
+            <thead>
+              <tr>
+                <th>Site</th>
+                <th>Health</th>
+                <th>Status</th>
+                <th>Issues</th>
+                <th>Platform</th>
+                <th>Last Scan</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (s of sites(); track s.id) {
+                <tr>
+                  <td style="font-weight: 600; color: var(--t1)">{{ s.name }}</td>
+                  <td [style.color]="scoreColor(s.health)" style="font-weight: 700">{{ s.health }}</td>
+                  <td>{{ s.st }}</td>
+                  <td>{{ s.issues }}</td>
+                  <td>{{ s.platform }}</td>
+                  <td style="color: var(--t3)">{{ s.scan }}</td>
+                  <td>
+                    @if (s.platform === 'wordpress') {
+                      <button type="button" class="btn bg bs" (click)="openSiteManagement(s.id)">Manage WP</button>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    }
+
+    @if (tab() === 'wordpress') {
+      <app-wordpress-management [customerId]="customerId()" [initialSiteId]="siteQueryId()" />
+    }
+
+    @if (tab() === 'reports') {
+      <app-customer-reports-tab [customerId]="customerId()" />
+    }
+
+    @if (tab() === 'recommendations') {
+      <app-customer-recommendations-tab [customerId]="customerId()" />
+    }
+
+    @if (tab() === 'activity') {
+      <app-customer-activity-tab [customerId]="customerId()" />
+    }
+
+    @if (tab() === 'dashboard') {
+      <div class="u">
+        <app-customer-dashboard-preview [customerId]="customerId()" />
+      </div>
+    }
+  </div>
+} @else {
+  <div class="u">
+    <div class="card" style="padding: 40px; text-align: center">
+      <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px">Customer not found</div>
+      <a routerLink="/admin/customers" class="btn bp bs" style="text-decoration: none; display: inline-flex">
+        Back to Customers
+      </a>
+    </div>
+  </div>
+}

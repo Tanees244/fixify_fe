@@ -1,0 +1,81 @@
+@if (site(); as site) {
+  <div>
+    <div class="ph">
+      <div class="pt">Uptime & Availability</div>
+      <div class="ps">{{ site.name }} · Real-time monitoring · 5-min checks</div>
+    </div>
+
+    <div class="g4 u" style="margin-bottom: 22px">
+      @for (stat of [
+        { l: 'Uptime (30d)', v: site.up + '%', col: site.up >= 99.9 ? 'var(--ok)' : 'var(--wn)', sub: '5-min intervals' },
+        { l: 'Avg Response', v: '182ms', col: 'var(--ok)', sub: 'vs 450ms avg' },
+        { l: 'Incidents (30d)', v: site.up >= 99.9 ? 0 : 2, col: site.up >= 99.9 ? 'var(--ok)' : 'var(--wn)', sub: 'No open incidents' },
+        { l: 'Status', v: 'Online', col: 'var(--ok)', sub: 'All endpoints up' }
+      ]; track stat.l) {
+        <div class="stat-card">
+          <div class="slbl">{{ stat.l }}</div>
+          <div class="sval" [style.color]="stat.col">{{ stat.v }}</div>
+          <div class="ssub">{{ stat.sub }}</div>
+        </div>
+      }
+    </div>
+
+    <div class="card cp u u1" style="margin-bottom: 18px">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px">
+        <div>
+          <div style="font-weight: 700; font-size: 14px">90-Day Uptime History</div>
+          <div style="font-size: 12px; color: var(--t3); margin-top: 2px">
+            Each bar = 1 day · Green = up · Yellow = degraded · Red = incident
+          </div>
+        </div>
+        <app-badge [variant]="site.up >= 99.9 ? 'bok' : 'bwn'">{{ site.up }}% uptime</app-badge>
+      </div>
+      <div style="display: flex; gap: 3px; align-items: flex-end; flex-wrap: wrap">
+        @for (st of segments(); track $index; let i = $index) {
+          <div
+            [title]="'Day ' + (i + 1)"
+            style="width: 8px; border-radius: 3px; cursor: pointer; transition: opacity 0.15s"
+            [style.height.px]="segmentHeight(st)"
+            [style.background]="segmentColor(st)"
+          ></div>
+        }
+      </div>
+    </div>
+
+    <div class="g2 u u2">
+      <div class="card cp">
+        <div style="font-weight: 700; font-size: 14px; margin-bottom: 10px">Response Time Trend</div>
+        <app-spark-line [data]="responseData" color="var(--acc)" [width]="320" [height]="80" chartId="up1" />
+        <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--t3); margin-top: 8px">
+          <span>Min: 165ms</span>
+          <span style="font-weight: 600; color: var(--t1)">Avg: 183ms</span>
+          <span>Max: 203ms</span>
+        </div>
+      </div>
+
+      <div class="card cp">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px">
+          <div style="font-weight: 700; font-size: 14px">Monitored Endpoints</div>
+          <button type="button" class="btn bg bs" (click)="addEndpoint()">
+            <app-icon name="plus" [size]="12" />
+            Add
+          </button>
+        </div>
+        @for (ep of endpoints(); track ep.url; let i = $index; let last = $last) {
+          <div
+            style="display: flex; align-items: center; gap: 8px; padding: 10px 0"
+            [style.border-bottom]="last ? 'none' : '1px solid var(--b2)'"
+          >
+            <span
+              style="width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0"
+              [style.background]="ep.status === 'Online' ? 'var(--ok)' : 'var(--wn)'"
+            ></span>
+            <span style="flex: 1; font-family: 'DM Mono', monospace; font-size: 11px; color: var(--t2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{ ep.url }}</span>
+            <span style="font-size: 12px; color: var(--t3)">{{ ep.ms }}</span>
+            <app-badge [variant]="ep.status === 'Online' ? 'bok' : 'bwn'">{{ ep.status }}</app-badge>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}

@@ -1,0 +1,90 @@
+import { Injectable, computed, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, Router } from '@angular/router';
+import { map } from 'rxjs';
+import { FixifyDataService } from '../../../core/services/fixify-data.service';
+import { AppContextService } from '../../../core/services/app-context.service';
+import { WordPressAdminActionType } from '../../../core/models/fixify.models';
+import { scoreColor } from '../../../core/utils/fixify.utils';
+
+@Injectable()
+export class SiteManageFacade {
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly data = inject(FixifyDataService);
+  private readonly ctx = inject(AppContextService);
+
+  readonly busy = signal(false);
+  readonly scoreColor = scoreColor;
+
+  readonly siteId = toSignal(
+    this.route.paramMap.pipe(map((p) => Number(p.get('siteId')))),
+    { initialValue: Number(this.route.snapshot.paramMap.get('siteId')) }
+  );
+
+  readonly site = computed(() => {
+    const id = this.siteId();
+    return this.data.sites.find((s) => s.id === id);
+  });
+
+  readonly customer = computed(() => {
+    const s = this.site();
+    return s ? this.data.getCustomer(s.custId) : undefined;
+  });
+
+  readonly wpState = computed(() => {
+    const id = this.siteId();
+    return id ? this.data.getWordPressState(id) : undefined;
+  });
+
+  readonly pendingPluginCount = computed(() => {
+    const state = this.wpState();
+    return state ? state.plugins.filter((p) => p.status !== 'ok').length : 0;
+  });
+
+  readonly wpCoreOutdated = computed(() => {
+    const s = this.wpState();
+    return !!s && s.wpVersion !== s.latestWpVersion;
+  });
+
+  readonly themeOutdated = computed(() => {
+    const s = this.wpState();
+    return !!s && s.themeVersion !== s.latestThemeVersion;
+  });
+
+  ensureState(): void {
+    const id = this.siteId();
+    if (id) {
+      this.data.initWordPressState(id);
+    }
+  }
+
+  manageBasePath(): string {
+    return `/admin/sites/${this.siteId()}/manage`;
+  }
+
+  goBack(): void {
+    this.router.navigate(['/admin/sites']);
+  }
+
+  goToCustomer(): void {
+    const s = this.site();
+    if (s) {
+      this.router.navigate(['/admin/customers', s.custId], {
+        queryParams: { tab: 'wordpress', site: s.id },
+      });
+    }
+  }
+
+  async runAction(type: WordPressAdminActionType, pluginId?: string): Promise<void> {
+    const siteId = this.siteId();
+    if (!siteId || this.busy()) return;
+    this.busy.set(true);
+    await this.data.performWordPressAction(siteId, type, pluginId);
+    this.busy.set(false);
+  }
+
+  scanning(): boolean {
+    return this.ctx.scanning();
+  }
+}

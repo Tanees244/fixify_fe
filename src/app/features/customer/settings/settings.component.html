@@ -1,0 +1,67 @@
+<div>
+  <div class="ph">
+    <div class="pt">Settings</div>
+    <div class="ps">Manage your websites, profile, and preferences</div>
+  </div>
+
+  <div class="g2 u">
+    <div style="display: flex; flex-direction: column; gap: 18px">
+      <div class="card cp">
+        <div class="sh" style="margin-bottom: 14px">
+          <div class="st">Your Websites</div>
+          <button type="button" class="btn bp bs" (click)="addSite()">
+            <app-icon name="plus" [size]="12" color="#fff" />
+            Add Site
+          </button>
+        </div>
+        @for (s of sites; track s.id) {
+          <div style="display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--b2)">
+            <app-site-avatar [fa]="s.fa" [size]="34" />
+            <div style="flex: 1">
+              <div style="font-weight: 600; font-size: 13.5px">{{ s.name }}</div>
+              <div style="font-size: 11.5px; color: var(--t3)">{{ s.plan }} · Scanned {{ s.scan }}</div>
+            </div>
+            <app-badge [variant]="siteStatusBadge(s.st)">{{ siteStatusLabel(s.st) }}</app-badge>
+            <button type="button" class="btn bg bs" style="color: var(--er); border-color: var(--er)" (click)="removeSite(s.id)">Remove</button>
+          </div>
+        }
+      </div>
+
+      <div class="card cp">
+        <div class="st" style="margin-bottom: 14px">Profile</div>
+        <div class="fld">
+          <label>Full Name</label>
+          <input class="inp" [ngModel]="profile().name" (ngModelChange)="updateProfileName($event)" />
+        </div>
+        <div class="fld">
+          <label>Email</label>
+          <input class="inp" [ngModel]="profile().email" (ngModelChange)="updateProfileEmail($event)" />
+        </div>
+        <div class="fld">
+          <label>Company</label>
+          <input class="inp" [ngModel]="profile().company" (ngModelChange)="updateProfileCompany($event)" />
+        </div>
+        <div style="display: flex; gap: 10px; margin-top: 6px">
+          <button type="button" class="btn bp" (click)="saveProfile()">Save Changes</button>
+          <button type="button" class="btn bg" (click)="changePassword()">Change Password</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card cp u u1" style="height: fit-content">
+      <div class="st" style="margin-bottom: 14px">Notification Preferences</div>
+      @for (item of notificationItems; track item.key) {
+        <div style="display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--b2)">
+          <div style="flex: 1">
+            <div style="font-size: 13.5px; font-weight: 500; color: var(--t1)">{{ item.label }}</div>
+            <div style="font-size: 11.5px; color: var(--t3); margin-top: 2px">{{ item.desc }}</div>
+          </div>
+          <app-toggle [checked]="notifs()[item.key]" (toggled)="toggleNotif(item.key)" />
+        </div>
+      }
+      <button type="button" class="btn bp" style="margin-top: 14px; width: 100%; justify-content: center" (click)="savePreferences()">
+        Save Preferences
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,118 @@
+@if (site(); as site) {
+  <div>
+    <div class="ph">
+      <div class="pt">Performance</div>
+      <div class="ps">{{ site.name }} · Lighthouse & Core Web Vitals</div>
+    </div>
+
+    <div class="card u" style="margin-bottom: 18px">
+      <div style="padding: 20px 22px 0">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px">
+          <div>
+            <div style="font-weight: 700; font-size: 15px">Lighthouse Scores</div>
+            <div style="font-size: 12px; color: var(--t3); margin-top: 2px">Last scan: {{ site.scan }}</div>
+          </div>
+          <div style="display: flex; gap: 8px">
+            <button type="button" class="btn bg bs" (click)="rescan()" [disabled]="ctx.scanning()">
+              @if (ctx.scanning()) {
+                <app-icon name="loader" [size]="13" />
+              } @else {
+                <app-icon name="refresh" [size]="13" />
+              }
+              {{ ctx.scanning() ? 'Scanning…' : 'Re-scan' }}
+            </button>
+            <button type="button" class="btn bp bs" (click)="exportReport()">
+              <app-icon name="dl" [size]="13" color="#fff" />
+              Export
+            </button>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--b2)">
+          @for (item of lighthouseScores(); track item.label; let i = $index; let last = $last) {
+            <div style="padding: 20px 14px; text-align: center" [style.border-right]="last ? 'none' : '1px solid var(--b2)'">
+              <app-progress-ring [score]="item.value" [size]="86" [strokeWidth]="8" />
+              <div style="font-weight: 700; font-size: 13px; margin-top: 10px">{{ item.label }}</div>
+              <div style="margin-top: 6px">
+                <app-badge [variant]="scoreBadge(item.value)">{{ scoreLabel(item.value) }}</app-badge>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="g2 u u1" style="margin-bottom: 18px">
+      <div class="card cp">
+        <div style="font-weight: 700; font-size: 14px; margin-bottom: 14px">Core Web Vitals</div>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px">
+          @for (m of cwv(); track m.label) {
+            <div style="background: var(--s2); border: 1px solid var(--bd); border-radius: 10px; padding: 12px">
+              <div style="font-size: 10px; color: var(--t3); font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 6px">
+                {{ m.label }}
+              </div>
+              <div style="font-size: 20px; font-weight: 700" [style.color]="cwvColor(m.status)">{{ m.value }}</div>
+              <div style="font-size: 10.5px; color: var(--t3); margin: 3px 0 7px">{{ m.desc }}</div>
+              <app-badge [variant]="cwvBadge(m.status)">{{ cwvLabel(m.status) }}</app-badge>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="card cp">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px">
+          <div style="font-weight: 700; font-size: 14px">Score History</div>
+          <app-badge variant="bgr">Last 9 scans</app-badge>
+        </div>
+        <div style="height: 100px; display: flex; align-items: flex-end; gap: 4px">
+          @for (v of history(); track $index; let i = $index; let last = $last) {
+            <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px">
+              <div
+                style="width: 100%; border-radius: 3px 3px 0 0; min-height: 4px; transition: height 0.5s ease"
+                [style.background]="scoreColor(v)"
+                [style.opacity]="last ? 1 : 0.6"
+                [style.height.%]="v"
+              ></div>
+              <span style="font-size: 9px; color: var(--t3)">{{ v }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="u u2">
+      <div class="sh"><div class="st">Page-Level Breakdown</div></div>
+      <div class="card" style="overflow: hidden">
+        <table>
+          <thead>
+            <tr>
+              <th>Page</th>
+              <th>Score</th>
+              <th>LCP</th>
+              <th>FID</th>
+              <th>CLS</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (p of pages(); track p.url) {
+              <tr>
+                <td><span style="font-family: 'DM Mono', monospace; font-size: 12.5px">{{ p.url }}</span></td>
+                <td>
+                  <div style="display: flex; align-items: center; gap: 8px; min-width: 120px">
+                    <app-progress-bar [value]="p.score" />
+                    <span style="font-size: 12px; font-weight: 700" [style.color]="scoreColor(p.score)">{{ p.score }}</span>
+                  </div>
+                </td>
+                <td style="font-family: 'DM Mono', monospace; font-size: 12.5px" [style.color]="metricColor(p.lcp, 'lcp')">{{ p.lcp }}</td>
+                <td style="font-family: 'DM Mono', monospace; font-size: 12.5px">{{ p.fid }}</td>
+                <td style="font-family: 'DM Mono', monospace; font-size: 12.5px">{{ p.cls }}</td>
+                <td><app-badge [variant]="scoreBadge(p.score)">{{ pageStatus(p.score) }}</app-badge></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+}

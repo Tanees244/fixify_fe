@@ -1,0 +1,153 @@
+<div>
+  <div class="ph">
+    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px">
+      <div class="pt">AI Insights</div>
+      <span style="display: inline-flex; align-items: center; gap: 5px; font-size: 10.5px; font-weight: 600; padding: 3px 9px; border-radius: 99px; background: linear-gradient(135deg, #dbeafe, #e0f9ff); color: var(--acc); border: 1px solid var(--acm)">
+        ✦ Powered by AI
+      </span>
+    </div>
+    <div class="ps">Intelligent analysis, insights & automation processes</div>
+  </div>
+
+  <div class="tabs">
+    @for (t of [
+      { id: 'ask', label: 'Ask AI' },
+      { id: 'insights', label: 'Insights (' + insights().length + ')' },
+      { id: 'processes', label: 'Processes (' + processes().length + ')' }
+    ]; track t.id) {
+      <div class="tab" [class.on]="tab() === t.id" (click)="setTab($any(t.id))">{{ t.label }}</div>
+    }
+  </div>
+
+  @if (tab() === 'ask') {
+    <div>
+      <div class="card cp u" style="margin-bottom: 22px; background: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 100%)">
+        <div style="font-weight: 700; font-size: 15px; margin-bottom: 10px">Ask about your websites</div>
+        <div style="display: flex; gap: 10px">
+          <input
+            [ngModel]="question()"
+            (ngModelChange)="question.set($event)"
+            (keydown.enter)="askAi()"
+            placeholder="e.g. Why is my performance score dropping?"
+            style="flex: 1; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--acm); background: var(--sr); font-size: 13.5px; outline: none; color: var(--t1)"
+          />
+          <button type="button" class="btn bp" (click)="askAi()" [disabled]="loading() || !question().trim()" style="flex-shrink: 0">
+            @if (loading()) {
+              <app-icon name="loader" [size]="14" color="#fff" />
+            } @else {
+              <app-icon name="send" [size]="14" color="#fff" />
+            }
+            {{ loading() ? 'Thinking…' : 'Ask AI' }}
+          </button>
+        </div>
+        <div style="display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap">
+          @for (s of suggestions; track s) {
+            <span
+              (click)="selectSuggestion(s)"
+              style="cursor: pointer; font-size: 12px; padding: 5px 12px; background: var(--sr); border: 1px solid var(--acm); border-radius: 99px; color: var(--acc); font-weight: 500"
+            >{{ s }}</span>
+          }
+        </div>
+        @if (answer()) {
+          <div style="margin-top: 14px; padding: 14px 16px; background: var(--sr); border-radius: 10px; border: 1px solid var(--acm); font-size: 13.5px; color: var(--t1); line-height: 1.75; white-space: pre-line">
+            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px; font-weight: 600; color: var(--acc); font-size: 12px">✦ AI Response</div>
+            {{ answer() }}
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  @if (tab() === 'insights') {
+    <div>
+      <div class="sh">
+        <div class="st">Latest Insights</div>
+        <div style="display: flex; gap: 5px">
+          @for (f of ['All', 'Critical', 'High', 'Medium', 'Info']; track f) {
+            <span class="flt-chip" [class.on]="filter() === f" (click)="setFilter($any(f))">{{ f }}</span>
+          }
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        @for (ins of filteredInsights(); track ins.id; let i = $index) {
+          <div class="card u" style="padding: 16px 20px; cursor: pointer" [style.border-left]="'3px solid ' + insightBorderColor(ins.sev)">
+            <div style="display: flex; align-items: flex-start; gap: 12px">
+              <div
+                style="width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0"
+                [style.background]="severityBg(ins.sev)"
+              >
+                {{ severityIcon(ins.sev) }}
+              </div>
+              <div style="flex: 1">
+                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 5px">
+                  <span style="font-weight: 700; font-size: 14px">{{ ins.title }}</span>
+                  <app-badge [variant]="severityBadge(ins.sev)">{{ ins.sev }}</app-badge>
+                  <app-badge variant="bgr">{{ ins.cat }}</app-badge>
+                  <span style="margin-left: auto; font-size: 11px; color: var(--t3)">{{ ins.site }} · {{ ins.time }}</span>
+                </div>
+                <div style="font-size: 13.5px; color: var(--t2); line-height: 1.65; margin-bottom: 10px">{{ ins.body }}</div>
+                <button type="button" class="btn bp bs" (click)="takeAction(ins)">
+                  <app-icon name="chevR" [size]="12" color="#fff" />
+                  {{ ins.action }}
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  @if (tab() === 'processes') {
+    <div>
+      <div style="background: linear-gradient(135deg, #eff6ff, #f0f9ff); border: 1px solid var(--acm); border-radius: 14px; padding: 18px 20px; margin-bottom: 20px; display: flex; align-items: center; gap: 16px">
+        <div style="flex: 1">
+          <div style="font-weight: 700; font-size: 15px; margin-bottom: 4px">Automation Processes</div>
+          <div style="font-size: 13px; color: var(--t3); line-height: 1.55">
+            Create scheduled workflows that automatically maintain your websites — update plugins, run security scans, generate reports, and more.
+          </div>
+        </div>
+        <button type="button" class="btn bp" style="flex-shrink: 0" (click)="openCreateProcess()">
+          <app-icon name="plus" [size]="13" color="#fff" />
+          New Process
+        </button>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 20px">
+        @for (stat of [
+          { l: 'Active', v: activeProcessCount(), c: 'var(--ok)' },
+          { l: 'Paused', v: pausedProcessCount(), c: 'var(--wn)' },
+          { l: 'Total Runs', v: totalRuns(), c: 'var(--acc)' }
+        ]; track stat.l) {
+          <div style="background: var(--sr); border: 1px solid var(--bd); border-radius: 12px; padding: 14px 16px; text-align: center; box-shadow: var(--s1)">
+            <div style="font-size: 24px; font-weight: 700" [style.color]="stat.c">{{ stat.v }}</div>
+            <div style="font-size: 12px; color: var(--t3); margin-top: 2px">{{ stat.l }}</div>
+          </div>
+        }
+      </div>
+
+      @if (processes().length === 0) {
+        <div style="text-align: center; padding: 48px 24px; background: var(--sr); border-radius: 14px; border: 2px dashed var(--bd)">
+          <app-icon name="refresh" [size]="36" color="var(--t3)" />
+          <div style="font-weight: 600; font-size: 15px; color: var(--t2); margin: 12px 0 6px">No processes yet</div>
+          <div style="font-size: 13.5px; color: var(--t3); margin-bottom: 16px">Create your first automation to keep your sites maintained automatically.</div>
+          <button type="button" class="btn bp" (click)="openCreateProcess()">
+            <app-icon name="plus" [size]="13" color="#fff" />
+            Create First Process
+          </button>
+        </div>
+      }
+
+      <div style="display: flex; flex-direction: column; gap: 14px">
+        @for (p of processes(); track p.id) {
+          <app-process-card
+            [proc]="p"
+            (toggle)="toggleProcess($event)"
+            (run)="runProcess($event)"
+            (edit)="editProcess($event)"
+          />
+        }
+      </div>
+    </div>
+  }
+</div>

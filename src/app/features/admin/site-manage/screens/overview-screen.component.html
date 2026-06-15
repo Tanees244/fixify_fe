@@ -1,0 +1,74 @@
+@if (facade.wpState(); as state) {
+  <div class="site-manage-page u">
+    <div class="site-manage-page-hd">
+      <div>
+        <div class="st">Site Management</div>
+        <div class="ps">Choose an area to manage {{ facade.site()?.name }}</div>
+      </div>
+    </div>
+
+    <div class="g4 u" style="margin-bottom: 22px">
+      <div class="stat-card">
+        <div class="slbl">
+          <app-icon name="refresh" [size]="13" color="var(--acc)" />
+          WordPress
+        </div>
+        <div class="sval" [style.color]="facade.wpCoreOutdated() ? 'var(--wn)' : 'var(--ok)'">{{ state.wpVersion }}</div>
+        <div class="ssub">{{ facade.wpCoreOutdated() ? 'Update available' : 'Up to date' }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="slbl">
+          <app-icon name="layers" [size]="13" color="var(--acc)" />
+          Plugins
+        </div>
+        <div class="sval" [style.color]="facade.pendingPluginCount() ? 'var(--wn)' : 'var(--ok)'">
+          {{ facade.pendingPluginCount() }}
+        </div>
+        <div class="ssub">Updates pending</div>
+      </div>
+      <div class="stat-card">
+        <div class="slbl">
+          <app-icon name="activity" [size]="13" color="var(--acc)" />
+          PHP
+        </div>
+        <div class="sval" style="color: var(--t1)">{{ state.phpVersion }}</div>
+        <div class="ssub">Runtime version</div>
+      </div>
+      <div class="stat-card">
+        <div class="slbl">
+          <app-icon name="file" [size]="13" color="var(--acc)" />
+          Theme
+        </div>
+        <div class="sval" [style.color]="facade.themeOutdated() ? 'var(--wn)' : 'var(--t1)'">{{ state.activeTheme }}</div>
+        <div class="ssub">v{{ state.themeVersion }}</div>
+      </div>
+    </div>
+
+    <div class="sh u">
+      <div class="st">Management Screens</div>
+    </div>
+
+    <div class="site-manage-card-grid u">
+      @for (section of sections; track section.path) {
+        <a [routerLink]="[facade.manageBasePath(), section.path]" class="site-manage-card card cp">
+          <div class="site-manage-card-top">
+            <div class="site-manage-card-icon">
+              <app-icon [name]="section.icon" [size]="18" color="var(--acc)" />
+            </div>
+            @if (section.badge?.(); as count) {
+              @if (count > 0) {
+                <span class="nct w">{{ count }}</span>
+              }
+            }
+          </div>
+          <div class="site-manage-card-title">{{ section.title }}</div>
+          <div class="site-manage-card-desc">{{ section.desc }}</div>
+          <div class="site-manage-card-link">
+            Open
+            <app-icon name="chevR" [size]="13" />
+          </div>
+        </a>
+      }
+    </div>
+  </div>
+}

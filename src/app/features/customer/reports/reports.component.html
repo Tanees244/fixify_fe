@@ -1,0 +1,104 @@
+@if (site(); as site) {
+  <div>
+    <div class="ph">
+      <div>
+        <div class="pt">Reports</div>
+        <div class="ps">{{ site.name }} · Monthly summaries & Fixify team updates</div>
+      </div>
+    </div>
+
+    <div class="g3 u" style="margin-bottom: 22px">
+      <div class="stat-card">
+        <div class="slbl">Reports</div>
+        <div class="sval" style="color: var(--acc)">{{ stats().count }}</div>
+        <div class="ssub">On file for this site</div>
+      </div>
+      <div class="stat-card">
+        <div class="slbl">Current Health</div>
+        <div class="sval" [style.color]="scoreColor(stats().health)">{{ stats().health }}</div>
+        <div class="ssub">{{ site.name }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="slbl">Issues Resolved</div>
+        <div class="sval" style="color: var(--ok)">{{ stats().resolved }}</div>
+        <div class="ssub">Across all reports</div>
+      </div>
+    </div>
+
+    @if (adminUpdates().length) {
+      <div class="sh u"><div class="st">Latest Fixify Team Updates</div></div>
+      <div style="background: var(--sr); border: 1px solid var(--bd); border-radius: 14px; overflow: hidden; margin-bottom: 26px; box-shadow: var(--s1)" class="u">
+        @for (a of adminUpdates(); track a.id; let last = $last) {
+          <div style="padding: 14px 18px; display: flex; gap: 12px; align-items: flex-start" [style.border-bottom]="last ? 'none' : '1px solid var(--b2)'">
+            <div style="width: 32px; height: 32px; border-radius: 8px; background: var(--acl); display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+              <app-icon name="zap" [size]="14" color="var(--acc)" />
+            </div>
+            <div style="flex: 1">
+              <div style="font-weight: 600; font-size: 13.5px; color: var(--t1)">{{ a.action }}</div>
+              <div style="font-size: 12px; color: var(--t3); margin: 3px 0 4px">{{ a.siteName }} · {{ a.performedAt }}</div>
+              <div style="font-size: 13px; color: var(--t2)">{{ a.details }}</div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    @if (recommendations().length) {
+      <div class="sh u"><div class="st">Recommendations from Fixify</div></div>
+      <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 26px" class="u">
+        @for (r of recommendations(); track r.id) {
+          <div class="card cp" style="padding: 14px 18px">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap">
+              <span style="font-weight: 600; font-size: 14px; color: var(--t1)">{{ r.title }}</span>
+              <app-badge [variant]="priorityBadge(r.priority)">{{ r.priority }}</app-badge>
+              <app-badge variant="bac">{{ r.category }}</app-badge>
+            </div>
+            <div style="font-size: 13px; color: var(--t2); line-height: 1.55">{{ r.body }}</div>
+          </div>
+        }
+      </div>
+    }
+
+    <div class="sh u"><div class="st">Monthly Reports</div></div>
+
+    @if (reports().length === 0) {
+      <div class="card u" style="padding: 32px; text-align: center; color: var(--t3)">
+        No monthly reports yet for {{ site.name }}. Your Fixify admin will generate and publish them here.
+      </div>
+    } @else {
+      <div style="display: flex; flex-direction: column; gap: 10px" class="u">
+        @for (r of reports(); track r.id; let i = $index) {
+          <div class="card cp">
+            <div style="display: flex; align-items: center; gap: 14px; cursor: pointer" (click)="toggleReport(r)">
+              <div style="width: 44px; height: 44px; border-radius: 10px; background: var(--acl); display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+                <app-icon name="file" [size]="20" color="var(--acc)" />
+              </div>
+              <div style="flex: 1">
+                <div style="font-weight: 600; font-size: 14px; color: var(--t1)">{{ r.month }} — Health Report</div>
+                <div style="font-size: 12px; color: var(--t3); margin-top: 3px">Score {{ r.health }} · Generated {{ r.generatedAt }}</div>
+              </div>
+              @if (i === 0) { <app-badge variant="bac">Latest</app-badge> }
+              <button type="button" class="btn bg bs" (click)="downloadReport(r); $event.stopPropagation()">
+                <app-icon name="dl" [size]="13" /> Download
+              </button>
+            </div>
+            @if (expandedReportId() === r.id) {
+              <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--b2)">
+                <div class="g4" style="margin-bottom: 12px">
+                  <div><span class="admin-info-label">Health</span><strong [style.color]="scoreColor(r.health)">{{ r.health }}</strong></div>
+                  <div><span class="admin-info-label">Perf</span><strong>{{ r.perf }}</strong></div>
+                  <div><span class="admin-info-label">Security</span><strong>{{ r.sec }}</strong></div>
+                  <div><span class="admin-info-label">SEO</span><strong>{{ r.seo }}</strong></div>
+                </div>
+                <p style="font-size: 13px; color: var(--t2); line-height: 1.6">{{ r.summary }}</p>
+                @for (h of r.highlights; track h) {
+                  <div style="font-size: 12.5px; color: var(--t3); margin-top: 4px">✓ {{ h }}</div>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+}
