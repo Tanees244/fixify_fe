@@ -68,8 +68,11 @@
             <th></th>
           </tr>
         </thead>
-        <tbody>
-          @for (p of filteredPlugins(); track p.id) {
+        @if (loading()) {
+          <app-table-skeleton [rows]="6" [cols]="7" />
+        } @else {
+          <tbody>
+            @for (p of filteredPlugins(); track p.id) {
             <tr [class.site-manage-row-selected]="isSelected(p.id)">
               <td>
                 <input
@@ -102,8 +105,9 @@
                 No plugins match this filter
               </td>
             </tr>
-          }
-        </tbody>
+            }
+          </tbody>
+        }
       </table>
     </div>
 

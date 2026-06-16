@@ -33,12 +33,19 @@ export function ticketStatusBadge(s: TicketStatus): BadgeVariant {
     inprogress: 'bwn',
     testing: 'bac',
     resolved: 'bok',
+    closed: 'bgr',
   };
   return map[s] ?? 'bgr';
 }
 
 export function ticketStatusLabel(s: TicketStatus | string): string {
-  return ({ open: 'Open', inprogress: 'In Progress', testing: 'Testing', resolved: 'Resolved' })[s] || s;
+  return ({
+    open: 'Open',
+    inprogress: 'In Progress',
+    testing: 'Testing',
+    resolved: 'Resolved',
+    closed: 'Closed',
+  })[s] || s;
 }
 
 export function severityBadge(s: InsightSeverity): BadgeVariant {

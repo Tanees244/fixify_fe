@@ -11,12 +11,13 @@ import { Customer, Ticket, TicketStatus } from '../../../core/models/fixify.mode
 import { priorityBadge, ticketStatusLabel } from '../../../core/utils/fixify.utils';
 import { BadgeComponent, BadgeVariant } from '../../../shared/components/badge/badge.component';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
+import { TableSkeletonComponent } from '../../../shared/components/table-skeleton/table-skeleton.component';
 
 @Component({
   selector: 'app-admin-tickets',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent, BadgeComponent],
+  imports: [IconComponent, BadgeComponent, TableSkeletonComponent],
   templateUrl: './tickets.component.html',
 })
 export class TicketsComponent {
@@ -25,6 +26,7 @@ export class TicketsComponent {
 
   readonly tickets = this.data.tickets;
   readonly customers = this.data.customers;
+  readonly loading = this.data.loading;
 
   readonly search = signal('');
   readonly statusFilter = signal('all');
@@ -34,11 +36,13 @@ export class TicketsComponent {
   readonly priorityBadge = priorityBadge;
   readonly ticketStatusLabel = ticketStatusLabel;
 
-  readonly openCount = computed(() =>
-    this.tickets.filter((t) => t.status !== 'resolved').length
-  );
+  readonly openCount = computed(() => {
+    this.data.dataRevision();
+    return this.tickets.filter((t) => t.status !== 'resolved').length;
+  });
 
   readonly filteredTickets = computed(() => {
+    this.data.dataRevision();
     const q = this.search().toLowerCase();
     const status = this.statusFilter();
     const pri = this.priorityFilter();
@@ -57,6 +61,10 @@ export class TicketsComponent {
 
   customerFor(custId: number): Customer | undefined {
     return this.customers.find((c) => c.id === custId);
+  }
+
+  customerName(t: Ticket): string {
+    return t.customerName ?? this.customerFor(t.custId)?.name ?? '—';
   }
 
   typeBadge(type: string): BadgeVariant {

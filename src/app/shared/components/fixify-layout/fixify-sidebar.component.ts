@@ -8,6 +8,7 @@ import { ADMIN_NAV, CUSTOMER_NAV } from '../../../core/constants/fixify.constant
 import { AppContextService } from '../../../core/services/app-context.service';
 import { FixifyDataService } from '../../../core/services/fixify-data.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { RouteDataLoaderService } from '../../../core/services/route-data-loader.service';
 import { IconComponent } from '../icon/icon.component';
 
 const CUSTOMER_ROUTES: Record<string, string> = {
@@ -132,6 +133,7 @@ export class FixifySidebarComponent {
   protected readonly data = inject(FixifyDataService);
   protected readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly routeLoader = inject(RouteDataLoaderService);
 
   readonly customerNav = CUSTOMER_NAV;
   readonly adminNav = ADMIN_NAV;
@@ -153,6 +155,7 @@ export class FixifySidebarComponent {
     const site = this.mySites.find((s) => s.id === id);
     if (site) {
       this.ctx.selectedSite.set(site);
+      this.routeLoader.reloadCurrentRoute();
     }
   }
 

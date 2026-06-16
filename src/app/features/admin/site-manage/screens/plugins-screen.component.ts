@@ -6,9 +6,11 @@ import {
   signal,
 } from '@angular/core';
 import { SiteManageFacade } from '../site-manage.facade';
+import { FixifyDataService } from '../../../../core/services/fixify-data.service';
 import { WordPressPlugin } from '../../../../core/models/fixify.models';
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
 import { BadgeComponent } from '../../../../shared/components/badge/badge.component';
+import { TableSkeletonComponent } from '../../../../shared/components/table-skeleton/table-skeleton.component';
 
 type PluginFilter = 'all' | 'updates' | 'vulnerable' | 'active';
 
@@ -16,16 +18,22 @@ type PluginFilter = 'all' | 'updates' | 'vulnerable' | 'active';
   selector: 'app-site-manage-plugins',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent, BadgeComponent],
+  imports: [IconComponent, BadgeComponent, TableSkeletonComponent],
   templateUrl: './plugins-screen.component.html',
 })
 export class PluginsScreenComponent {
   protected readonly facade = inject(SiteManageFacade);
+  private readonly data = inject(FixifyDataService);
+
+  readonly loading = this.data.loading;
 
   readonly filter = signal<PluginFilter>('all');
   readonly selected = signal<Set<string>>(new Set());
 
-  readonly plugins = computed(() => this.facade.wpState()?.plugins ?? []);
+  readonly plugins = computed(() => {
+    this.data.dataRevision();
+    return this.facade.wpState()?.plugins ?? [];
+  });
 
   readonly filteredPlugins = computed(() => {
     const f = this.filter();

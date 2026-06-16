@@ -11,6 +11,7 @@ import { AppContextService } from '../../../core/services/app-context.service';
 import { Customer, SubscriptionPlan } from '../../../core/models/fixify.models';
 import { BadgeComponent, BadgeVariant } from '../../../shared/components/badge/badge.component';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
+import { TableSkeletonComponent } from '../../../shared/components/table-skeleton/table-skeleton.component';
 
 type SubTab = 'plans' | 'assignments' | 'approvals';
 
@@ -18,7 +19,7 @@ type SubTab = 'plans' | 'assignments' | 'approvals';
   selector: 'app-admin-subscriptions',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent, BadgeComponent],
+  imports: [IconComponent, BadgeComponent, TableSkeletonComponent],
   templateUrl: './subscriptions.component.html',
 })
 export class SubscriptionsComponent {
@@ -27,6 +28,7 @@ export class SubscriptionsComponent {
   private readonly router = inject(Router);
 
   readonly customers = this.data.customers;
+  readonly loading = this.data.loading;
 
   readonly tab = signal<SubTab>('plans');
   readonly search = signal('');
@@ -44,6 +46,7 @@ export class SubscriptionsComponent {
   );
 
   readonly filteredAssignments = computed(() => {
+    this.data.dataRevision();
     const q = this.search().toLowerCase();
     return this.approvedCustomers().filter(
       (c) =>

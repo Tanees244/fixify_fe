@@ -1,5 +1,5 @@
 export type SiteStatus = 'ok' | 'warn' | 'bad';
-export type TicketStatus = 'open' | 'inprogress' | 'testing' | 'resolved';
+export type TicketStatus = 'open' | 'inprogress' | 'testing' | 'resolved' | 'closed';
 export type TicketPriority = 'critical' | 'high' | 'medium' | 'low';
 export type InsightSeverity = 'critical' | 'high' | 'medium' | 'info';
 export type AppMode = 'customer' | 'admin';
@@ -25,6 +25,8 @@ export type CustomerApprovalStatus = 'pending' | 'approved' | 'rejected';
 
 export interface Customer {
   id: number;
+  /** Backend client profile id */
+  apiId?: string;
   name: string;
   email: string;
   company: string;
@@ -38,6 +40,10 @@ export interface Customer {
 
 export interface Site {
   id: number;
+  /** Backend website id */
+  apiId?: string;
+  /** Full site URL */
+  domain?: string;
   name: string;
   fa: string;
   health: number;
@@ -59,8 +65,14 @@ export interface Site {
 
 export interface Ticket {
   id: string;
+  /** Backend ticket id */
+  apiId?: string;
+  /** Backend website id */
+  websiteApiId?: string;
   title: string;
   site: string;
+  /** Populated from API when customer list is not loaded */
+  customerName?: string;
   custId: number;
   type: string;
   pri: TicketPriority;

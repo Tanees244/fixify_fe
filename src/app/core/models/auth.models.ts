@@ -8,6 +8,8 @@ export interface AuthUser {
   avatar: string;
   subtitle: string;
   customerId?: number;
+  /** Mongo client profile id from API */
+  clientProfileId?: string;
 }
 
 export interface LoginCredentials {

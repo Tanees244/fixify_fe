@@ -14,6 +14,7 @@ import { FixifyTopbarComponent } from './fixify-topbar.component';
 import { FixifyDataService } from '../../../core/services/fixify-data.service';
 import { AppContextService } from '../../../core/services/app-context.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { RouteDataLoaderService } from '../../../core/services/route-data-loader.service';
 
 @Component({
   selector: 'app-fixify-layout',
@@ -42,6 +43,7 @@ import { AuthService } from '../../../core/services/auth.service';
 })
 export class FixifyLayoutComponent implements OnInit {
   private readonly data = inject(FixifyDataService);
+  private readonly routeLoader = inject(RouteDataLoaderService);
   private readonly ctx = inject(AppContextService);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
@@ -52,13 +54,18 @@ export class FixifyLayoutComponent implements OnInit {
         filter((e) => e instanceof NavigationEnd),
         takeUntilDestroyed()
       )
-      .subscribe(() => this.syncModeFromUrl());
+      .subscribe((e) => {
+        this.syncModeFromUrl();
+        this.routeLoader.loadForUrl((e as NavigationEnd).urlAfterRedirects);
+      });
   }
 
   ngOnInit(): void {
-    this.data.loadAll();
-    this.syncModeFromAuth();
-    this.syncModeFromUrl();
+    this.auth.restoreSession().subscribe(() => {
+      this.syncModeFromAuth();
+      this.syncModeFromUrl();
+      this.routeLoader.loadForUrl(this.router.url);
+    });
   }
 
   private syncModeFromAuth(): void {

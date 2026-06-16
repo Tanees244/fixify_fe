@@ -12,6 +12,7 @@ import { Customer } from '../../../core/models/fixify.models';
 import { scoreColor } from '../../../core/utils/fixify.utils';
 import { BadgeComponent, BadgeVariant } from '../../../shared/components/badge/badge.component';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
+import { TableSkeletonComponent } from '../../../shared/components/table-skeleton/table-skeleton.component';
 
 type CustomerTab = 'all' | 'pending' | 'active';
 
@@ -19,7 +20,7 @@ type CustomerTab = 'all' | 'pending' | 'active';
   selector: 'app-admin-customers',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent, BadgeComponent],
+  imports: [IconComponent, BadgeComponent, TableSkeletonComponent],
   templateUrl: './customers.component.html',
 })
 export class CustomersComponent {
@@ -29,6 +30,7 @@ export class CustomersComponent {
 
   readonly customers = this.data.customers;
   readonly sites = this.data.sites;
+  readonly loading = this.data.loading;
 
   readonly search = signal('');
   readonly tab = signal<CustomerTab>('all');
@@ -50,15 +52,18 @@ export class CustomersComponent {
     return this.data.planPrice(id);
   }
 
-  readonly pendingCount = computed(
-    () => this.customers.filter((c) => c.approvalStatus === 'pending').length
-  );
+  readonly pendingCount = computed(() => {
+    this.data.dataRevision();
+    return this.customers.filter((c) => c.approvalStatus === 'pending').length;
+  });
 
-  readonly activeCount = computed(() =>
-    this.customers.filter((c) => c.status === 'active' && c.approvalStatus === 'approved').length
-  );
+  readonly activeCount = computed(() => {
+    this.data.dataRevision();
+    return this.customers.filter((c) => c.status === 'active' && c.approvalStatus === 'approved').length;
+  });
 
   readonly filteredCustomers = computed(() => {
+    this.data.dataRevision();
     const q = this.search().toLowerCase();
     const tab = this.tab();
     return this.customers.filter((c) => {

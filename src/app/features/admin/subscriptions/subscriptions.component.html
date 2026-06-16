@@ -97,8 +97,11 @@
             <th></th>
           </tr>
         </thead>
-        <tbody>
-          @for (c of filteredAssignments(); track c.id) {
+        @if (loading()) {
+          <app-table-skeleton [rows]="5" [cols]="7" />
+        } @else {
+          <tbody>
+            @for (c of filteredAssignments(); track c.id) {
             <tr>
               <td>
                 <div style="display: flex; align-items: center; gap: 10px">
@@ -135,8 +138,9 @@
                 </button>
               </td>
             </tr>
-          }
-        </tbody>
+            }
+          </tbody>
+        }
       </table>
     </div>
   }

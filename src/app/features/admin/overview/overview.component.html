@@ -78,36 +78,46 @@
           <th>Age</th>
         </tr>
       </thead>
-      <tbody>
-        @for (t of recentTickets(); track t.id) {
-          <tr>
-            <td>
-              <div>
-                <span
-                  style="font-family: 'DM Mono', monospace; font-size: 11px; color: var(--acc); font-weight: 600"
-                  >{{ t.id }}</span
-                >
-                <div style="font-size: 12.5px; color: var(--t1); font-weight: 500; margin-top: 1px">
-                  {{ t.title }}
+      @if (loading()) {
+        <app-table-skeleton [rows]="4" [cols]="6" />
+      } @else {
+        <tbody>
+          @for (t of recentTickets(); track t.id) {
+            <tr>
+              <td>
+                <div>
+                  <span
+                    style="font-family: 'DM Mono', monospace; font-size: 11px; color: var(--acc); font-weight: 600"
+                    >{{ t.id }}</span
+                  >
+                  <div style="font-size: 12.5px; color: var(--t1); font-weight: 500; margin-top: 1px">
+                    {{ t.title }}
+                  </div>
                 </div>
-              </div>
-            </td>
-            <td style="font-size: 12.5px">{{ t.site }}</td>
-            <td style="font-size: 12.5px; color: var(--t2)">
-              {{ customerFor(t.custId)?.name || '—' }}
-            </td>
-            <td>
-              <app-badge [variant]="priorityBadge(t.pri)">{{ t.pri }}</app-badge>
-            </td>
-            <td>
-              <app-badge [variant]="ticketStatusBadge(t.status)">{{
-                ticketStatusLabel(t.status)
-              }}</app-badge>
-            </td>
-            <td style="font-size: 12px; color: var(--t3)">{{ t.ago }}</td>
-          </tr>
-        }
-      </tbody>
+              </td>
+              <td style="font-size: 12.5px">{{ t.site }}</td>
+              <td style="font-size: 12.5px; color: var(--t2)">
+                {{ customerName(t) }}
+              </td>
+              <td>
+                <app-badge [variant]="priorityBadge(t.pri)">{{ t.pri }}</app-badge>
+              </td>
+              <td>
+                <app-badge [variant]="ticketStatusBadge(t.status)">{{
+                  ticketStatusLabel(t.status)
+                }}</app-badge>
+              </td>
+              <td style="font-size: 12px; color: var(--t3)">{{ t.ago }}</td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6" style="text-align: center; padding: 28px; color: var(--t3)">
+                No recent tickets
+              </td>
+            </tr>
+          }
+        </tbody>
+      }
     </table>
   </div>
 </div>

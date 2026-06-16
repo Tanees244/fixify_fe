@@ -66,8 +66,11 @@
           <th>Actions</th>
         </tr>
       </thead>
-      <tbody>
-        @for (c of filteredCustomers(); track c.id) {
+      @if (loading()) {
+        <app-table-skeleton [rows]="6" [cols]="7" />
+      } @else {
+        <tbody>
+          @for (c of filteredCustomers(); track c.id) {
           <tr>
             <td>
               <div style="display: flex; align-items: center; gap: 10px">
@@ -129,6 +132,7 @@
           </tr>
         }
       </tbody>
+      }
     </table>
   </div>
 </div>

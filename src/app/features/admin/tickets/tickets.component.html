@@ -41,8 +41,8 @@
       <option value="all">All Status</option>
       <option value="open">Open</option>
       <option value="inprogress">In Progress</option>
-      <option value="testing">Testing</option>
       <option value="resolved">Resolved</option>
+      <option value="closed">Closed</option>
     </select>
     <select
       class="inp"
@@ -62,7 +62,6 @@
     <table>
       <thead>
         <tr>
-          <th>ID</th>
           <th>Issue</th>
           <th>Site</th>
           <th>Customer</th>
@@ -73,66 +72,65 @@
           <th>Actions</th>
         </tr>
       </thead>
-      <tbody>
-        @if (filteredTickets().length === 0) {
-          <tr>
-            <td colspan="9" style="text-align: center; padding: 32px; color: var(--t3)">
-              No tickets match filters
-            </td>
-          </tr>
-        }
-        @for (t of filteredTickets(); track t.id) {
-          <tr style="cursor: pointer">
-            <td (click)="viewTicket(t)">
-              <span
-                style="font-family: 'DM Mono', monospace; font-size: 11px; color: var(--acc); font-weight: 600"
-                >{{ t.id }}</span
-              >
-            </td>
-            <td
-              (click)="viewTicket(t)"
-              style="max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; font-size: 12.5px; color: var(--t1)"
-            >
-              {{ t.title }}
-            </td>
-            <td style="font-size: 12px">{{ t.site }}</td>
-            <td style="font-size: 12px; color: var(--t2)">
-              {{ customerFor(t.custId)?.name || '—' }}
-            </td>
-            <td>
-              <app-badge [variant]="typeBadge(t.type)">{{ t.type }}</app-badge>
-            </td>
-            <td>
-              <app-badge [variant]="priorityBadge(t.pri)">{{ t.pri }}</app-badge>
-            </td>
-            <td>
-              <select
-                style="border: 1px solid var(--bd); border-radius: 6px; padding: 3px 7px; font-size: 11.5px; color: var(--t2); background: var(--s2); cursor: pointer; outline: none"
-                [value]="t.status"
-                (change)="updateStatus(t.id, $any($event.target).value, $event)"
-              >
-                <option value="open">Open</option>
-                <option value="inprogress">In Progress</option>
-                <option value="testing">Testing</option>
-                <option value="resolved">Resolved</option>
-              </select>
-            </td>
-            <td style="font-size: 12px">{{ t.who }}</td>
-            <td>
-              <div style="display: flex; gap: 5px">
-                <button
-                  class="btn bg bs"
-                  type="button"
-                  (click)="$event.stopPropagation(); viewTicket(t)"
+      @if (loading()) {
+        <app-table-skeleton [rows]="6" [cols]="9" />
+      } @else {
+        <tbody>
+          @if (filteredTickets().length === 0) {
+            <tr>
+              <td colspan="9" style="text-align: center; padding: 32px; color: var(--t3)">
+                No tickets match filters
+              </td>
+            </tr>
+          } @else {
+            @for (t of filteredTickets(); track t.id) {
+              <tr style="cursor: pointer">
+                <td
+                  (click)="viewTicket(t)"
+                  style="max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; font-size: 12.5px; color: var(--t1)"
                 >
-                  <app-icon name="edit" [size]="11" />
-                  Edit
-                </button>
-              </div>
-            </td>
-          </tr>
-        }
-      </tbody>
+                  {{ t.title }}
+                </td>
+                <td style="font-size: 12px">{{ t.site }}</td>
+                <td style="font-size: 12px; color: var(--t2)">
+                  {{ customerName(t) }}
+                </td>
+                <td>
+                  <app-badge [variant]="typeBadge(t.type)">{{ t.type }}</app-badge>
+                </td>
+                <td>
+                  <app-badge [variant]="priorityBadge(t.pri)">{{ t.pri }}</app-badge>
+                </td>
+                <td>
+                  <select
+                    style="border: 1px solid var(--bd); border-radius: 6px; padding: 3px 7px; font-size: 11.5px; color: var(--t2); background: var(--s2); cursor: pointer; outline: none"
+                    [value]="t.status"
+                    (change)="updateStatus(t.id, $any($event.target).value, $event)"
+                  >
+                    <option value="open">Open</option>
+                    <option value="inprogress">In Progress</option>
+                    <option value="resolved">Resolved</option>
+                    <option value="closed">Closed</option>
+                  </select>
+                </td>
+                <td style="font-size: 12px">{{ t.who }}</td>
+                <td>
+                  <div style="display: flex; gap: 5px">
+                    <button
+                      class="btn bg bs"
+                      type="button"
+                      (click)="$event.stopPropagation(); viewTicket(t)"
+                    >
+                      <app-icon name="edit" [size]="11" />
+                      Edit
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      }
     </table>
   </div>
 </div>

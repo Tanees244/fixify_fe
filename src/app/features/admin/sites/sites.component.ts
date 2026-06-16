@@ -15,6 +15,7 @@ import { BadgeComponent, BadgeVariant } from '../../../shared/components/badge/b
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { ProgressBarComponent } from '../../../shared/components/progress-bar/progress-bar.component';
 import { SiteAvatarComponent } from '../../../shared/components/site-avatar/site-avatar.component';
+import { TableSkeletonComponent } from '../../../shared/components/table-skeleton/table-skeleton.component';
 
 type StatusFilter = 'all' | SiteStatus;
 
@@ -22,7 +23,7 @@ type StatusFilter = 'all' | SiteStatus;
   selector: 'app-admin-sites',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent, ProgressBarComponent, BadgeComponent, SiteAvatarComponent],
+  imports: [IconComponent, ProgressBarComponent, BadgeComponent, SiteAvatarComponent, TableSkeletonComponent],
   templateUrl: './sites.component.html',
 })
 export class SitesComponent {
@@ -34,6 +35,7 @@ export class SitesComponent {
   readonly sites = this.data.sites;
   readonly customers = this.data.customers;
   readonly scanning = this.ctx.scanning;
+  readonly loading = this.data.loading;
 
   readonly search = signal('');
   readonly statusFilter = signal<StatusFilter>('all');
@@ -41,6 +43,7 @@ export class SitesComponent {
   readonly scoreColor = scoreColor;
 
   readonly filteredSites = computed(() => {
+    this.data.dataRevision();
     const q = this.search().toLowerCase();
     const st = this.statusFilter();
     return this.sites.filter(
