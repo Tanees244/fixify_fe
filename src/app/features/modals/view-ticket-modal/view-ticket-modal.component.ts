@@ -67,10 +67,6 @@ import { ModalHeaderComponent } from '../../../shared/components/modal-header/mo
             <option value="closed">Closed</option>
           </select>
         </div>
-        <div class="fld">
-          <label>Assigned To</label>
-          <input class="inp" [ngModel]="who()" (ngModelChange)="who.set($event)" />
-        </div>
       </div>
     </div>
     <div class="mdl-f">

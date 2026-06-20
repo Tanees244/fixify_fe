@@ -31,12 +31,12 @@
     <button type="button" class="admin-tab" [class.on]="tab() === 'all'" (click)="setTab('all')">
       All Customers
     </button>
-    <button type="button" class="admin-tab" [class.on]="tab() === 'pending'" (click)="setTab('pending')">
+    <!-- <button type="button" class="admin-tab" [class.on]="tab() === 'pending'" (click)="setTab('pending')">
       Pending Approval
       @if (pendingCount()) {
         <span class="admin-tab-badge">{{ pendingCount() }}</span>
       }
-    </button>
+    </button> -->
     <button type="button" class="admin-tab" [class.on]="tab() === 'active'" (click)="setTab('active')">
       Active
     </button>

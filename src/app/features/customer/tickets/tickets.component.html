@@ -57,7 +57,7 @@
           <th>Type</th>
           <th>Priority</th>
           <th>Status</th>
-          <th>Owner</th>
+          <!-- <th>Owner</th> -->
           <th>Age</th>
         </tr>
       </thead>
@@ -87,7 +87,7 @@
                 </app-badge>
               </td>
               <td><app-badge [variant]="ticketStatusBadge(t.status)">{{ ticketStatusLabel(t.status) }}</app-badge></td>
-              <td style="font-size: 12.5px">{{ t.who }}</td>
+              <!-- <td style="font-size: 12.5px">{{ t.who }}</td> -->
               <td style="font-size: 12px; color: var(--t3)">{{ t.ago }}</td>
             </tr>
           }

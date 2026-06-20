@@ -62,14 +62,7 @@ import { ModalHeaderComponent } from '../../../shared/components/modal-header/mo
           </select>
         </div>
       </div>
-      <div class="fld">
-        <label>Approval Status</label>
-        <select class="inp" [ngModel]="approvalStatus()" (ngModelChange)="approvalStatus.set($event)">
-          <option value="approved">Approved</option>
-          <option value="pending">Pending</option>
-          <option value="rejected">Rejected</option>
-        </select>
-      </div>
+      
     </div>
     <div class="mdl-f">
       <button type="button" class="btn bg" (click)="closed.emit()">Cancel</button>

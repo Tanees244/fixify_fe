@@ -76,15 +76,6 @@ import { ModalHeaderComponent } from '../../../shared/components/modal-header/mo
           }
         </span>
       </div>
-      <label class="admin-check-row">
-        <input type="checkbox" [ngModel]="requireApproval()" (ngModelChange)="requireApproval.set($event)" />
-        <span>
-          <strong>Require admin approval</strong>
-          <span style="display: block; font-size: 12px; color: var(--t3); font-weight: 400; margin-top: 2px">
-            Customer will be pending until you approve them in Subscriptions → Approvals
-          </span>
-        </span>
-      </label>
     </div>
     <div class="mdl-f">
       <button type="button" class="btn bg" (click)="closed.emit()">Cancel</button>
