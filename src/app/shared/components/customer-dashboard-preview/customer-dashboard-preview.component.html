@@ -113,7 +113,7 @@
     </div>
   }
 
-  @if (recentTickets().length) {
+  @if (recentTickets().length || loading()) {
     <div class="sh">
       <div class="st">Recent Tickets</div>
     </div>
@@ -127,25 +127,29 @@
             <th>Type</th>
             <th>Priority</th>
             <th>Status</th>
-            <th>Owner</th>
+            <!-- <th>Owner</th> -->
           </tr>
         </thead>
-        <tbody>
-          @for (t of recentTickets(); track t.id) {
-            <tr>
-              <td>
-                <span style="font-family: 'DM Mono', monospace; font-size: 11.5px; color: var(--acc); font-weight: 600">{{ t.id }}</span>
-              </td>
-              <td style="max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--t1); font-weight: 500; font-size: 13">
-                {{ t.title }}
-              </td>
-              <td><app-badge [variant]="ticketTypeBadge(t.type)">{{ t.type }}</app-badge></td>
-              <td><app-badge [variant]="priorityBadge(t.pri)">{{ t.pri }}</app-badge></td>
-              <td><app-badge [variant]="ticketStatusBadge(t.status)">{{ ticketStatusLabel(t.status) }}</app-badge></td>
-              <td style="font-size: 12.5px">{{ t.who }}</td>
-            </tr>
-          }
-        </tbody>
+        @if (loading()) {
+          <app-table-skeleton [rows]="3" [cols]="6" />
+        } @else {
+          <tbody>
+            @for (t of recentTickets(); track t.id) {
+              <tr>
+                <td>
+                  <span style="font-family: 'DM Mono', monospace; font-size: 11.5px; color: var(--acc); font-weight: 600">{{ t.id }}</span>
+                </td>
+                <td style="max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--t1); font-weight: 500; font-size: 13">
+                  {{ t.title }}
+                </td>
+                <td><app-badge [variant]="ticketTypeBadge(t.type)">{{ t.type }}</app-badge></td>
+                <td><app-badge [variant]="priorityBadge(t.pri)">{{ t.pri }}</app-badge></td>
+                <td><app-badge [variant]="ticketStatusBadge(t.status)">{{ ticketStatusLabel(t.status) }}</app-badge></td>
+                <!-- <td style="font-size: 12.5px">{{ t.who }}</td> -->
+              </tr>
+            }
+          </tbody>
+        }
       </table>
     </div>
   }

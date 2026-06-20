@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   inject,
   signal,
 } from '@angular/core';
@@ -13,6 +14,7 @@ import { BadgeComponent } from '../../../shared/components/badge/badge.component
 import { ProgressRingComponent } from '../../../shared/components/progress-ring/progress-ring.component';
 import { ProgressBarComponent } from '../../../shared/components/progress-bar/progress-bar.component';
 import { SiteAvatarComponent } from '../../../shared/components/site-avatar/site-avatar.component';
+import { TableSkeletonComponent } from '../../../shared/components/table-skeleton/table-skeleton.component';
 import {
   formatDateLong,
   priorityBadge,
@@ -35,6 +37,7 @@ import {
     ProgressBarComponent,
     SiteAvatarComponent,
     RouterLink,
+    TableSkeletonComponent,
   ],
   templateUrl: './dashboard.component.html',
 })
@@ -44,6 +47,7 @@ export class DashboardComponent {
   private readonly router = inject(Router);
 
   readonly insights = signal(this.data.getInsights().slice(0, 3));
+  readonly loading = this.data.loading;
   readonly scoreColor = scoreColor;
   readonly severityBadge = severityBadge;
   readonly severityBg = severityBg;
@@ -80,11 +84,12 @@ export class DashboardComponent {
     return this.sites.reduce((a, s) => a + s.issues, 0);
   }
 
-  get recentTickets(): Ticket[] {
+  readonly recentTickets = computed(() => {
+    this.data.dataRevision();
     return this.data.tickets
       .filter((t) => t.custId === this.ctx.currentCustomerId())
       .slice(0, 3);
-  }
+  });
 
   get adminUpdates() {
     return this.data

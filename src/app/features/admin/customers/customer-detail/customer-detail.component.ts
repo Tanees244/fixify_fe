@@ -18,6 +18,7 @@ import { WordpressManagementComponent } from '../../../../shared/components/word
 import { CustomerReportsTabComponent } from './tabs/reports-tab.component';
 import { CustomerRecommendationsTabComponent } from './tabs/recommendations-tab.component';
 import { CustomerActivityTabComponent } from './tabs/activity-tab.component';
+import { TableSkeletonComponent } from '../../../../shared/components/table-skeleton/table-skeleton.component';
 
 type DetailTab = 'overview' | 'wordpress' | 'reports' | 'recommendations' | 'activity' | 'dashboard';
 
@@ -43,6 +44,7 @@ function tabFromQuery(param: string | null): DetailTab {
     CustomerReportsTabComponent,
     CustomerRecommendationsTabComponent,
     CustomerActivityTabComponent,
+    TableSkeletonComponent,
   ],
   templateUrl: './customer-detail.component.html',
 })
@@ -95,11 +97,18 @@ export class CustomerDetailComponent {
 
   readonly customer = computed(() => this.data.getCustomer(this.customerId()));
 
+  readonly loading = this.data.loading;
   readonly scoreColor = scoreColor;
 
-  readonly sites = computed(() => this.data.sitesForCustomer(this.customerId()));
+  readonly sites = computed(() => {
+    this.data.dataRevision();
+    return this.data.sitesForCustomer(this.customerId());
+  });
 
-  readonly tickets = computed(() => this.data.ticketsForCustomer(this.customerId()));
+  readonly tickets = computed(() => {
+    this.data.dataRevision();
+    return this.data.ticketsForCustomer(this.customerId());
+  });
 
   readonly avgHealth = computed(() => {
     const custSites = this.sites();

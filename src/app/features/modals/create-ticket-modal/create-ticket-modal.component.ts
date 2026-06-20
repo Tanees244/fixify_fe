@@ -78,15 +78,6 @@ import { ModalHeaderComponent } from '../../../shared/components/modal-header/mo
             <option value="low">Low</option>
           </select>
         </div>
-        <div class="fld">
-          <label>Assigned To</label>
-          <input
-            class="inp"
-            placeholder="Team member name"
-            [ngModel]="who()"
-            (ngModelChange)="who.set($event)"
-          />
-        </div>
       </div>
     </div>
     <div class="mdl-f">

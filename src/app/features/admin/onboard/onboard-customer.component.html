@@ -175,16 +175,6 @@
         </div>
       }
 
-      <label class="admin-check-row" style="margin-bottom: 18px">
-        <input type="checkbox" [ngModel]="requireApproval()" (ngModelChange)="requireApproval.set($event)" />
-        <span>
-          <strong>Require admin approval</strong>
-          <span style="display: block; font-size: 12px; color: var(--t3); font-weight: 400; margin-top: 2px">
-            Customer stays pending until approved in Subscriptions → Approvals
-          </span>
-        </span>
-      </label>
-
       <div class="wp-summary">
         <div style="font-weight: 600; font-size: 13px; color: var(--t1); margin-bottom: 12px">Onboarding summary</div>
         <div class="wp-summary-grid">

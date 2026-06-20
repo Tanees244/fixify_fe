@@ -11,12 +11,13 @@ import {
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { ProgressBarComponent } from '../../../shared/components/progress-bar/progress-bar.component';
+import { TableSkeletonComponent } from '../../../shared/components/table-skeleton/table-skeleton.component';
 
 @Component({
   selector: 'app-admin-overview',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent, ProgressBarComponent, BadgeComponent],
+  imports: [IconComponent, ProgressBarComponent, BadgeComponent, TableSkeletonComponent],
   templateUrl: './overview.component.html',
 })
 export class OverviewComponent {
@@ -26,6 +27,7 @@ export class OverviewComponent {
   readonly customers = this.data.customers;
   readonly sites = this.data.sites;
   readonly tickets = this.data.tickets;
+  readonly loading = this.data.loading;
 
   readonly dateLabel = formatDateLong();
   readonly scoreColor = scoreColor;
@@ -34,25 +36,31 @@ export class OverviewComponent {
   readonly ticketStatusLabel = ticketStatusLabel;
 
   readonly totalHealth = computed(() => {
+    this.data.dataRevision();
     const sites = this.sites;
     return sites.length
       ? Math.round(sites.reduce((a, s) => a + s.health, 0) / sites.length)
       : 0;
   });
 
-  readonly openTickets = computed(() =>
-    this.tickets.filter((t) => t.status !== 'resolved').length
-  );
+  readonly openTickets = computed(() => {
+    this.data.dataRevision();
+    return this.tickets.filter((t) => t.status !== 'resolved').length;
+  });
 
-  readonly criticalTickets = computed(() =>
-    this.tickets.filter((t) => t.pri === 'critical' && t.status !== 'resolved').length
-  );
+  readonly criticalTickets = computed(() => {
+    this.data.dataRevision();
+    return this.tickets.filter((t) => t.pri === 'critical' && t.status !== 'resolved').length;
+  });
 
-  readonly activeCustomers = computed(() =>
-    this.customers.filter((c) => c.status === 'active').length
-  );
+  readonly activeCustomers = computed(() => {
+    this.data.dataRevision();
+    return this.customers.filter((c) => c.status === 'active').length;
+  });
 
-  readonly healthDistribution = computed(() => [
+  readonly healthDistribution = computed(() => {
+    this.data.dataRevision();
+    return [
     {
       label: 'Healthy (80–100)',
       count: this.sites.filter((s) => s.health >= 80).length,
@@ -68,21 +76,28 @@ export class OverviewComponent {
       count: this.sites.filter((s) => s.health < 60).length,
       color: 'var(--er)',
     },
-  ]);
+  ];
+  });
 
-  readonly revenuePlans = computed(() =>
-    this.data.subscriptionPlans.map((p) => ({
+  readonly revenuePlans = computed(() => {
+    this.data.dataRevision();
+    return this.data.subscriptionPlans.map((p) => ({
       plan: p.name,
       planId: p.id,
       revenue: `$${this.customers.filter((c) => c.plan === p.id && c.approvalStatus === 'approved').length * p.price}`,
       count: this.customers.filter((c) => c.plan === p.id && c.approvalStatus === 'approved').length,
       color: p.color,
-    }))
-  );
+    }));
+  });
 
-  readonly recentTickets = computed(() => this.tickets.slice(0, 5));
+  readonly recentTickets = computed(() => {
+    this.data.dataRevision();
+    return this.tickets.slice(0, 5);
+  });
 
-  readonly statCards = computed(() => [
+  readonly statCards = computed(() => {
+    this.data.dataRevision();
+    return [
     {
       label: 'Total Customers',
       value: this.customers.length,
@@ -111,10 +126,15 @@ export class OverviewComponent {
       color: scoreColor(this.totalHealth()),
       icon: 'activity',
     },
-  ]);
+  ];
+  });
 
   customerFor(custId: number) {
     return this.customers.find((c) => c.id === custId);
+  }
+
+  customerName(t: { custId: number; customerName?: string }): string {
+    return t.customerName ?? this.customerFor(t.custId)?.name ?? '—';
   }
 
   healthPct(count: number): number {

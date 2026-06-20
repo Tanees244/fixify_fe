@@ -23,8 +23,8 @@ function roleGuard(role: UserRole, loginPath: string): CanActivateFn {
   };
 }
 
-export const customerGuard = roleGuard('customer', '/auth/customer/login');
-export const adminGuard = roleGuard('admin', '/auth/admin/login');
+export const customerGuard = roleGuard('customer', '/auth');
+export const adminGuard = roleGuard('admin', '/auth');
 
 export const guestGuard: CanActivateFn = () => {
   const auth = inject(AuthService);

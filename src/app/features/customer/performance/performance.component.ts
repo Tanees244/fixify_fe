@@ -6,6 +6,7 @@ import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
 import { ProgressRingComponent } from '../../../shared/components/progress-ring/progress-ring.component';
 import { ProgressBarComponent } from '../../../shared/components/progress-bar/progress-bar.component';
+import { TableSkeletonComponent } from '../../../shared/components/table-skeleton/table-skeleton.component';
 import { scoreBadge, scoreColor } from '../../../core/utils/fixify.utils';
 
 interface PageRow {
@@ -20,7 +21,7 @@ interface PageRow {
   selector: 'app-customer-performance',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent, BadgeComponent, ProgressRingComponent, ProgressBarComponent],
+  imports: [IconComponent, BadgeComponent, ProgressRingComponent, ProgressBarComponent, TableSkeletonComponent],
   templateUrl: './performance.component.html',
 })
 export class PerformanceComponent {
@@ -30,10 +31,15 @@ export class PerformanceComponent {
 
   readonly scoreColor = scoreColor;
   readonly scoreBadge = scoreBadge;
+  readonly loading = this.data.loading;
 
-  readonly site = computed(() => this.ctx.selectedSite());
+  readonly site = computed(() => {
+    this.data.dataRevision();
+    return this.ctx.selectedSite();
+  });
 
   readonly pages = computed((): PageRow[] => {
+    this.data.dataRevision();
     const site = this.site();
     if (!site) return [];
     return [

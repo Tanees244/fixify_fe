@@ -5,6 +5,7 @@ import { AppContextService } from '../../../core/services/app-context.service';
 import { Ticket, TicketPriority, TicketStatus } from '../../../core/models/fixify.models';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
+import { TableSkeletonComponent } from '../../../shared/components/table-skeleton/table-skeleton.component';
 import {
   priorityBadge,
   priorityColor,
@@ -16,7 +17,7 @@ import {
   selector: 'app-customer-tickets',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, IconComponent, BadgeComponent],
+  imports: [FormsModule, IconComponent, BadgeComponent, TableSkeletonComponent],
   templateUrl: './tickets.component.html',
 })
 export class TicketsComponent {
@@ -31,16 +32,20 @@ export class TicketsComponent {
   readonly statusFilter = signal<'all' | TicketStatus>('all');
   readonly priorityFilter = signal<'all' | TicketPriority>('all');
   readonly search = signal('');
+  readonly loading = this.data.loading;
 
-  readonly tickets = computed(() =>
-    this.data.tickets.filter((t) => t.custId === this.ctx.currentCustomerId())
-  );
+  readonly tickets = computed(() => {
+    this.data.dataRevision();
+    return this.data.tickets.filter((t) => t.custId === this.ctx.currentCustomerId());
+  });
 
-  readonly openCount = computed(
-    () => this.tickets().filter((t) => t.status !== 'resolved').length
-  );
+  readonly openCount = computed(() => {
+    this.data.dataRevision();
+    return this.tickets().filter((t) => t.status !== 'resolved').length;
+  });
 
   readonly filteredTickets = computed(() => {
+    this.data.dataRevision();
     const search = this.search().toLowerCase();
     const status = this.statusFilter();
     const priority = this.priorityFilter();

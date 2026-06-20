@@ -12,6 +12,7 @@ import { BadgeComponent } from '../badge/badge.component';
 import { ProgressRingComponent } from '../progress-ring/progress-ring.component';
 import { ProgressBarComponent } from '../progress-bar/progress-bar.component';
 import { SiteAvatarComponent } from '../site-avatar/site-avatar.component';
+import { TableSkeletonComponent } from '../table-skeleton/table-skeleton.component';
 import {
   formatDateLong,
   priorityBadge,
@@ -33,6 +34,7 @@ import {
     ProgressRingComponent,
     ProgressBarComponent,
     SiteAvatarComponent,
+    TableSkeletonComponent,
   ],
   templateUrl: './customer-dashboard-preview.component.html',
 })
@@ -41,6 +43,7 @@ export class CustomerDashboardPreviewComponent {
 
   private readonly data = inject(FixifyDataService);
 
+  readonly loading = this.data.loading;
   readonly scoreColor = scoreColor;
   readonly severityBadge = severityBadge;
   readonly severityBg = severityBg;
@@ -57,16 +60,21 @@ export class CustomerDashboardPreviewComponent {
     return name ? name.split(' ')[0] : 'this customer';
   });
 
-  readonly sites = computed(() => this.data.sitesForCustomer(this.customerId));
+  readonly sites = computed(() => {
+    this.data.dataRevision();
+    return this.data.sitesForCustomer(this.customerId);
+  });
 
   readonly insights = computed(() => {
+    this.data.dataRevision();
     const siteNames = new Set(this.sites().map((s) => s.name));
     return this.data.getInsights().filter((i) => siteNames.has(i.site)).slice(0, 3);
   });
 
-  readonly recentTickets = computed(() =>
-    this.data.ticketsForCustomer(this.customerId).slice(0, 3)
-  );
+  readonly recentTickets = computed(() => {
+    this.data.dataRevision();
+    return this.data.ticketsForCustomer(this.customerId).slice(0, 3);
+  });
 
   readonly okCount = computed(() => this.sites().filter((s) => s.st === 'ok').length);
   readonly warnCount = computed(() => this.sites().filter((s) => s.st === 'warn').length);

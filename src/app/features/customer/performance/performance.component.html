@@ -94,23 +94,27 @@
               <th>Status</th>
             </tr>
           </thead>
-          <tbody>
-            @for (p of pages(); track p.url) {
-              <tr>
-                <td><span style="font-family: 'DM Mono', monospace; font-size: 12.5px">{{ p.url }}</span></td>
-                <td>
-                  <div style="display: flex; align-items: center; gap: 8px; min-width: 120px">
-                    <app-progress-bar [value]="p.score" />
-                    <span style="font-size: 12px; font-weight: 700" [style.color]="scoreColor(p.score)">{{ p.score }}</span>
-                  </div>
-                </td>
-                <td style="font-family: 'DM Mono', monospace; font-size: 12.5px" [style.color]="metricColor(p.lcp, 'lcp')">{{ p.lcp }}</td>
-                <td style="font-family: 'DM Mono', monospace; font-size: 12.5px">{{ p.fid }}</td>
-                <td style="font-family: 'DM Mono', monospace; font-size: 12.5px">{{ p.cls }}</td>
-                <td><app-badge [variant]="scoreBadge(p.score)">{{ pageStatus(p.score) }}</app-badge></td>
-              </tr>
-            }
-          </tbody>
+          @if (loading()) {
+            <app-table-skeleton [rows]="4" [cols]="6" />
+          } @else {
+            <tbody>
+              @for (p of pages(); track p.url) {
+                <tr>
+                  <td><span style="font-family: 'DM Mono', monospace; font-size: 12.5px">{{ p.url }}</span></td>
+                  <td>
+                    <div style="display: flex; align-items: center; gap: 8px; min-width: 120px">
+                      <app-progress-bar [value]="p.score" />
+                      <span style="font-size: 12px; font-weight: 700" [style.color]="scoreColor(p.score)">{{ p.score }}</span>
+                    </div>
+                  </td>
+                  <td style="font-family: 'DM Mono', monospace; font-size: 12.5px" [style.color]="metricColor(p.lcp, 'lcp')">{{ p.lcp }}</td>
+                  <td style="font-family: 'DM Mono', monospace; font-size: 12.5px">{{ p.fid }}</td>
+                  <td style="font-family: 'DM Mono', monospace; font-size: 12.5px">{{ p.cls }}</td>
+                  <td><app-badge [variant]="scoreBadge(p.score)">{{ pageStatus(p.score) }}</app-badge></td>
+                </tr>
+              }
+            </tbody>
+          }
         </table>
       </div>
     </div>

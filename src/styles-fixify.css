@@ -271,3 +271,6 @@ select.inp{cursor:pointer}
 .wp-manage-select-wrap{margin-bottom:0!important;min-width:220px;flex:1;max-width:300px}
 .wp-manage-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-bottom:1px}
 @media (max-width:760px){.wp-manage-toolbar{align-items:stretch;flex-direction:column}.wp-manage-toolbar .btn{width:100%;justify-content:center}.wp-manage-select-wrap{max-width:none}}
+/* Table skeleton loaders */
+.skel-cell{height:14px;border-radius:6px;background:linear-gradient(90deg,var(--s2) 25%,var(--b2) 50%,var(--s2) 75%);background-size:200% 100%;animation:skel-shimmer 1.2s ease-in-out infinite}
+@keyframes skel-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}

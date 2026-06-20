@@ -31,12 +31,12 @@
     <button type="button" class="admin-tab" [class.on]="tab() === 'all'" (click)="setTab('all')">
       All Customers
     </button>
-    <button type="button" class="admin-tab" [class.on]="tab() === 'pending'" (click)="setTab('pending')">
+    <!-- <button type="button" class="admin-tab" [class.on]="tab() === 'pending'" (click)="setTab('pending')">
       Pending Approval
       @if (pendingCount()) {
         <span class="admin-tab-badge">{{ pendingCount() }}</span>
       }
-    </button>
+    </button> -->
     <button type="button" class="admin-tab" [class.on]="tab() === 'active'" (click)="setTab('active')">
       Active
     </button>
@@ -66,8 +66,11 @@
           <th>Actions</th>
         </tr>
       </thead>
-      <tbody>
-        @for (c of filteredCustomers(); track c.id) {
+      @if (loading()) {
+        <app-table-skeleton [rows]="6" [cols]="7" />
+      } @else {
+        <tbody>
+          @for (c of filteredCustomers(); track c.id) {
           <tr>
             <td>
               <div style="display: flex; align-items: center; gap: 10px">
@@ -129,6 +132,7 @@
           </tr>
         }
       </tbody>
+      }
     </table>
   </div>
 </div>

@@ -128,23 +128,31 @@
                 <th></th>
               </tr>
             </thead>
-            <tbody>
-              @for (s of sites(); track s.id) {
-                <tr>
-                  <td style="font-weight: 600; color: var(--t1)">{{ s.name }}</td>
-                  <td [style.color]="scoreColor(s.health)" style="font-weight: 700">{{ s.health }}</td>
-                  <td>{{ s.st }}</td>
-                  <td>{{ s.issues }}</td>
-                  <td>{{ s.platform }}</td>
-                  <td style="color: var(--t3)">{{ s.scan }}</td>
-                  <td>
-                    @if (s.platform === 'wordpress') {
-                      <button type="button" class="btn bg bs" (click)="openSiteManagement(s.id)">Manage WP</button>
-                    }
-                  </td>
-                </tr>
-              }
-            </tbody>
+            @if (loading()) {
+              <app-table-skeleton [rows]="4" [cols]="7" />
+            } @else {
+              <tbody>
+                @for (s of sites(); track s.id) {
+                  <tr>
+                    <td style="font-weight: 600; color: var(--t1)">{{ s.name }}</td>
+                    <td [style.color]="scoreColor(s.health)" style="font-weight: 700">{{ s.health }}</td>
+                    <td>{{ s.st }}</td>
+                    <td>{{ s.issues }}</td>
+                    <td>{{ s.platform }}</td>
+                    <td style="color: var(--t3)">{{ s.scan }}</td>
+                    <td>
+                      @if (s.platform === 'wordpress') {
+                        <button type="button" class="btn bg bs" (click)="openSiteManagement(s.id)">Manage WP</button>
+                      }
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="7" style="text-align: center; padding: 28px; color: var(--t3)">No websites yet</td>
+                  </tr>
+                }
+              </tbody>
+            }
           </table>
         </div>
       }

@@ -63,13 +63,9 @@ import { ModalHeaderComponent } from '../../../shared/components/modal-header/mo
           <select class="inp" [ngModel]="status()" (ngModelChange)="status.set($event)">
             <option value="open">Open</option>
             <option value="inprogress">In Progress</option>
-            <option value="testing">Testing</option>
             <option value="resolved">Resolved</option>
+            <option value="closed">Closed</option>
           </select>
-        </div>
-        <div class="fld">
-          <label>Assigned To</label>
-          <input class="inp" [ngModel]="who()" (ngModelChange)="who.set($event)" />
         </div>
       </div>
     </div>

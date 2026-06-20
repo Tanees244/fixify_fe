@@ -47,8 +47,11 @@
           <th>Actions</th>
         </tr>
       </thead>
-      <tbody>
-        @for (s of filteredSites(); track s.id) {
+      @if (loading()) {
+        <app-table-skeleton [rows]="6" [cols]="9" />
+      } @else {
+        <tbody>
+          @for (s of filteredSites(); track s.id) {
           <tr>
             <td>
               <div style="display: flex; align-items: center; gap: 8px">
@@ -116,7 +119,8 @@
             </td>
           </tr>
         }
-      </tbody>
+        </tbody>
+      }
     </table>
   </div>
 </div>
