@@ -47,6 +47,7 @@ export class FixifyDataService {
   readonly tickets = this.ticketsData.tickets;
   readonly processes = this.insightsData.processes;
   readonly subscriptionPlans = this.subscriptionsData.subscriptionPlans;
+  readonly planSaving = this.subscriptionsData.planSaving;
   readonly insights = this.insightsData.insights;
   readonly wordpressBySiteId = this.sitesData.wordpressBySiteId;
   readonly wordpressStateBySiteId = this.sitesData.wordpressStateBySiteId;
@@ -59,19 +60,7 @@ export class FixifyDataService {
   }
 
   initSession(): void {
-    this.subscriptionsData.initSession();
-    this.insightsData.initSession();
-    this.reportsData.initSession();
     this.session.init();
-  }
-
-  loadMockCoreData(): void {
-    this.customersData.loadMockCustomers();
-    this.sitesData.loadMockSites();
-    this.ticketsData.loadMockTickets();
-    this.reportsData.loadMockReports();
-    this.sitesData.loadMockWordPressStates();
-    this.sitesData.syncSelectedSiteAfterMockLoad();
   }
 
   reload(): void {
@@ -88,6 +77,10 @@ export class FixifyDataService {
     this.customersData.fetchClients(done);
   }
 
+  fetchSubscriptions(done?: () => void): void {
+    this.subscriptionsData.fetchSubscriptions(done);
+  }
+
   fetchWebsites(clientProfileId?: string, done?: () => void): void {
     this.sitesData.fetchWebsites(clientProfileId, done);
   }
@@ -98,7 +91,6 @@ export class FixifyDataService {
 
   fetchCustomerWebsites(done?: () => void): void {
     if (!this.session.useApi()) {
-      this.loadMockCoreData();
       done?.();
       return;
     }
@@ -217,8 +209,14 @@ export class FixifyDataService {
     this.sitesData.removeSite(id);
   }
 
-  onboardCustomer(data: OnboardCustomerPayload): void {
-    this.customersData.onboardCustomer(data);
+  onboardCustomer(
+    data: OnboardCustomerPayload,
+    callbacks?: {
+      onSuccess?: () => void;
+      onError?: (error: { message: string; field?: 'email' }) => void;
+    }
+  ): void {
+    this.customersData.onboardCustomer(data, callbacks);
   }
 
   addCustomer(data: AddCustomerPayload): void {

@@ -1,18 +1,11 @@
 import { Injectable, Injector, inject } from '@angular/core';
 import {
-  AddCustomerPayload,
   AddRecommendationPayload,
   AdminSiteAction,
   MonthlyReport,
   Site,
   SiteRecommendation,
 } from '../../models/fixify.models';
-import { cloneMockData } from '../../data/mock-data';
-import {
-  MOCK_ADMIN_ACTIONS,
-  MOCK_MONTHLY_REPORTS,
-  MOCK_RECOMMENDATIONS,
-} from '../../data/mock-wordpress-data';
 import { NotificationService } from '../notification.service';
 import { AppContextService } from '../app-context.service';
 import { DashboardApiService } from '../api/dashboard-api.service';
@@ -35,23 +28,6 @@ export class ReportsDataService {
   private nextActionId = 100;
   private nextReportId = 100;
   private nextRecommendationId = 100;
-
-  initSession(): void {
-    this.adminActions.splice(0, this.adminActions.length, ...cloneMockData(MOCK_ADMIN_ACTIONS));
-    this.recommendations.splice(
-      0,
-      this.recommendations.length,
-      ...cloneMockData(MOCK_RECOMMENDATIONS)
-    );
-  }
-
-  loadMockReports(): void {
-    this.monthlyReports.splice(
-      0,
-      this.monthlyReports.length,
-      ...cloneMockData(MOCK_MONTHLY_REPORTS)
-    );
-  }
 
   logAdminAction(
     site: Site,

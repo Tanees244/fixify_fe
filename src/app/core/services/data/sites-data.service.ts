@@ -7,11 +7,7 @@ import {
   WordPressSiteDetails,
   WordPressSiteState,
 } from '../../models/fixify.models';
-import { cloneMockData, MOCK_SITES } from '../../data/mock-data';
-import {
-  createDefaultWordPressState,
-  MOCK_WORDPRESS_STATES,
-} from '../../data/mock-wordpress-data';
+import { createDefaultWordPressState } from '../../utils/wordpress-defaults.util';
 import {
   mapApiWebsiteToSite,
   mapWordPressPluginsResponse,
@@ -47,19 +43,7 @@ export class SitesDataService {
 
   private nextSiteId = 100;
 
-  loadMockSites(): void {
-    this.sites.splice(0, this.sites.length, ...cloneMockData(MOCK_SITES));
-    this.syncWordPressFromSites();
-  }
-
-  loadMockWordPressStates(): void {
-    this.wordpressStateBySiteId.clear();
-    for (const state of cloneMockData(MOCK_WORDPRESS_STATES)) {
-      this.wordpressStateBySiteId.set(state.siteId, state);
-    }
-  }
-
-  syncSelectedSiteAfterMockLoad(): void {
+  ensureSelectedSite(): void {
     const custId = this.ctx.currentCustomerId();
     const mySites = this.sites.filter((s) => s.custId === custId);
     if (!this.ctx.selectedSite() && mySites.length) {
@@ -73,8 +57,7 @@ export class SitesDataService {
 
   fetchWebsites(clientProfileId?: string, done?: () => void): void {
     if (!this.session.useApi()) {
-      this.loadMockSites();
-      this.session.bump();
+      this.sites.splice(0, this.sites.length);
       done?.();
       return;
     }
@@ -316,61 +299,12 @@ export class SitesDataService {
     data: AddSitePayload,
     opts: { selectSite?: boolean; closeModal?: boolean; silent?: boolean } = {}
   ): Site {
-    if (this.session.useApi()) {
-      this.addSiteViaApi(custId, data, opts);
-      return this.sites[this.sites.length - 1] ?? this.buildLocalSite(custId, data);
+    if (!this.session.useApi()) {
+      this.toast.error('Sign in to add sites');
+      return this.buildLocalSite(custId, data);
     }
-    return this.addSiteLocal(custId, data, opts);
-  }
-
-  private addSiteLocal(
-    custId: number,
-    data: AddSitePayload,
-    opts: { selectSite?: boolean; closeModal?: boolean; silent?: boolean }
-  ): Site {
-    const planName = this.subscriptions().planLabel(data.plan);
-    const displayName =
-      data.wordpress?.siteName?.trim() ||
-      data.name?.trim() ||
-      (data.url ? parseSiteName(data.url) : 'new-site.com');
-    const nm = data.url ? parseSiteName(data.url) : displayName;
-    const site: Site = {
-      id: this.nextSiteId++,
-      name: nm,
-      fa: displayName.slice(0, 2).toUpperCase(),
-      health: 72,
-      perf: 68,
-      sec: 75,
-      seo: 70,
-      up: 99.5,
-      st: 'warn',
-      plan: planName,
-      issues: 3,
-      scan: 'just now',
-      lcp: '2.8s',
-      fid: '45ms',
-      cls: '0.11',
-      custId,
-      type: data.type || 'custom',
-      platform: data.platform || 'custom',
-    };
-    if (data.wordpress) {
-      this.wordpressBySiteId.set(site.id, { ...data.wordpress });
-      this.initWordPressState(site.id, data.wordpress.wpVersion);
-    } else if (data.platform === 'wordpress') {
-      this.initWordPressState(site.id);
-    }
-    this.sites.push(site);
-    if (opts.selectSite) {
-      this.ctx.selectedSite.set(site);
-    }
-    if (!opts.silent) {
-      this.toast.success(`${displayName} added and initial scan started`);
-    }
-    if (opts.closeModal) {
-      this.ctx.closeModal();
-    }
-    return site;
+    this.addSiteViaApi(custId, data, opts);
+    return this.sites[this.sites.length - 1] ?? this.buildLocalSite(custId, data);
   }
 
   private buildLocalSite(custId: number, data: AddSitePayload): Site {

@@ -19,8 +19,8 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
     <div class="auth-page">
       <div class="auth-card">
         <div class="auth-brand auth-brand-sm">
-          <div class="logo-ic">
-            <app-icon name="zap" [size]="18" color="#fff" />
+          <div class="logo-ic logo-ic-lg">
+            <img src="/favicon.png" alt="Fixify" width="40" height="40" />
           </div>
           <div>
             <div class="logo-t" style="font-size: 20px">Fix<span>ify</span></div>

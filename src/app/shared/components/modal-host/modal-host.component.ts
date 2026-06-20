@@ -112,6 +112,7 @@ import { CreateProcessModalComponent } from '../../../features/modals/create-pro
             @case ('subscriptionPlan') {
               <app-subscription-plan-modal
                 [plan]="asPlan(m.data)"
+                [submitting]="data.planSaving()"
                 (closed)="close()"
                 (submitted)="onSubscriptionPlan($event, m)"
               />

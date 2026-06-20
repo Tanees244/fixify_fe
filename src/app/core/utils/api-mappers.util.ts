@@ -1,14 +1,18 @@
 import {
   Customer,
+  OnboardCustomerPayload,
   Site,
   SiteStatus,
+  SubscriptionPlan,
   Ticket,
   TicketPriority,
   TicketStatus,
   WordPressPlugin,
   WordPressSiteState,
 } from '../models/fixify.models';
+import { OnboardCustomerRequest } from '../models/api.models';
 import { EntityIdRegistry } from '../services/entity-id-registry.service';
+import { formatPriceLabel } from '../constants/subscription.constants';
 import { initials } from './api-user.util';
 
 function isRecord(v: unknown): v is Record<string, unknown> {
@@ -63,6 +67,52 @@ function healthFromStats(stats: Record<string, unknown> | undefined): {
   const st: SiteStatus = health >= 80 ? 'ok' : health >= 60 ? 'warn' : 'bad';
 
   return { health, perf, sec, seo, up, issues: pending, st };
+}
+
+export function mapApiSubscriptionPlan(raw: unknown): SubscriptionPlan {
+  const p = isRecord(raw) ? raw : {};
+  const price = typeof p['price'] === 'number' ? p['price'] : 0;
+  return {
+    id: String(p['id'] ?? ''),
+    name: String(p['name'] ?? 'Plan'),
+    price,
+    priceLabel: String(p['priceLabel'] ?? formatPriceLabel(price)),
+    color: String(p['color'] ?? '#6b88ad'),
+    features: Array.isArray(p['features']) ? p['features'].map((f) => String(f)) : [],
+  };
+}
+
+export function mapOnboardCustomerRequest(data: OnboardCustomerPayload): OnboardCustomerRequest {
+  const wp = data.site.wordpress;
+  const siteType = data.site.type === 'cms' ? 'custom' : data.site.type || 'custom';
+
+  return {
+    name: data.name,
+    email: data.email,
+    company: data.company || data.name,
+    phone: data.phone || '',
+    plan: data.plan,
+    site: {
+      url: data.site.url,
+      name: data.site.name || data.site.url,
+      plan: data.site.plan || data.plan,
+      type: siteType,
+      platform: data.site.platform || 'wordpress',
+      wordpress: wp
+        ? {
+            siteName: wp.siteName,
+            siteUrl: wp.siteUrl,
+            loginUrl: wp.loginUrl,
+            username: wp.username,
+            password: wp.password,
+            authType: wp.authType,
+            wpVersion: wp.wpVersion,
+            enablePluginScan: wp.enablePluginScan,
+            enableAutoUpdates: wp.enableAutoUpdates,
+          }
+        : undefined,
+    },
+  };
 }
 
 export function mapApiClientToCustomer(raw: unknown, ids: EntityIdRegistry): Customer {

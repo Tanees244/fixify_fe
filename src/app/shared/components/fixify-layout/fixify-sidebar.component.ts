@@ -44,7 +44,7 @@ const ADMIN_ROUTES: Record<string, string> = {
       <div class="sb-top">
         <div class="logo">
           <div class="logo-ic">
-            <app-icon name="zap" [size]="16" color="#fff" />
+            <img src="/favicon.png" alt="Fixify" width="32" height="32" />
           </div>
           <span class="logo-t">Fix<span>ify</span></span>
         </div>

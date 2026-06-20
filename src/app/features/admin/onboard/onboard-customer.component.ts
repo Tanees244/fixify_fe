@@ -32,9 +32,11 @@ export class AdminOnboardCustomerComponent {
   readonly showPassword = signal(false);
   readonly testingConnection = signal(false);
   readonly connectionTested = signal(false);
+  readonly submitting = signal(false);
 
   readonly customerName = signal('');
   readonly email = signal('');
+  readonly emailError = signal('');
   readonly company = signal('');
   readonly phone = signal('');
 
@@ -90,6 +92,13 @@ export class AdminOnboardCustomerComponent {
       this.username().trim().length > 0 &&
       this.password().trim().length > 0
     );
+  }
+
+  onEmailChange(value: string): void {
+    this.email.set(value);
+    if (this.emailError()) {
+      this.emailError.set('');
+    }
   }
 
   next(): void {
@@ -166,7 +175,20 @@ export class AdminOnboardCustomerComponent {
       },
     };
 
-    this.data.onboardCustomer(payload);
-    this.router.navigate(['/admin/customers']);
+    this.submitting.set(true);
+    this.emailError.set('');
+    this.data.onboardCustomer(payload, {
+      onSuccess: () => {
+        this.submitting.set(false);
+        this.router.navigate(['/admin/customers']);
+      },
+      onError: (err) => {
+        this.submitting.set(false);
+        if (err.field === 'email') {
+          this.emailError.set(err.message);
+          this.step.set(1);
+        }
+      },
+    });
   }
 }

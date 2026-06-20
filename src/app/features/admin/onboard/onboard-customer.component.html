@@ -43,7 +43,16 @@
         </div>
         <div class="fld">
           <label>Email *</label>
-          <input class="inp" placeholder="jane@company.com" [ngModel]="email()" (ngModelChange)="email.set($event)" />
+          <input
+            class="inp"
+            [class.inp-err]="emailError()"
+            placeholder="jane@company.com"
+            [ngModel]="email()"
+            (ngModelChange)="onEmailChange($event)"
+          />
+          @if (emailError()) {
+            <span class="field-error">{{ emailError() }}</span>
+          }
         </div>
       </div>
       <div class="g2">
@@ -235,9 +244,9 @@
           Continue <app-icon name="chevR" [size]="13" color="#fff" />
         </button>
       } @else {
-        <button type="button" class="btn bp" (click)="submit()">
+        <button type="button" class="btn bp" (click)="submit()" [disabled]="submitting()">
           <app-icon name="users" [size]="13" color="#fff" />
-          {{ requireApproval() ? 'Submit for Approval' : 'Onboard Customer' }}
+          {{ submitting() ? 'Onboarding…' : requireApproval() ? 'Submit for Approval' : 'Onboard Customer' }}
         </button>
       }
     </div>

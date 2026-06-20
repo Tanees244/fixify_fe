@@ -200,3 +200,40 @@ export interface AdminMonthlyReportItem {
   createdAt: string;
   sentAt?: string | null;
 }
+
+export interface SubscriptionPlanRequest {
+  name: string;
+  price: number;
+  color: string;
+  features: string[];
+}
+
+export interface OnboardSiteWordPressRequest {
+  siteName: string;
+  siteUrl: string;
+  loginUrl: string;
+  username: string;
+  password: string;
+  authType: string;
+  wpVersion?: string;
+  enablePluginScan: boolean;
+  enableAutoUpdates: boolean;
+}
+
+export interface OnboardSiteRequest {
+  url: string;
+  name: string;
+  plan: string;
+  type: string;
+  platform: string;
+  wordpress?: OnboardSiteWordPressRequest;
+}
+
+export interface OnboardCustomerRequest {
+  name: string;
+  email: string;
+  company: string;
+  phone: string;
+  plan: string;
+  site: OnboardSiteRequest;
+}

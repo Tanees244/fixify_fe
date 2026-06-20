@@ -1,27 +1,21 @@
-import { Injectable, Injector, inject } from '@angular/core';
+import { Injectable, Injector, inject, signal } from '@angular/core';
 import { SubscriptionPlan, SubscriptionPlanPayload } from '../../models/fixify.models';
-import { cloneMockData, MOCK_SUBSCRIPTION_PLANS } from '../../data/mock-data';
-import { formatPriceLabel } from '../../constants/subscription.constants';
+import { mapApiSubscriptionPlan } from '../../utils/api-mappers.util';
 import { NotificationService } from '../notification.service';
 import { AppContextService } from '../app-context.service';
+import { SubscriptionsApiService } from '../api/subscriptions-api.service';
+import { DataSessionService } from './data-session.service';
 import { CustomersDataService } from './customers-data.service';
 
 @Injectable({ providedIn: 'root' })
 export class SubscriptionsDataService {
   private readonly toast = inject(NotificationService);
   private readonly ctx = inject(AppContextService);
+  private readonly session = inject(DataSessionService);
+  private readonly subscriptionsApi = inject(SubscriptionsApiService);
   private readonly injector = inject(Injector);
   readonly subscriptionPlans: SubscriptionPlan[] = [];
-
-  private nextPlanId = 100;
-
-  initSession(): void {
-    this.subscriptionPlans.splice(
-      0,
-      this.subscriptionPlans.length,
-      ...cloneMockData(MOCK_SUBSCRIPTION_PLANS)
-    );
-  }
+  readonly planSaving = signal(false);
 
   getPlan(id: string): SubscriptionPlan | undefined {
     return this.subscriptionPlans.find((p) => p.id === id);
@@ -42,58 +36,120 @@ export class SubscriptionsDataService {
   customersOnPlan(planId: string): number {
     return this.injector.get(CustomersDataService).customersOnPlan(planId);
   }
-  createSubscriptionPlan(data: SubscriptionPlanPayload): void {
-    const baseId =
-      data.name
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-|-$/g, '') || `plan-${this.nextPlanId}`;
-    let id = baseId;
-    while (this.subscriptionPlans.some((p) => p.id === id)) {
-      id = `${baseId}-${this.nextPlanId++}`;
+
+  fetchSubscriptions(done?: () => void): void {
+    if (!this.session.useApi()) {
+      this.subscriptionPlans.splice(0, this.subscriptionPlans.length);
+      done?.();
+      return;
     }
-    const plan: SubscriptionPlan = {
-      id,
-      name: data.name.trim(),
-      price: data.price,
-      priceLabel: formatPriceLabel(data.price),
-      color: data.color,
-      features: data.features.filter((f) => f.trim()),
-    };
-    this.subscriptionPlans.push(plan);
-    this.toast.success(`Plan "${plan.name}" created`);
-    this.ctx.closeModal();
+    this.session.beginLoad();
+    this.syncPlansFromApi(() => {
+      this.session.endLoad();
+      done?.();
+    }, () => {
+      this.session.endLoad();
+      this.toast.error('Failed to load subscription plans');
+      done?.();
+    });
+  }
+
+  private syncPlansFromApi(done?: () => void, onError?: () => void): void {
+    this.subscriptionsApi.getPlans().subscribe({
+      next: (res) => {
+        this.subscriptionPlans.splice(
+          0,
+          this.subscriptionPlans.length,
+          ...(res.data?.items ?? []).map((p) => mapApiSubscriptionPlan(p))
+        );
+        this.session.bump();
+        done?.();
+      },
+      error: () => onError?.(),
+    });
+  }
+
+  createSubscriptionPlan(data: SubscriptionPlanPayload): void {
+    if (!this.session.useApi()) {
+      this.toast.error('Sign in to create subscription plans');
+      return;
+    }
+    this.planSaving.set(true);
+    this.subscriptionsApi
+      .createPlan({
+        name: data.name.trim(),
+        price: data.price,
+        color: data.color,
+        features: data.features.filter((f) => f.trim()),
+      })
+      .subscribe({
+        next: () => {
+          this.syncPlansFromApi(() => {
+            this.planSaving.set(false);
+            this.toast.success(`Plan "${data.name}" created`);
+            this.ctx.closeModal();
+          });
+        },
+        error: (err) => {
+          this.planSaving.set(false);
+          this.toast.error(err?.error?.message || 'Failed to create subscription plan');
+        },
+      });
   }
 
   updateSubscriptionPlan(id: string, data: SubscriptionPlanPayload): void {
-    const idx = this.subscriptionPlans.findIndex((p) => p.id === id);
-    if (idx < 0) return;
-    this.subscriptionPlans[idx] = {
-      ...this.subscriptionPlans[idx],
-      name: data.name.trim(),
-      price: data.price,
-      priceLabel: formatPriceLabel(data.price),
-      color: data.color,
-      features: data.features.filter((f) => f.trim()),
-    };
-    this.toast.success(`Plan "${data.name}" updated`);
-    this.ctx.closeModal();
+    if (!this.session.useApi()) {
+      this.toast.error('Sign in to update subscription plans');
+      return;
+    }
+    this.planSaving.set(true);
+    this.subscriptionsApi
+      .updatePlan(id, {
+        name: data.name.trim(),
+        price: data.price,
+        color: data.color,
+        features: data.features.filter((f) => f.trim()),
+      })
+      .subscribe({
+        next: () => {
+          this.syncPlansFromApi(() => {
+            this.planSaving.set(false);
+            this.toast.success(`Plan "${data.name}" updated`);
+            this.ctx.closeModal();
+          });
+        },
+        error: (err) => {
+          this.planSaving.set(false);
+          this.toast.error(err?.error?.message || 'Failed to update subscription plan');
+        },
+      });
   }
 
   deleteSubscriptionPlan(id: string): boolean {
-    const count = this.customersOnPlan(id);
-    if (count > 0) {
-      this.toast.show(
-        `Cannot delete — ${count} customer${count === 1 ? '' : 's'} on this plan`,
-        'warning'
-      );
+    if (!this.session.useApi()) {
+      this.toast.error('Sign in to delete subscription plans');
       return false;
     }
-    const idx = this.subscriptionPlans.findIndex((p) => p.id === id);
-    if (idx < 0) return false;
-    const name = this.subscriptionPlans[idx].name;
-    this.subscriptionPlans.splice(idx, 1);
-    this.toast.info(`Plan "${name}" deleted`);
-    return true;
+    this.subscriptionsApi.getCustomersCount(id).subscribe({
+      next: (res) => {
+        const count = res.data?.count ?? 0;
+        if (count > 0) {
+          this.toast.show(
+            `Cannot delete — ${count} customer${count === 1 ? '' : 's'} on this plan`,
+            'warning'
+          );
+          return;
+        }
+        this.subscriptionsApi.deletePlan(id).subscribe({
+          next: () => {
+            this.syncPlansFromApi(() => this.toast.info(`Plan deleted`));
+          },
+          error: (err) =>
+            this.toast.error(err?.error?.message || 'Failed to delete subscription plan'),
+        });
+      },
+      error: () => this.toast.error('Failed to check plan usage'),
+    });
+    return false;
   }
 }

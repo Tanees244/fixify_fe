@@ -79,16 +79,22 @@ const PLAN_COLORS = ['#6b88ad', '#1d6fe0', '#059669', '#7c3aed', '#d97706', '#dc
       </div>
     </div>
     <div class="mdl-f">
-      <button type="button" class="btn bg" (click)="closed.emit()">Cancel</button>
-      <button type="button" class="btn bp" [disabled]="!name().trim()" (click)="submit()">
-        <app-icon name="check" [size]="13" color="#fff" />
-        {{ plan ? 'Save Plan' : 'Create Plan' }}
+      <button type="button" class="btn bg" (click)="closed.emit()" [disabled]="submitting">Cancel</button>
+      <button type="button" class="btn bp" [disabled]="!name().trim() || submitting" (click)="submit()">
+        @if (submitting) {
+          <app-icon name="loader" [size]="13" color="#fff" />
+          {{ plan ? 'Saving…' : 'Creating…' }}
+        } @else {
+          <app-icon name="check" [size]="13" color="#fff" />
+          {{ plan ? 'Save Plan' : 'Create Plan' }}
+        }
       </button>
     </div>
   `,
 })
 export class SubscriptionPlanModalComponent implements OnChanges {
   @Input() plan: SubscriptionPlan | null = null;
+  @Input() submitting = false;
   @Output() closed = new EventEmitter<void>();
   @Output() submitted = new EventEmitter<SubscriptionPlanPayload>();
 

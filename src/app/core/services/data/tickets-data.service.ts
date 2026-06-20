@@ -1,6 +1,5 @@
 import { Injectable, inject } from '@angular/core';
 import { CreateTicketPayload, Ticket } from '../../models/fixify.models';
-import { cloneMockData, MOCK_TICKETS } from '../../data/mock-data';
 import {
   fixifyPriorityToApi,
   fixifyStatusToApi,
@@ -25,14 +24,9 @@ export class TicketsDataService {
 
   readonly tickets: Ticket[] = [];
 
-  loadMockTickets(): void {
-    this.tickets.splice(0, this.tickets.length, ...cloneMockData(MOCK_TICKETS));
-  }
-
   fetchTickets(params?: { role?: string; clientId?: string }, done?: () => void): void {
     if (!this.session.useApi()) {
-      this.loadMockTickets();
-      this.session.bump();
+      this.tickets.splice(0, this.tickets.length);
       done?.();
       return;
     }
@@ -60,8 +54,11 @@ export class TicketsDataService {
   }
 
   createTicket(data: CreateTicketPayload): void {
-    if (this.session.useApi()) {
-      const siteRow = this.sitesData.sites.find(
+    if (!this.session.useApi()) {
+      this.toast.error('Sign in to create tickets');
+      return;
+    }
+    const siteRow = this.sitesData.sites.find(
         (s) => s.name === data.site || s.id === Number(data.site)
       );
       const websiteId = siteRow?.apiId ?? this.sitesData.websiteApiId(Number(data.site));
@@ -87,28 +84,6 @@ export class TicketsDataService {
           },
           error: (err) => this.toast.error(err?.error?.message || 'Failed to create ticket'),
         });
-      return;
-    }
-
-    this.createTicketLocal(data);
-  }
-
-  private createTicketLocal(data: CreateTicketPayload): void {
-    const ticket: Ticket = {
-      id: `FX-${Math.floor(Math.random() * 900 + 100)}`,
-      title: data.title,
-      desc: data.desc,
-      site: data.site,
-      custId: this.ctx.currentCustomerId(),
-      type: data.type,
-      pri: data.pri,
-      status: data.status || 'open',
-      who: data.who || 'Unassigned',
-      ago: 'just now',
-    };
-    this.tickets.unshift(ticket);
-    this.toast.success(`Ticket ${ticket.id} created`);
-    this.ctx.closeModal();
   }
 
   updateTicket(id: string, changes: Partial<Ticket>): void {

@@ -7,6 +7,7 @@ import { CustomersDataService } from './data/customers-data.service';
 import { SitesDataService } from './data/sites-data.service';
 import { TicketsDataService } from './data/tickets-data.service';
 import { ReportsDataService } from './data/reports-data.service';
+import { SubscriptionsDataService } from './data/subscriptions-data.service';
 import { FixifyDataService } from './fixify-data.service';
 
 @Injectable({ providedIn: 'root' })
@@ -17,6 +18,7 @@ export class RouteDataLoaderService {
   private readonly sitesData = inject(SitesDataService);
   private readonly ticketsData = inject(TicketsDataService);
   private readonly reportsData = inject(ReportsDataService);
+  private readonly subscriptionsData = inject(SubscriptionsDataService);
   private readonly auth = inject(AuthService);
   private readonly ctx = inject(AppContextService);
   private readonly appRef = inject(ApplicationRef);
@@ -33,7 +35,6 @@ export class RouteDataLoaderService {
 
     this.data.initSession();
     if (!this.auth.getToken()) {
-      this.data.loadMockCoreData();
       this.tick();
       return;
     }
@@ -110,11 +111,25 @@ export class RouteDataLoaderService {
       return;
     }
     if (path === '/admin/customers') {
-      this.customersData.fetchClients(() => this.tick());
+      let pending = 2;
+      const done = () => {
+        if (--pending === 0) this.tick();
+      };
+      this.customersData.fetchClients(done);
+      this.subscriptionsData.fetchSubscriptions(done);
       return;
     }
     if (path === '/admin/tickets') {
       this.ticketsData.fetchTickets(undefined, () => this.tick());
+      return;
+    }
+    if (path === '/admin/subscriptions') {
+      let pending = 2;
+      const done = () => {
+        if (--pending === 0) this.tick();
+      };
+      this.subscriptionsData.fetchSubscriptions(done);
+      this.customersData.fetchClients(done);
       return;
     }
     if (path === '/admin/reports') {
@@ -122,7 +137,7 @@ export class RouteDataLoaderService {
       return;
     }
     if (path.startsWith('/admin/onboard')) {
-      this.customersData.fetchClients(() => this.tick());
+      this.subscriptionsData.fetchSubscriptions(() => this.tick());
       return;
     }
 
