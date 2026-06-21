@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { AppContextService } from '../../../core/services/app-context.service';
 import { FixifyDataService } from '../../../core/services/fixify-data.service';
-import { NotificationService } from '../../../core/services/notification.service';
 import { MonthlyReport } from '../../../core/models/fixify.models';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
@@ -22,7 +21,6 @@ export class ReportsComponent {
 
   readonly ctx = inject(AppContextService);
   private readonly data = inject(FixifyDataService);
-  private readonly toast = inject(NotificationService);
 
   readonly scoreColor = scoreColor;
   readonly priorityBadge = priorityBadge;
@@ -63,11 +61,6 @@ export class ReportsComponent {
   }
 
   downloadReport(report: MonthlyReport): void {
-    if (report.fileUrl) {
-      window.open(report.fileUrl, '_blank', 'noopener,noreferrer');
-      this.toast.success(`${report.month} report opened`);
-      return;
-    }
-    this.toast.info('Download link not available for this report');
+    this.data.openReportDownload(report);
   }
 }

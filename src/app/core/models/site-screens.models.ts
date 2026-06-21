@@ -100,3 +100,33 @@ export interface ApiReportRecord {
   createdAt?: string;
   updatedAt?: string;
 }
+
+/** GET /api/reports list item (FE MonthlyReport shape) */
+export interface MonthlyReportListItem {
+  id: string;
+  siteId: string;
+  custId?: string;
+  siteName?: string;
+  month?: string;
+  monthKey?: string;
+  health?: number;
+  perf?: number;
+  sec?: number;
+  seo?: number;
+  uptime?: number;
+  issuesFound?: number;
+  issuesResolved?: number;
+  summary?: string;
+  highlights?: string[];
+  generatedAt?: string;
+  generatedBy?: string;
+  fileUrl?: string | null;
+  fileName?: string;
+  status?: string;
+}
+
+export interface ReportDownloadMeta {
+  fileUrl?: string;
+  fileName?: string;
+  url?: string;
+}

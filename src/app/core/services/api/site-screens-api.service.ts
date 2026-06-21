@@ -4,6 +4,8 @@ import { ApiEnvelope } from '../../models/api.models';
 import {
   ApiReportRecord,
   GenerateReportRequest,
+  MonthlyReportListItem,
+  ReportDownloadMeta,
   SitePerformanceScreen,
   SiteSecurityScreen,
   SiteSeoScreen,
@@ -61,8 +63,8 @@ export class SiteScreensApiService extends ApiBaseService {
     siteId?: string;
     custId?: string;
     year?: number;
-  }): Observable<ApiEnvelope<{ items: ApiReportRecord[]; total: number }>> {
-    return this.http.get<ApiEnvelope<{ items: ApiReportRecord[]; total: number }>>(
+  }): Observable<ApiEnvelope<{ items: MonthlyReportListItem[]; total: number }>> {
+    return this.http.get<ApiEnvelope<{ items: MonthlyReportListItem[]; total: number }>>(
       this.url('/api/reports'),
       {
         params: this.buildParams({
@@ -78,6 +80,12 @@ export class SiteScreensApiService extends ApiBaseService {
     return this.http.post<ApiEnvelope<ApiReportRecord>>(
       this.url('/api/reports/generate'),
       body
+    );
+  }
+
+  getReportDownload(reportId: string): Observable<ApiEnvelope<ReportDownloadMeta>> {
+    return this.http.get<ApiEnvelope<ReportDownloadMeta>>(
+      this.url(`/api/reports/${encodeURIComponent(reportId)}/download`)
     );
   }
 }

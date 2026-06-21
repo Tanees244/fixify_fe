@@ -130,10 +130,7 @@ export class FixifyTopbarComponent {
 
   private readonly destroyRef = inject(DestroyRef);
 
-
-
   protected readonly pageKey = signal('dashboard');
-
 
 
   constructor() {

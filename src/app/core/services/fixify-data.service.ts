@@ -26,7 +26,7 @@ import { SitesDataService } from './data/sites-data.service';
 import { TicketsDataService } from './data/tickets-data.service';
 import { SubscriptionsDataService } from './data/subscriptions-data.service';
 import { InsightsDataService } from './data/insights-data.service';
-import { ReportsDataService } from './data/reports-data.service';
+import { ReportsDataService, FetchReportsParams, GenerateReportOptions } from './data/reports-data.service';
 import { CustomerDashboardDataService } from './data/customer-dashboard-data.service';
 
 @Injectable({ providedIn: 'root' })
@@ -61,6 +61,7 @@ export class FixifyDataService {
   readonly wordpressStateBySiteId = this.sitesData.wordpressStateBySiteId;
   readonly adminActions = this.reportsData.adminActions;
   readonly monthlyReports = this.reportsData.monthlyReports;
+  readonly reportsTotal = this.reportsData.reportsTotal;
   readonly recommendations = this.reportsData.recommendations;
   readonly performanceScreen = this.sitesData.performanceScreen;
   readonly securityScreen = this.sitesData.securityScreen;
@@ -163,6 +164,10 @@ export class FixifyDataService {
 
   loadWebsiteReports(siteId: number, year?: number): void {
     this.reportsData.loadWebsiteReports(siteId, year);
+  }
+
+  fetchReports(params?: FetchReportsParams, done?: () => void): void {
+    this.reportsData.fetchReports(params, done);
   }
 
   mySites(): Site[] {
@@ -352,8 +357,17 @@ export class FixifyDataService {
     return this.reportsData.reportsForSite(siteId);
   }
 
-  createMonthlyReport(siteId: number, monthKey: string): MonthlyReport | null {
-    return this.reportsData.createMonthlyReport(siteId, monthKey);
+  createMonthlyReport(
+    siteId: number,
+    monthKey: string,
+    options?: GenerateReportOptions,
+    done?: () => void
+  ): MonthlyReport | null {
+    return this.reportsData.createMonthlyReport(siteId, monthKey, options, done);
+  }
+
+  openReportDownload(report: MonthlyReport): void {
+    this.reportsData.openReportDownload(report);
   }
 
   recommendationsForCustomer(custId: number): SiteRecommendation[] {

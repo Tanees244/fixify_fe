@@ -126,7 +126,13 @@ export class RouteDataLoaderService {
       return;
     }
     if (path === '/admin/reports') {
-      this.sitesData.fetchWebsites(undefined, () => this.tick());
+      let pending = 3;
+      const done = () => {
+        if (--pending === 0) this.tick();
+      };
+      this.sitesData.fetchWebsites(undefined, done);
+      this.customersData.fetchClients(done);
+      this.reportsData.fetchReports({ year: new Date().getFullYear() }, done);
       return;
     }
     if (path.startsWith('/admin/onboard')) {
