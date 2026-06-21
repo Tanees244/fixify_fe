@@ -1,4 +1,4 @@
-<div class="card cp" [style.border-left]="'3px solid ' + (proc.enabled ? 'var(--acc)' : 'var(--bd)')">
+<div [class]="ui.card + ' ' + ui.cardPad" [style.border-left]="'3px solid ' + (proc.enabled ? 'var(--acc)' : 'var(--bd)')">
   <div style="display: flex; align-items: flex-start; gap: 12px">
     <div
       style="width: 42px; height: 42px; border-radius: 11px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.2s"
@@ -34,11 +34,11 @@
           </span>
         </div>
         <div style="display: flex; gap: 6px; align-items: center">
-          <button type="button" class="btn bg bs" (click)="run.emit(proc)">
+          <button type="button" [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm" (click)="run.emit(proc)">
             <app-icon name="zap" [size]="11" />
             Run Now
           </button>
-          <button type="button" class="btn bg bs" (click)="edit.emit(proc)">
+          <button type="button" [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm" (click)="edit.emit(proc)">
             <app-icon name="edit" [size]="11" />
             Edit
           </button>

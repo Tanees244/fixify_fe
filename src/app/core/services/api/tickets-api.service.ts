@@ -17,8 +17,12 @@ export class TicketsApiService extends ApiBaseService {
 
   getTickets(
     params: GetTicketsParams = {}
-  ): Observable<ApiEnvelope<{ tickets: unknown[]; pagination: unknown }>> {
-    return this.http.get<ApiEnvelope<{ tickets: unknown[]; pagination: unknown }>>(
+  ): Observable<
+    ApiEnvelope<{ items: unknown[]; total: number; page: number; limit: number }>
+  > {
+    return this.http.get<
+      ApiEnvelope<{ items: unknown[]; total: number; page: number; limit: number }>
+    >(
       this.url('/api/tickets'),
       {
         params: this.buildParams({

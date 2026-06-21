@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { SiteManageFacade } from '../site-manage.facade';
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
+import { tw } from '../../../../shared/ui/tw';
 
 @Component({
   selector: 'app-site-manage-overview',
@@ -11,6 +12,7 @@ import { IconComponent } from '../../../../shared/components/icon/icon.component
   templateUrl: './overview-screen.component.html',
 })
 export class OverviewScreenComponent {
+  protected readonly ui = tw;
   protected readonly facade = inject(SiteManageFacade);
 
   readonly sections = [

@@ -1,6 +1,8 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { NotificationService } from '../../../core/services/notification.service';
 import { ToggleComponent } from '../../../shared/components/toggle/toggle.component';
+import { AccountSettingsPanelComponent } from '../../../shared/components/account-settings-panel/account-settings-panel.component';
+import { tw } from '../../../shared/ui/tw';
 
 interface ScanSettings {
   interval: string;
@@ -19,10 +21,12 @@ interface NotificationSettings {
   selector: 'app-admin-settings',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ToggleComponent],
+  imports: [ToggleComponent, AccountSettingsPanelComponent],
   templateUrl: './settings.component.html',
 })
 export class SettingsComponent {
+  protected readonly ui = tw;
+
   private readonly toast = inject(NotificationService);
 
   readonly scan = signal<ScanSettings>({

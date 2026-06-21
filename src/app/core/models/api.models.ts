@@ -10,6 +10,21 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface VerifyResetPasswordRequest {
+  email: string;
+  password: string;
+  otp: string;
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
 export interface LoginResponseData {
   token: string;
   user: Record<string, unknown>;
@@ -17,17 +32,25 @@ export interface LoginResponseData {
 }
 
 export interface CurrentUserResponseData {
-  user: Record<string, unknown>;
-  clientProfile: {
+  id?: string;
+  email?: string;
+  name?: string;
+  role?: string;
+  avatar?: string;
+  subtitle?: string;
+  customerId?: number | null;
+  account?: Record<string, unknown>;
+  user?: Record<string, unknown>;
+  clientProfile?: {
     _id?: string;
     id?: string | number;
     userId?: string | number;
-    companyName: string;
-    phone: string;
+    companyName?: string;
+    phone?: string;
     address?: string;
-    status: string;
-    createdAt: string;
-    updatedAt: string;
+    status?: string;
+    createdAt?: string;
+    updatedAt?: string;
   } | null;
 }
 
@@ -72,7 +95,7 @@ export interface GetWebsitesParams {
 export interface CreateWebsiteRequest {
   clientProfileId: string;
   name: string;
-  logoUrl: string;
+  logoUrl: string | null;
   wpLoginUrl: string;
   wpUsername: string;
   wpPassword: string;
@@ -185,6 +208,23 @@ export interface AdminWebsiteDashboardData {
   website: Record<string, unknown>;
   healthSummary: Record<string, unknown>;
   performanceInsights: Record<string, unknown>;
+}
+
+export interface CustomerDashboardSummary {
+  healthy: number;
+  warnings: number;
+  critical: number;
+  openIssues: number;
+}
+
+export interface CustomerDashboardData {
+  greeting: { name: string };
+  summary: CustomerDashboardSummary;
+  sites: unknown[];
+  teamUpdates: unknown[];
+  recommendations: unknown[];
+  latestInsights: unknown[];
+  recentTickets: unknown[];
 }
 
 export interface AdminMonthlyReportItem {

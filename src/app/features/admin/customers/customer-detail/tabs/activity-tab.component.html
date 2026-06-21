@@ -1,12 +1,12 @@
-<div class="u">
-  <div class="ps" style="margin-bottom: 16px">Full audit log of admin actions. Customer-visible entries sync to their portal.</div>
+<div [class]="ui.u">
+  <div [class]="ui.pageSub" style="margin-bottom: 16px">Full audit log of admin actions. Customer-visible entries sync to their portal.</div>
 
   @if (actions().length === 0) {
-    <div class="card" style="padding: 32px; text-align: center; color: var(--t3)">No admin actions recorded yet</div>
+    <div [class]="ui.card" style="padding: 32px; text-align: center; color: var(--t3)">No admin actions recorded yet</div>
   } @else {
     <div style="display: flex; flex-direction: column; gap: 10px">
       @for (a of actions(); track a.id) {
-        <div class="card cp" style="display: flex; gap: 14px; padding: 14px 18px; align-items: flex-start">
+        <div [class]="ui.card + ' ' + ui.cardPad + ' ' + ui.cardHover" style="display: flex; gap: 14px; padding: 14px 18px; align-items: flex-start">
           <div style="width: 36px; height: 36px; border-radius: 10px; background: var(--acl); display: flex; align-items: center; justify-content: center; flex-shrink: 0">
             <app-icon [name]="actionIcon(a.actionType)" [size]="16" color="var(--acc)" />
           </div>

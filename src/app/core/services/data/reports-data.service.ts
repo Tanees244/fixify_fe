@@ -9,6 +9,8 @@ import {
 import { NotificationService } from '../notification.service';
 import { AppContextService } from '../app-context.service';
 import { DashboardApiService } from '../api/dashboard-api.service';
+import { SiteScreensApiService } from '../api/site-screens-api.service';
+import { ApiReportRecord } from '../../models/site-screens.models';
 import { DataSessionService } from './data-session.service';
 import { SitesDataService } from './sites-data.service';
 import { formatNow, monthLabelFromKey } from './data.utils';
@@ -18,7 +20,7 @@ export class ReportsDataService {
   private readonly toast = inject(NotificationService);
   private readonly ctx = inject(AppContextService);
   private readonly session = inject(DataSessionService);
-  private readonly dashboardApi = inject(DashboardApiService);
+  private readonly siteScreensApi = inject(SiteScreensApiService);
   private readonly injector = inject(Injector);
 
   readonly adminActions: AdminSiteAction[] = [];
@@ -168,41 +170,62 @@ export class ReportsDataService {
     }
   }
 
-  loadWebsiteReports(siteId: number, year?: number): void {
-    if (!this.session.useApi()) return;
+  loadWebsiteReports(siteId: number, year?: number, done?: () => void): void {
+    if (!this.session.useApi()) {
+      done?.();
+      return;
+    }
     const site = this.sites().sites.find((s) => s.id === siteId);
     const apiId = this.sites().websiteApiId(siteId) ?? site?.apiId;
-    if (!apiId || !site) return;
-    this.dashboardApi.getAdminWebsiteReports(apiId, { year, limit: 24 }).subscribe({
+    if (!apiId || !site) {
+      done?.();
+      return;
+    }
+    this.session.beginLoad();
+    this.siteScreensApi.getReports({ siteId: apiId, year }).subscribe({
       next: (res) => {
-        const reports = res.data?.reports ?? [];
-        for (const item of reports) {
-          const monthKey = `${item.year}-${String(item.month).padStart(2, '0')}`;
-          if (this.monthlyReports.some((r) => r.siteId === siteId && r.monthKey === monthKey)) {
-            continue;
-          }
-          this.monthlyReports.unshift({
-            id: this.nextReportId++,
-            siteId: site.id,
-            custId: site.custId,
-            siteName: site.name,
-            month: monthLabelFromKey(monthKey),
-            monthKey,
-            health: site.health,
-            perf: site.perf,
-            sec: site.sec,
-            seo: site.seo,
-            uptime: site.up,
-            issuesFound: site.issues,
-            issuesResolved: 0,
-            summary: item.remarks || `${site.name} report — ${item.fileName}`,
-            highlights: [item.fileName, item.status],
-            generatedAt: item.createdAt,
-            generatedBy: 'API',
-          });
-        }
+        const items = res.data?.items ?? [];
+        const kept = this.monthlyReports.filter((r) => r.siteId !== siteId);
+        const mapped = items.map((item) => this.mapApiReport(item, site));
+        this.monthlyReports.splice(0, this.monthlyReports.length, ...kept, ...mapped);
+        this.session.endLoad();
+        done?.();
+      },
+      error: () => {
+        this.session.endLoad();
+        this.toast.error('Failed to load reports');
+        done?.();
       },
     });
+  }
+
+  private mapApiReport(item: ApiReportRecord, site: Site): MonthlyReport {
+    const monthKey = `${item.year}-${String(item.month).padStart(2, '0')}`;
+    return {
+      id: this.nextReportId++,
+      apiId: item._id,
+      siteId: site.id,
+      custId: site.custId,
+      siteName: site.name,
+      month: item.monthName ?? monthLabelFromKey(monthKey),
+      monthKey,
+      health: item.health ?? site.health,
+      perf: item.perf ?? site.perf,
+      sec: item.sec ?? site.sec,
+      seo: item.seo ?? site.seo,
+      uptime: item.uptime ?? site.up,
+      issuesFound: item.issuesFound ?? site.issues,
+      issuesResolved: item.issuesResolved ?? 0,
+      summary: item.remarks || `${site.name} report — ${item.fileName}`,
+      highlights: item.highlights?.length
+        ? item.highlights
+        : [item.fileName, item.status],
+      generatedAt: item.createdAt ?? formatNow(),
+      generatedBy: 'Fixify',
+      fileUrl: item.fileUrl,
+      fileName: item.fileName,
+      status: item.status,
+    };
   }
 
   private sites(): SitesDataService {

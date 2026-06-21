@@ -19,6 +19,7 @@ import { CustomerReportsTabComponent } from './tabs/reports-tab.component';
 import { CustomerRecommendationsTabComponent } from './tabs/recommendations-tab.component';
 import { CustomerActivityTabComponent } from './tabs/activity-tab.component';
 import { TableSkeletonComponent } from '../../../../shared/components/table-skeleton/table-skeleton.component';
+import { tw } from '../../../../shared/ui/tw';
 
 type DetailTab = 'overview' | 'wordpress' | 'reports' | 'recommendations' | 'activity' | 'dashboard';
 
@@ -49,6 +50,8 @@ function tabFromQuery(param: string | null): DetailTab {
   templateUrl: './customer-detail.component.html',
 })
 export class CustomerDetailComponent {
+  protected readonly ui = tw;
+
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly data = inject(FixifyDataService);

@@ -7,8 +7,12 @@ import { ApiBaseService } from './api-base.service';
 export class WebsitesApiService extends ApiBaseService {
   getWebsites(
     params: GetWebsitesParams = {}
-  ): Observable<ApiEnvelope<{ websites: unknown[]; pagination: unknown }>> {
-    return this.http.get<ApiEnvelope<{ websites: unknown[]; pagination: unknown }>>(
+  ): Observable<
+    ApiEnvelope<{ items: unknown[]; websites: unknown[]; total: number; page: number; limit: number }>
+  > {
+    return this.http.get<
+      ApiEnvelope<{ items: unknown[]; websites: unknown[]; total: number; page: number; limit: number }>
+    >(
       this.url('/websites'),
       {
         params: this.buildParams({

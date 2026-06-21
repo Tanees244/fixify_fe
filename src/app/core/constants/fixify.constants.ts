@@ -46,11 +46,11 @@ export const PROCESS_ACTIONS = [
 export const CUSTOMER_NAV = [
   { id: 'dashboard', icon: 'dash', label: 'Dashboard' },
   { id: 'performance', icon: 'zap', label: 'Performance' },
-  { id: 'security', icon: 'shield', label: 'Security', count: '2', countClass: 'r' },
+  { id: 'security', icon: 'shield', label: 'Security' },
   { id: 'seo', icon: 'search', label: 'SEO' },
   { id: 'uptime', icon: 'activity', label: 'Uptime' },
-  { id: 'ai', icon: 'sparkles', label: 'AI Insights', count: '5', countClass: 'p' },
-  { id: 'tickets', icon: 'clip', label: 'Tickets', count: '7', countClass: 'r' },
+  { id: 'ai', icon: 'sparkles', label: 'AI Insights' },
+  { id: 'tickets', icon: 'clip', label: 'Tickets' },
   { id: 'reports', icon: 'file', label: 'Reports' },
   { id: 'settings', icon: 'cog', label: 'Settings' },
 ];

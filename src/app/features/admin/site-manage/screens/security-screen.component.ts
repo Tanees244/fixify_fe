@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { SiteManageFacade } from '../site-manage.facade';
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
+import { tw } from '../../../../shared/ui/tw';
 
 @Component({
   selector: 'app-site-manage-security',
@@ -10,6 +11,7 @@ import { IconComponent } from '../../../../shared/components/icon/icon.component
   templateUrl: './security-screen.component.html',
 })
 export class SecurityScreenComponent {
+  protected readonly ui = tw;
   protected readonly facade = inject(SiteManageFacade);
 
   readonly scanAreas = [

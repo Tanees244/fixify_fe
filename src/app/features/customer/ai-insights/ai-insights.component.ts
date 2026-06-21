@@ -15,6 +15,7 @@ import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
 import { ProcessCardComponent } from './process-card.component';
 import { severityBadge, severityBg, severityIcon } from '../../../core/utils/fixify.utils';
+import { tw } from '../../../shared/ui/tw';
 
 type AiTab = 'ask' | 'insights' | 'processes';
 type InsightFilter = 'All' | 'Critical' | 'High' | 'Medium' | 'Info';
@@ -27,6 +28,8 @@ type InsightFilter = 'All' | 'Critical' | 'High' | 'Medium' | 'Info';
   templateUrl: './ai-insights.component.html',
 })
 export class AiInsightsComponent {
+  protected readonly ui = tw;
+
   private readonly data = inject(FixifyDataService);
   private readonly ctx = inject(AppContextService);
   private readonly toast = inject(NotificationService);

@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, Input, computed, inject } from '@angular/core';
 import { FixifyDataService } from '../../../../../core/services/fixify-data.service';
 import { IconComponent } from '../../../../../shared/components/icon/icon.component';
+import { tw } from '../../../../../shared/ui/tw';
 
 @Component({
   selector: 'app-customer-activity-tab',
@@ -10,6 +11,8 @@ import { IconComponent } from '../../../../../shared/components/icon/icon.compon
   templateUrl: './activity-tab.component.html',
 })
 export class CustomerActivityTabComponent {
+  protected readonly ui = tw;
+
   @Input({ required: true }) customerId!: number;
 
   private readonly data = inject(FixifyDataService);

@@ -1,51 +1,52 @@
 <div>
-  <div class="ph">
+  <div [class]="ui.pageHeader">
     <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px">
       <div>
-        <div class="pt">Customers</div>
-        <div class="ps">
+        <div [class]="ui.pageTitle">Customers</div>
+        <div [class]="ui.pageSub">
           {{ customers.length }} total · {{ activeCount() }} active
           @if (pendingCount()) {
             · <span style="color: var(--wn); font-weight: 600">{{ pendingCount() }} pending approval</span>
           }
         </div>
       </div>
-      <button class="btn bp" type="button" (click)="onboardCustomer()">
+      <button [class]="ui.btn + ' ' + ui.btnPrimary" type="button" (click)="onboardCustomer()">
         <app-icon name="plus" [size]="13" color="#fff" />
         Onboard Customer
       </button>
     </div>
   </div>
 
-  <div class="g3 u" style="margin-bottom: 22px">
+  <div [class]="ui.grid3 + ' ' + ui.u" style="margin-bottom: 22px">
     @for (item of plans(); track item.id) {
-      <div class="stat-card">
-        <div class="slbl" [style.color]="item.color">{{ item.name }} · {{ item.priceLabel }}</div>
-        <div class="sval" [style.color]="item.color">{{ planCount(item.id) }}</div>
-        <div class="ssub">{{ planCount(item.id) === 1 ? 'subscriber' : 'subscribers' }}</div>
+      <div [class]="ui.statCard">
+        <div [class]="ui.statLbl" [style.color]="item.color">{{ item.name }} · {{ item.priceLabel }}</div>
+        <div [class]="ui.statVal" [style.color]="item.color">{{ planCount(item.id) }}</div>
+        <div [class]="ui.statSub">{{ planCount(item.id) === 1 ? 'subscriber' : 'subscribers' }}</div>
       </div>
     }
   </div>
 
-  <div class="admin-tabs u">
-    <button type="button" class="admin-tab" [class.on]="tab() === 'all'" (click)="setTab('all')">
+  <div [class]="ui.adminTabs + ' ' + ui.u">
+    <button type="button" [class]="ui.adminTab + (tab() === 'all' ? ' ' + ui.adminTabActive : '')" (click)="setTab('all')">
       All Customers
     </button>
-    <!-- <button type="button" class="admin-tab" [class.on]="tab() === 'pending'" (click)="setTab('pending')">
+    <!-- <button type="button" [class]="ui.adminTab + (tab() === 'pending' ? ' ' + ui.adminTabActive : '')" (click)="setTab('pending')">
       Pending Approval
       @if (pendingCount()) {
-        <span class="admin-tab-badge">{{ pendingCount() }}</span>
+        <span [class]="ui.adminTabBadge">{{ pendingCount() }}</span>
       }
     </button> -->
-    <button type="button" class="admin-tab" [class.on]="tab() === 'active'" (click)="setTab('active')">
+    <button type="button" [class]="ui.adminTab + (tab() === 'active' ? ' ' + ui.adminTabActive : '')" (click)="setTab('active')">
       Active
     </button>
   </div>
 
-  <div style="display: flex; gap: 10px; margin-bottom: 16px" class="u">
-    <div class="srch">
+  <div style="display: flex; gap: 10px; margin-bottom: 16px" [class]="ui.u">
+    <div [class]="ui.search">
       <app-icon name="search" [size]="14" color="var(--t3)" />
       <input
+        [class]="ui.searchInput"
         placeholder="Search by name, company, or email…"
         [value]="search()"
         (input)="onSearch($any($event.target).value)"
@@ -53,17 +54,17 @@
     </div>
   </div>
 
-  <div class="card u" style="overflow: hidden">
-    <table>
+  <div [class]="ui.card + ' ' + ui.u" style="overflow: hidden">
+    <table [class]="ui.table">
       <thead>
         <tr>
-          <th>Customer</th>
-          <th>Subscription</th>
-          <th>Approval</th>
-          <th>Sites</th>
-          <th>Avg Health</th>
-          <th>Joined</th>
-          <th>Actions</th>
+          <th [class]="ui.th">Customer</th>
+          <th [class]="ui.th">Subscription</th>
+          <th [class]="ui.th">Approval</th>
+          <th [class]="ui.th">Sites</th>
+          <th [class]="ui.th">Avg Health</th>
+          <th [class]="ui.th">Joined</th>
+          <th [class]="ui.th">Actions</th>
         </tr>
       </thead>
       @if (loading()) {
@@ -71,53 +72,54 @@
       } @else {
         <tbody>
           @for (c of filteredCustomers(); track c.id) {
-          <tr>
-            <td>
+          <tr [class]="ui.trHover">
+            <td [class]="ui.td">
               <div style="display: flex; align-items: center; gap: 10px">
-                <div class="av" style="width: 36px; height: 36px; font-size: 13px; border-radius: 10px">{{ c.avatar }}</div>
+                <div [class]="ui.avatar" style="width: 36px; height: 36px; font-size: 13px; border-radius: 10px">{{ c.avatar }}</div>
                 <div>
                   <div style="font-weight: 600; color: var(--t1); font-size: 13px">{{ c.name }}</div>
                   <div style="font-size: 11.5px; color: var(--t3)">{{ c.company }} · {{ c.email }}</div>
                 </div>
               </div>
             </td>
-            <td>
+            <td [class]="ui.td">
               <span
-                class="admin-plan-pill"
+                [class]="ui.adminPlanPill"
                 [style.background]="planColor(c.plan) + '18'"
                 [style.color]="planColor(c.plan)"
               >
                 {{ planLabel(c.plan) }} · ${{ planPrice(c.plan) }}/mo
               </span>
             </td>
-            <td>
+            <td [class]="ui.td">
               <app-badge [variant]="approvalBadge(c.approvalStatus)">{{ c.approvalStatus }}</app-badge>
             </td>
-            <td style="font-weight: 700; color: var(--acc)">{{ customerSites(c.id).length }}</td>
+            <td [class]="ui.td" style="font-weight: 700; color: var(--acc)">{{ customerSites(c.id).length }}</td>
             <td
+              [class]="ui.td"
               style="font-weight: 700"
               [style.color]="avgHealth(c.id) !== null ? scoreColor(avgHealth(c.id)!) : 'var(--t3)'"
             >
               {{ avgHealth(c.id) ?? '—' }}
             </td>
-            <td style="color: var(--t2); font-size: 13px">{{ c.joined }}</td>
-            <td>
+            <td [class]="ui.td" style="color: var(--t2); font-size: 13px">{{ c.joined }}</td>
+            <td [class]="ui.td">
               <div style="display: flex; gap: 6px; flex-wrap: wrap">
-                <button type="button" class="btn bg bs" (click)="viewCustomer(c)" title="View profile">
+                <button type="button" [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm" (click)="viewCustomer(c)" title="View profile">
                   <app-icon name="users" [size]="12" />
                 </button>
-                <button type="button" class="btn bg bs" (click)="viewDashboard(c)" title="Dashboard view">
+                <button type="button" [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm" (click)="viewDashboard(c)" title="Dashboard view">
                   <app-icon name="eye" [size]="12" />
                 </button>
                 @if (c.approvalStatus === 'pending') {
-                  <button type="button" class="btn bp bs" (click)="approve(c)" title="Approve">
+                  <button type="button" [class]="ui.btn + ' ' + ui.btnPrimary + ' ' + ui.btnSm" (click)="approve(c)" title="Approve">
                     <app-icon name="check" [size]="12" color="#fff" />
                   </button>
-                  <button type="button" class="btn bg bs" (click)="reject(c)" title="Reject">
+                  <button type="button" [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm" (click)="reject(c)" title="Reject">
                     <app-icon name="x" [size]="12" />
                   </button>
                 } @else {
-                  <button type="button" class="btn bg bs" (click)="manageCustomer(c)" title="Edit">
+                  <button type="button" [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm" (click)="manageCustomer(c)" title="Edit">
                     <app-icon name="edit" [size]="12" />
                   </button>
                 }
@@ -126,7 +128,7 @@
           </tr>
         } @empty {
           <tr>
-            <td colspan="7" style="text-align: center; padding: 32px; color: var(--t3)">
+            <td [class]="ui.td" colspan="7" style="text-align: center; padding: 32px; color: var(--t3)">
               No customers match your filters
             </td>
           </tr>

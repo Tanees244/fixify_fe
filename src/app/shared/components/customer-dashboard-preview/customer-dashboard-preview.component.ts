@@ -13,6 +13,7 @@ import { ProgressRingComponent } from '../progress-ring/progress-ring.component'
 import { ProgressBarComponent } from '../progress-bar/progress-bar.component';
 import { SiteAvatarComponent } from '../site-avatar/site-avatar.component';
 import { TableSkeletonComponent } from '../table-skeleton/table-skeleton.component';
+import { tw } from '../../ui/tw';
 import {
   formatDateLong,
   priorityBadge,
@@ -39,6 +40,7 @@ import {
   templateUrl: './customer-dashboard-preview.component.html',
 })
 export class CustomerDashboardPreviewComponent {
+  readonly ui = tw;
   @Input({ required: true }) customerId!: number;
 
   private readonly data = inject(FixifyDataService);

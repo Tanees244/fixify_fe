@@ -193,6 +193,7 @@ export interface AdminSiteAction {
 
 export interface MonthlyReport {
   id: number;
+  apiId?: string;
   siteId: number;
   custId: number;
   siteName: string;
@@ -209,6 +210,9 @@ export interface MonthlyReport {
   highlights: string[];
   generatedAt: string;
   generatedBy: string;
+  fileUrl?: string;
+  fileName?: string;
+  status?: string;
 }
 
 export interface SiteRecommendation {

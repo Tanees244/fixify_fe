@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { SiteManageFacade } from '../site-manage.facade';
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
 import { BadgeComponent } from '../../../../shared/components/badge/badge.component';
+import { tw } from '../../../../shared/ui/tw';
 
 @Component({
   selector: 'app-site-manage-core',
@@ -11,6 +12,7 @@ import { BadgeComponent } from '../../../../shared/components/badge/badge.compon
   templateUrl: './core-screen.component.html',
 })
 export class CoreScreenComponent {
+  protected readonly ui = tw;
   protected readonly facade = inject(SiteManageFacade);
 
   readonly changelog = [

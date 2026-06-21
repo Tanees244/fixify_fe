@@ -13,6 +13,7 @@ import { MonthlyReport } from '../../../../../core/models/fixify.models';
 import { scoreColor } from '../../../../../core/utils/fixify.utils';
 import { IconComponent } from '../../../../../shared/components/icon/icon.component';
 import { BadgeComponent } from '../../../../../shared/components/badge/badge.component';
+import { tw } from '../../../../../shared/ui/tw';
 
 @Component({
   selector: 'app-customer-reports-tab',
@@ -22,6 +23,8 @@ import { BadgeComponent } from '../../../../../shared/components/badge/badge.com
   templateUrl: './reports-tab.component.html',
 })
 export class CustomerReportsTabComponent {
+  protected readonly ui = tw;
+
   @Input({ required: true }) customerId!: number;
 
   private readonly data = inject(FixifyDataService);

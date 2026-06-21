@@ -10,6 +10,7 @@ import { NotificationService } from '../../../core/services/notification.service
 import { Customer } from '../../../core/models/fixify.models';
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
+import { tw } from '../../../shared/ui/tw';
 
 const MRR_STATS = [
   { label: 'Total MRR', value: '$743', sub: '↑ 12% this month', color: 'var(--ok)' },
@@ -25,6 +26,8 @@ const MRR_STATS = [
   templateUrl: './reports.component.html',
 })
 export class ReportsComponent {
+  protected readonly ui = tw;
+
   private readonly data = inject(FixifyDataService);
   private readonly toast = inject(NotificationService);
 

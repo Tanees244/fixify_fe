@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { tw } from '../../ui/tw';
 
 @Component({
   selector: 'app-table-skeleton',
@@ -10,7 +11,7 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
         <tr>
           @for (col of colIndexes(); track col) {
             <td>
-              <div class="skel-cell" [style.width.%]="cellWidth(col)"></div>
+              <div [class]="ui.skelCell" [style.width.%]="cellWidth(col)"></div>
             </td>
           }
         </tr>
@@ -19,6 +20,8 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
   `,
 })
 export class TableSkeletonComponent {
+  protected readonly ui = tw;
+
   readonly rows = input(5);
   readonly cols = input(6);
 

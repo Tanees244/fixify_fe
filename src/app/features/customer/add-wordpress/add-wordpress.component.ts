@@ -13,6 +13,7 @@ import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { ToggleComponent } from '../../../shared/components/toggle/toggle.component';
 import { PLATFORMS } from '../../../core/constants/fixify.constants';
 import { suggestLoginUrl } from '../../../core/utils/fixify.utils';
+import { tw } from '../../../shared/ui/tw';
 
 @Component({
   selector: 'app-add-wordpress',
@@ -22,6 +23,8 @@ import { suggestLoginUrl } from '../../../core/utils/fixify.utils';
   templateUrl: './add-wordpress.component.html',
 })
 export class AddWordpressComponent {
+  protected readonly ui = tw;
+
   private readonly data = inject(FixifyDataService);
   private readonly toast = inject(NotificationService);
   private readonly router = inject(Router);
@@ -31,6 +34,7 @@ export class AddWordpressComponent {
   readonly showPassword = signal(false);
   readonly testingConnection = signal(false);
   readonly connectionTested = signal(false);
+  readonly submitting = signal(false);
 
   readonly siteName = signal('');
   readonly siteUrl = signal('');
@@ -133,11 +137,12 @@ export class AddWordpressComponent {
     };
   }
 
-  submit(): void {
+  async submit(): Promise<void> {
     const url = this.siteUrl().trim();
-    if (!url || !this.canContinueStep2()) return;
+    if (!url || !this.canContinueStep2() || this.submitting()) return;
 
-    this.data.addSite({
+    this.submitting.set(true);
+    const site = await this.data.addSite({
       url,
       name: this.siteName().trim(),
       plan: this.plan(),
@@ -145,7 +150,10 @@ export class AddWordpressComponent {
       platform: 'wordpress',
       wordpress: this.buildWordPressDetails(),
     });
+    this.submitting.set(false);
 
-    this.router.navigate(['/customer/dashboard']);
+    if (site) {
+      this.router.navigate(['/customer/dashboard']);
+    }
   }
 }

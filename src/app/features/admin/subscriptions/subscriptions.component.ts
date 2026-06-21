@@ -12,6 +12,7 @@ import { Customer, SubscriptionPlan } from '../../../core/models/fixify.models';
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { TableSkeletonComponent } from '../../../shared/components/table-skeleton/table-skeleton.component';
+import { tw } from '../../../shared/ui/tw';
 
 type SubTab = 'plans' | 'assignments';
 
@@ -23,6 +24,8 @@ type SubTab = 'plans' | 'assignments';
   templateUrl: './subscriptions.component.html',
 })
 export class SubscriptionsComponent {
+  protected readonly ui = tw;
+
   private readonly data = inject(FixifyDataService);
   private readonly ctx = inject(AppContextService);
   private readonly router = inject(Router);

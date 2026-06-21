@@ -4,6 +4,7 @@ import { NotificationService } from '../../../core/services/notification.service
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
 import { SparkLineComponent } from '../../../shared/components/spark-line/spark-line.component';
+import { tw } from '../../../shared/ui/tw';
 
 interface Endpoint {
   url: string;
@@ -21,6 +22,8 @@ type UptimeSegment = 'ok' | 'warn' | 'bad';
   templateUrl: './uptime.component.html',
 })
 export class UptimeComponent implements OnInit {
+  protected readonly ui = tw;
+
   readonly ctx = inject(AppContextService);
   private readonly toast = inject(NotificationService);
 

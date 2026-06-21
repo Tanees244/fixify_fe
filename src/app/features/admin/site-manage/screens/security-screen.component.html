@@ -1,31 +1,31 @@
 @if (facade.wpState(); as state) {
-  <div class="site-manage-page u">
-    <div class="site-manage-page-hd">
+  <div [class]="ui.smPage + ' ' + ui.u">
+    <div [class]="ui.smPageHd">
       <div>
-        <div class="st">Security Scan</div>
-        <div class="ps">Run a full vulnerability and malware scan</div>
+        <div [class]="ui.sectionTitle">Security Scan</div>
+        <div [class]="ui.pageSub">Run a full vulnerability and malware scan</div>
       </div>
-      <button type="button" class="btn bp bs" [disabled]="facade.busy()" (click)="runScan()">
+      <button type="button" [class]="ui.btn + ' ' + ui.btnPrimary + ' ' + ui.btnSm" [disabled]="facade.busy()" (click)="runScan()">
         <app-icon name="shield" [size]="13" color="#fff" />
         Run Scan
       </button>
     </div>
 
     @if (hasVulnerablePlugins()) {
-      <div class="site-manage-alert u" style="margin-bottom: 18px">
+      <div [class]="ui.smAlert + ' ' + ui.u" style="margin-bottom: 18px">
         <app-icon name="alert" [size]="16" color="var(--er)" />
         {{ vulnerableCount() }} vulnerable plugin{{ vulnerableCount() === 1 ? '' : 's' }} detected — update from the Plugins screen.
       </div>
     }
 
-    <div class="g2 u">
-      <div class="card cp site-manage-panel">
-        <div class="sh" style="margin-bottom: 14px">
-          <div class="st" style="font-size: 14px">Scan coverage</div>
+    <div [class]="ui.grid2 + ' ' + ui.u">
+      <div [class]="ui.card + ' ' + ui.cardPad + ' ' + ui.smPanel">
+        <div [class]="ui.sectionHead" style="margin-bottom: 14px">
+          <div [class]="ui.sectionTitle" style="font-size: 14px">Scan coverage</div>
         </div>
-        <ul class="sm-changelog">
+        <ul [class]="ui.smChangelog">
           @for (area of scanAreas; track area) {
-            <li>
+            <li [class]="ui.smChangelogItem">
               <app-icon name="shield" [size]="13" color="var(--acc)" />
               <span>{{ area }}</span>
             </li>
@@ -33,30 +33,30 @@
         </ul>
       </div>
 
-      <div class="card cp site-manage-panel">
-        <div class="sh" style="margin-bottom: 14px">
-          <div class="st" style="font-size: 14px">Current posture</div>
+      <div [class]="ui.card + ' ' + ui.cardPad + ' ' + ui.smPanel">
+        <div [class]="ui.sectionHead" style="margin-bottom: 14px">
+          <div [class]="ui.sectionTitle" style="font-size: 14px">Current posture</div>
         </div>
-        <div class="wp-summary-grid">
-          <div class="wp-summary-item">
-            <span class="wp-summary-label">WordPress</span>
-            <span class="wp-summary-value wp-mono">{{ state.wpVersion }}</span>
+        <div [class]="ui.wpSummaryGrid">
+          <div [class]="ui.wpSummaryItem">
+            <span [class]="ui.wpSummaryLabel">WordPress</span>
+            <span [class]="ui.wpSummaryValue + ' ' + ui.wpMono">{{ state.wpVersion }}</span>
           </div>
-          <div class="wp-summary-item">
-            <span class="wp-summary-label">SSL</span>
-            <span class="wp-summary-value" [style.color]="state.sslValid ? 'var(--ok)' : 'var(--er)'">
+          <div [class]="ui.wpSummaryItem">
+            <span [class]="ui.wpSummaryLabel">SSL</span>
+            <span [class]="ui.wpSummaryValue" [style.color]="state.sslValid ? 'var(--ok)' : 'var(--er)'">
               {{ state.sslValid ? 'Valid ✓' : 'Invalid' }}
             </span>
           </div>
-          <div class="wp-summary-item">
-            <span class="wp-summary-label">Vulnerable plugins</span>
-            <span class="wp-summary-value" [style.color]="vulnerableCount() ? 'var(--er)' : 'var(--ok)'">
+          <div [class]="ui.wpSummaryItem">
+            <span [class]="ui.wpSummaryLabel">Vulnerable plugins</span>
+            <span [class]="ui.wpSummaryValue" [style.color]="vulnerableCount() ? 'var(--er)' : 'var(--ok)'">
               {{ vulnerableCount() }}
             </span>
           </div>
-          <div class="wp-summary-item">
-            <span class="wp-summary-label">Pending updates</span>
-            <span class="wp-summary-value" [style.color]="facade.pendingPluginCount() ? 'var(--wn)' : 'var(--ok)'">
+          <div [class]="ui.wpSummaryItem">
+            <span [class]="ui.wpSummaryLabel">Pending updates</span>
+            <span [class]="ui.wpSummaryValue" [style.color]="facade.pendingPluginCount() ? 'var(--wn)' : 'var(--ok)'">
               {{ facade.pendingPluginCount() }}
             </span>
           </div>

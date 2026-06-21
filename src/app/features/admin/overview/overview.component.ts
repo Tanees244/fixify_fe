@@ -12,6 +12,7 @@ import { BadgeComponent } from '../../../shared/components/badge/badge.component
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { ProgressBarComponent } from '../../../shared/components/progress-bar/progress-bar.component';
 import { TableSkeletonComponent } from '../../../shared/components/table-skeleton/table-skeleton.component';
+import { tw } from '../../../shared/ui/tw';
 
 @Component({
   selector: 'app-admin-overview',
@@ -21,6 +22,8 @@ import { TableSkeletonComponent } from '../../../shared/components/table-skeleto
   templateUrl: './overview.component.html',
 })
 export class OverviewComponent {
+  protected readonly ui = tw;
+
   private readonly data = inject(FixifyDataService);
   private readonly router = inject(Router);
 

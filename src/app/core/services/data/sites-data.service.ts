@@ -1,4 +1,4 @@
-import { Injectable, Injector, inject } from '@angular/core';
+import { Injectable, Injector, inject, signal } from '@angular/core';
 import { forkJoin, firstValueFrom } from 'rxjs';
 import {
   AddSitePayload,
@@ -8,6 +8,10 @@ import {
   WordPressSiteState,
 } from '../../models/fixify.models';
 import { createDefaultWordPressState } from '../../utils/wordpress-defaults.util';
+import {
+  extractApiItems,
+  extractApiListMeta,
+} from '../../utils/api-response.util';
 import {
   mapApiWebsiteToSite,
   mapWordPressPluginsResponse,
@@ -19,11 +23,25 @@ import { EntityIdRegistry } from '../entity-id-registry.service';
 import { WebsitesApiService } from '../api/websites-api.service';
 import { AnalyticsApiService } from '../api/analytics-api.service';
 import { DashboardApiService } from '../api/dashboard-api.service';
+import { SiteScreensApiService } from '../api/site-screens-api.service';
+import {
+  SitePerformanceScreen,
+  SiteSecurityScreen,
+  SiteSeoScreen,
+} from '../../models/site-screens.models';
 import { DataSessionService } from './data-session.service';
 import { CustomersDataService } from './customers-data.service';
 import { SubscriptionsDataService } from './subscriptions-data.service';
 import { ReportsDataService } from './reports-data.service';
 import { delay, parseSiteName, siteUrl } from './data.utils';
+
+export interface FetchWebsitesParams {
+  clientId?: string;
+  page?: number;
+  limit?: number;
+  status?: string;
+  search?: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class SitesDataService {
@@ -33,13 +51,21 @@ export class SitesDataService {
   private readonly websitesApi = inject(WebsitesApiService);
   private readonly analyticsApi = inject(AnalyticsApiService);
   private readonly dashboardApi = inject(DashboardApiService);
+  private readonly siteScreensApi = inject(SiteScreensApiService);
   private readonly auth = inject(AuthService);
   private readonly ids = inject(EntityIdRegistry);
   private readonly injector = inject(Injector);
 
   readonly sites: Site[] = [];
+  readonly sitesPage = signal(1);
+  readonly sitesLimit = signal(10);
+  readonly sitesTotal = signal(0);
   readonly wordpressBySiteId = new Map<number, WordPressSiteDetails>();
   readonly wordpressStateBySiteId = new Map<number, WordPressSiteState>();
+
+  readonly performanceScreen = signal<SitePerformanceScreen | null>(null);
+  readonly securityScreen = signal<SiteSecurityScreen | null>(null);
+  readonly seoScreen = signal<SiteSeoScreen | null>(null);
 
   private nextSiteId = 100;
 
@@ -55,38 +81,53 @@ export class SitesDataService {
     return this.ids.websiteApiId(siteId) ?? this.sites.find((s) => s.id === siteId)?.apiId;
   }
 
-  fetchWebsites(clientProfileId?: string, done?: () => void): void {
+  fetchWebsites(params: FetchWebsitesParams | string = {}, done?: () => void): void {
+    const resolved: FetchWebsitesParams =
+      typeof params === 'string' ? { clientId: params } : params;
+    const clientProfileId = resolved.clientId;
+    const page = resolved.page ?? 1;
+    const limit = resolved.limit ?? 200;
+
     if (!this.session.useApi()) {
       this.sites.splice(0, this.sites.length);
+      this.sitesTotal.set(0);
       done?.();
       return;
     }
     this.session.beginLoad();
-    this.websitesApi.getWebsites({ limit: 200, clientId: clientProfileId }).subscribe({
-      next: (res) => {
-        this.sites.splice(
-          0,
-          this.sites.length,
-          ...(res.data?.websites ?? []).map((w) =>
-            mapApiWebsiteToSite(w, this.ids, clientProfileId)
-          )
-        );
-        this.syncWordPressFromSites();
-        this.syncSelectedSite(this.auth.getCurrentUser() ?? { role: 'admin' });
-        this.session.endLoad();
-        done?.();
-      },
-      error: () => {
-        this.session.endLoad();
-        this.toast.error('Failed to load websites');
-        done?.();
-      },
-    });
+    this.websitesApi
+      .getWebsites({ page, limit, clientId: clientProfileId, ...resolved })
+      .subscribe({
+        next: (res) => {
+          const items = extractApiItems(res.data);
+          const meta = extractApiListMeta(res.data, items.length);
+          this.sitesPage.set(meta.page || page);
+          this.sitesLimit.set(meta.limit || limit);
+          this.sitesTotal.set(meta.total);
+
+          this.sites.splice(
+            0,
+            this.sites.length,
+            ...items.map((w) =>
+              mapApiWebsiteToSite(w, this.ids, clientProfileId)
+            )
+          );
+          this.syncWordPressFromSites();
+          this.syncSelectedSite(this.auth.getCurrentUser() ?? { role: 'admin' });
+          this.session.endLoad();
+          done?.();
+        },
+        error: () => {
+          this.session.endLoad();
+          this.toast.error('Failed to load websites');
+          done?.();
+        },
+      });
   }
 
   fetchWebsitesForCustomer(localCustomerId: number, done?: () => void): void {
     const apiId = this.customers().clientApiIdFor(localCustomerId);
-    this.fetchWebsites(apiId, done);
+    this.fetchWebsites({ clientId: apiId }, done);
   }
 
   fetchCustomerWebsites(done?: () => void): void {
@@ -96,7 +137,13 @@ export class SitesDataService {
       return;
     }
     this.session.beginLoad();
-    this.websitesApi.getWebsites({ limit: 200 }).subscribe({
+    this.websitesApi
+      .getWebsites({
+        page: 1,
+        limit: 100,
+        clientId: user?.role === 'customer' ? user.clientProfileId : undefined,
+      })
+      .subscribe({
       next: (res) => {
         if (user) {
           this.customers().applyAuthCustomerProfile(user);
@@ -104,7 +151,7 @@ export class SitesDataService {
         this.sites.splice(
           0,
           this.sites.length,
-          ...(res.data?.websites ?? []).map((w) =>
+          ...extractApiItems(res.data).map((w) =>
             mapApiWebsiteToSite(w, this.ids, user?.clientProfileId)
           )
         );
@@ -126,16 +173,24 @@ export class SitesDataService {
       done?.();
       return;
     }
+    const apiId = this.websiteApiId(site.id) ?? site.apiId;
+    if (!apiId) {
+      done?.();
+      return;
+    }
     this.session.beginLoad();
-    const url = siteUrl(site);
-    this.analyticsApi.checkPageSpeed({ url, strategy: 'mobile' }).subscribe({
+    this.siteScreensApi.getPerformance(apiId).subscribe({
       next: (res) => {
-        this.applyPageSpeedToSite(site.id, res);
+        if (res.data) {
+          this.performanceScreen.set(res.data);
+          this.applyPerformanceToSite(site.id, res.data);
+        }
         this.session.endLoad();
         done?.();
       },
       error: () => {
         this.session.endLoad();
+        this.toast.error('Failed to load performance data');
         done?.();
       },
     });
@@ -146,20 +201,26 @@ export class SitesDataService {
       done?.();
       return;
     }
-    const url = siteUrl(site);
-    this.analyticsApi.checkPageSpeed({ url, strategy: 'mobile' }).subscribe({
+    const apiId = this.websiteApiId(site.id) ?? site.apiId;
+    if (!apiId) {
+      done?.();
+      return;
+    }
+    this.session.beginLoad();
+    this.siteScreensApi.getSeo(apiId).subscribe({
       next: (res) => {
-        this.applyPageSpeedToSite(site.id, res);
-        const idx = this.sites.findIndex((s) => s.id === site.id);
-        if (idx >= 0 && res.scores?.seo != null) {
-          this.sites[idx] = { ...this.sites[idx], seo: res.scores.seo };
-          if (this.ctx.selectedSite()?.id === site.id) {
-            this.ctx.selectedSite.set(this.sites[idx]);
-          }
+        if (res.data) {
+          this.seoScreen.set(res.data);
+          this.applySeoToSite(site.id, res.data);
         }
+        this.session.endLoad();
         done?.();
       },
-      error: () => done?.(),
+      error: () => {
+        this.session.endLoad();
+        this.toast.error('Failed to load SEO data');
+        done?.();
+      },
     });
   }
 
@@ -192,26 +253,26 @@ export class SitesDataService {
       done?.();
       return;
     }
-    const url = siteUrl(site);
-    forkJoin({
-      ssl: this.analyticsApi.checkSsl(url),
-      blacklist: this.analyticsApi.checkBlacklist(url),
-    }).subscribe({
-      next: ({ ssl }) => {
-        const idx = this.sites.findIndex((s) => s.id === site.id);
-        if (idx >= 0) {
-          this.sites[idx] = {
-            ...this.sites[idx],
-            sec: ssl.isSecure ? 90 : 55,
-            scan: 'just now',
-          };
-          if (this.ctx.selectedSite()?.id === site.id) {
-            this.ctx.selectedSite.set(this.sites[idx]);
-          }
+    const apiId = this.websiteApiId(site.id) ?? site.apiId;
+    if (!apiId) {
+      done?.();
+      return;
+    }
+    this.session.beginLoad();
+    this.siteScreensApi.getSecurity(apiId).subscribe({
+      next: (res) => {
+        if (res.data) {
+          this.securityScreen.set(res.data);
+          this.applySecurityToSite(site.id, res.data);
         }
+        this.session.endLoad();
         done?.();
       },
-      error: () => done?.(),
+      error: () => {
+        this.session.endLoad();
+        this.toast.error('Failed to load security data');
+        done?.();
+      },
     });
   }
 
@@ -287,8 +348,8 @@ export class SitesDataService {
     return this.sites.filter((s) => s.custId === custId);
   }
 
-  addSite(data: AddSitePayload): void {
-    this.addSiteForCustomer(this.ctx.currentCustomerId(), data, {
+  addSite(data: AddSitePayload): Promise<Site | null> {
+    return this.addSiteForCustomer(this.ctx.currentCustomerId(), data, {
       selectSite: true,
       closeModal: true,
     });
@@ -298,13 +359,12 @@ export class SitesDataService {
     custId: number,
     data: AddSitePayload,
     opts: { selectSite?: boolean; closeModal?: boolean; silent?: boolean } = {}
-  ): Site {
+  ): Promise<Site | null> {
     if (!this.session.useApi()) {
       this.toast.error('Sign in to add sites');
-      return this.buildLocalSite(custId, data);
+      return Promise.resolve(this.buildLocalSite(custId, data));
     }
-    this.addSiteViaApi(custId, data, opts);
-    return this.sites[this.sites.length - 1] ?? this.buildLocalSite(custId, data);
+    return this.addSiteViaApi(custId, data, opts);
   }
 
   private buildLocalSite(custId: number, data: AddSitePayload): Site {
@@ -340,15 +400,15 @@ export class SitesDataService {
     custId: number,
     data: AddSitePayload,
     opts: { selectSite?: boolean; closeModal?: boolean; silent?: boolean }
-  ): void {
+  ): Promise<Site | null> {
     const clientProfileId =
       this.ids.clientApiId(custId) ??
       this.auth.getCurrentUser()?.clientProfileId ??
       this.customers().getCustomer(custId)?.apiId;
 
     if (!clientProfileId) {
-      this.toast.error('Client profile not found for this site.');
-      return;
+      this.toast.error('Client profile not found. Please sign in again.');
+      return Promise.resolve(null);
     }
 
     const displayName =
@@ -356,37 +416,42 @@ export class SitesDataService {
       data.name?.trim() ||
       (data.url ? parseSiteName(data.url) : 'new-site.com');
     const wpLoginUrl =
-      data.wordpress?.loginUrl ||
+      data.wordpress?.loginUrl?.trim() ||
       (data.url ? `${data.url.replace(/\/$/, '')}/wp-admin` : '');
-    const logoUrl =
-      data.wordpress?.siteUrl ||
-      data.url ||
-      `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}`;
 
-    this.websitesApi
-      .createWebsite({
+    if (!wpLoginUrl) {
+      this.toast.error('WordPress login URL is required.');
+      return Promise.resolve(null);
+    }
+
+    this.session.beginLoad();
+    return firstValueFrom(
+      this.websitesApi.createWebsite({
         clientProfileId,
         name: displayName,
-        logoUrl,
+        logoUrl: null,
         wpLoginUrl,
-        wpUsername: data.wordpress?.username ?? '',
+        wpUsername: data.wordpress?.username?.trim() ?? '',
         wpPassword: data.wordpress?.password ?? '',
       })
-      .subscribe({
-        next: (res) => {
-          const site = mapApiWebsiteToSite(res.data ?? {}, this.ids, clientProfileId);
-          if (data.wordpress) {
-            this.wordpressBySiteId.set(site.id, { ...data.wordpress });
-          }
-          this.initWordPressState(site.id, data.wordpress?.wpVersion);
-          this.sites.push(site);
-          if (opts.selectSite) this.ctx.selectedSite.set(site);
-          if (!opts.silent) this.toast.success(`${displayName} added`);
-          if (opts.closeModal) this.ctx.closeModal();
-        },
-        error: (err) => {
-          this.toast.error(err?.error?.message || 'Failed to add website');
-        },
+    )
+      .then((res) => {
+        const site = mapApiWebsiteToSite(res.data ?? {}, this.ids, clientProfileId);
+        if (data.wordpress) {
+          this.wordpressBySiteId.set(site.id, { ...data.wordpress });
+        }
+        this.initWordPressState(site.id, data.wordpress?.wpVersion);
+        this.sites.push(site);
+        if (opts.selectSite) this.ctx.selectedSite.set(site);
+        if (!opts.silent) this.toast.success(`${displayName} added`);
+        if (opts.closeModal) this.ctx.closeModal();
+        this.session.endLoad();
+        return site;
+      })
+      .catch((err) => {
+        this.session.endLoad();
+        this.toast.error(err?.error?.message || 'Failed to add website');
+        return null;
       });
   }
 
@@ -424,55 +489,89 @@ export class SitesDataService {
   }
 
   async scanSite(site: Site): Promise<void> {
-    this.ctx.scanning.set(true);
-    this.toast.info(`Scanning ${site.name}…`);
+    await this.scanSitePerformance(site);
+  }
 
-    if (this.session.useApi()) {
-      const url = siteUrl(site);
-      try {
-        const [uptime, pagespeed] = await Promise.all([
-          firstValueFrom(this.analyticsApi.checkUptime(url)).catch(() => null),
-          firstValueFrom(this.analyticsApi.checkPageSpeed({ url, strategy: 'mobile' })).catch(
-            () => null
-          ),
-        ]);
-
-        const idx = this.sites.findIndex((s) => s.id === site.id);
-        if (idx >= 0) {
-          const perf = pagespeed?.scores?.performance ?? this.sites[idx].perf;
-          const seo = pagespeed?.scores?.seo ?? this.sites[idx].seo;
-          const up = uptime?.ok ? 99.9 : 95;
-          const lcpMs = pagespeed?.metrics?.largestContentfulPaint;
-          const updated: Site = {
-            ...this.sites[idx],
-            scan: 'just now',
-            perf: perf ?? this.sites[idx].perf,
-            seo: seo ?? this.sites[idx].seo,
-            up,
-            health: Math.round(((perf ?? 70) + (seo ?? 70) + up) / 3),
-            lcp: lcpMs ? `${(lcpMs / 1000).toFixed(1)}s` : this.sites[idx].lcp,
-            fid: pagespeed?.metrics?.totalBlockingTime
-              ? `${Math.round(pagespeed.metrics.totalBlockingTime)}ms`
-              : this.sites[idx].fid,
-            cls: pagespeed?.metrics?.cumulativeLayoutShift
-              ? pagespeed.metrics.cumulativeLayoutShift.toFixed(2)
-              : this.sites[idx].cls,
-            st: (perf ?? 70) >= 80 ? 'ok' : (perf ?? 70) >= 60 ? 'warn' : 'bad',
-          };
-          this.sites[idx] = updated;
-          if (this.ctx.selectedSite()?.id === site.id) {
-            this.ctx.selectedSite.set(updated);
-          }
-        }
-        this.ctx.scanning.set(false);
-        this.toast.success('Scan complete — report updated');
-      } catch {
-        this.ctx.scanning.set(false);
-        this.toast.error('Scan failed');
-      }
+  async scanSitePerformance(site: Site): Promise<void> {
+    const apiId = this.websiteApiId(site.id) ?? site.apiId;
+    if (!this.session.useApi() || !apiId) {
+      await this.legacyScanSite(site);
       return;
     }
+    this.ctx.scanning.set(true);
+    this.toast.info(`Scanning ${site.name}…`);
+    try {
+      const res = await firstValueFrom(this.siteScreensApi.scanPerformance(apiId));
+      if (res.data) {
+        this.performanceScreen.set(res.data);
+        this.applyPerformanceToSite(site.id, res.data);
+      }
+      this.toast.success('Performance scan complete');
+    } catch {
+      this.toast.error('Performance scan failed');
+    } finally {
+      this.ctx.scanning.set(false);
+    }
+  }
 
+  async scanSiteSecurity(site: Site): Promise<void> {
+    const apiId = this.websiteApiId(site.id) ?? site.apiId;
+    if (!this.session.useApi() || !apiId) return;
+    this.ctx.scanning.set(true);
+    this.toast.info(`Scanning ${site.name} security…`);
+    try {
+      const res = await firstValueFrom(this.siteScreensApi.scanSecurity(apiId));
+      if (res.data) {
+        this.securityScreen.set(res.data);
+        this.applySecurityToSite(site.id, res.data);
+      }
+      this.toast.success('Security scan complete');
+    } catch {
+      this.toast.error('Security scan failed');
+    } finally {
+      this.ctx.scanning.set(false);
+    }
+  }
+
+  async scanSiteSeo(site: Site): Promise<void> {
+    const apiId = this.websiteApiId(site.id) ?? site.apiId;
+    if (!this.session.useApi() || !apiId) return;
+    this.ctx.scanning.set(true);
+    this.toast.info(`Scanning ${site.name} SEO…`);
+    try {
+      const res = await firstValueFrom(this.siteScreensApi.scanSeo(apiId));
+      if (res.data) {
+        this.seoScreen.set(res.data);
+        this.applySeoToSite(site.id, res.data);
+      }
+      this.toast.success('SEO scan complete');
+    } catch {
+      this.toast.error('SEO scan failed');
+    } finally {
+      this.ctx.scanning.set(false);
+    }
+  }
+
+  exportPerformancePdf(site: Site): void {
+    const apiId = this.websiteApiId(site.id) ?? site.apiId;
+    if (!apiId) return;
+    this.siteScreensApi.exportPerformancePdf(apiId).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = `performance-${site.name.replace(/[^\w.-]+/g, '-')}.pdf`;
+        anchor.click();
+        URL.revokeObjectURL(url);
+        this.toast.success('Performance report downloaded');
+      },
+      error: () => this.toast.error('Failed to export performance report'),
+    });
+  }
+
+  private async legacyScanSite(site: Site): Promise<void> {
+    this.ctx.scanning.set(true);
+    this.toast.info(`Scanning ${site.name}…`);
     await delay(2500);
     const idx = this.sites.findIndex((s) => s.id === site.id);
     if (idx >= 0) {
@@ -743,6 +842,12 @@ export class SitesDataService {
     }
   }
 
+  applyCustomerDashboardSites(sites: Site[]): void {
+    this.sites.splice(0, this.sites.length, ...sites);
+    this.syncWordPressFromSites();
+    this.syncSelectedSite(this.auth.getCurrentUser() ?? { role: 'customer' });
+  }
+
   syncSelectedSite(user: { customerId?: number; role: string }): void {
     if (user.customerId) {
       this.ctx.currentCustomerId.set(user.customerId);
@@ -750,10 +855,76 @@ export class SitesDataService {
     const custId = user.role === 'admin' ? this.ctx.currentCustomerId() : user.customerId;
     if (custId) {
       const customerSites = this.sites.filter((s) => s.custId === custId);
-      if (customerSites.length && !this.ctx.selectedSite()) {
+      const current = this.ctx.selectedSite();
+      if (current) {
+        const refreshed = customerSites.find((s) => s.id === current.id);
+        if (refreshed) {
+          this.ctx.selectedSite.set(refreshed);
+        } else if (customerSites.length) {
+          this.ctx.selectedSite.set(customerSites[0]);
+        } else {
+          this.ctx.selectedSite.set(null);
+        }
+      } else if (customerSites.length) {
         this.ctx.selectedSite.set(customerSites[0]);
       }
     }
+  }
+
+  private applyPerformanceToSite(localSiteId: number, data: SitePerformanceScreen): void {
+    const idx = this.sites.findIndex((s) => s.id === localSiteId);
+    if (idx < 0) return;
+    const perf = data.lighthouse.performance;
+    const seo = data.lighthouse.seo;
+    const updated: Site = {
+      ...this.sites[idx],
+      perf,
+      seo,
+      lcp: data.coreWebVitals.lcp.value,
+      fid: data.coreWebVitals.fid.value,
+      cls: data.coreWebVitals.cls.value,
+      scan: data.lastScan,
+      health: Math.round((perf + this.sites[idx].sec + seo + this.sites[idx].up) / 4),
+      st: perf >= 80 ? 'ok' : perf >= 60 ? 'warn' : 'bad',
+    };
+    this.sites[idx] = updated;
+    if (this.ctx.selectedSite()?.id === localSiteId) {
+      this.ctx.selectedSite.set(updated);
+    }
+    this.session.bump();
+  }
+
+  private applySecurityToSite(localSiteId: number, data: SiteSecurityScreen): void {
+    const idx = this.sites.findIndex((s) => s.id === localSiteId);
+    if (idx < 0) return;
+    const updated: Site = {
+      ...this.sites[idx],
+      sec: data.score,
+      scan: 'just now',
+      health: Math.round((this.sites[idx].perf + data.score + this.sites[idx].seo + this.sites[idx].up) / 4),
+    };
+    this.sites[idx] = updated;
+    if (this.ctx.selectedSite()?.id === localSiteId) {
+      this.ctx.selectedSite.set(updated);
+    }
+    this.session.bump();
+  }
+
+  private applySeoToSite(localSiteId: number, data: SiteSeoScreen): void {
+    const idx = this.sites.findIndex((s) => s.id === localSiteId);
+    if (idx < 0) return;
+    const updated: Site = {
+      ...this.sites[idx],
+      seo: data.score,
+      issues: data.stats.issuesFound,
+      scan: 'just now',
+      health: Math.round((this.sites[idx].perf + this.sites[idx].sec + data.score + this.sites[idx].up) / 4),
+    };
+    this.sites[idx] = updated;
+    if (this.ctx.selectedSite()?.id === localSiteId) {
+      this.ctx.selectedSite.set(updated);
+    }
+    this.session.bump();
   }
 
   private syncWordPressFromSites(): void {

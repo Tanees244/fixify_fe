@@ -1,8 +1,8 @@
 <div>
-  <div class="ph">
+  <div [class]="ui.pageHeader">
     <div>
-      <div class="pt">Subscriptions</div>
-      <div class="ps">
+      <div [class]="ui.pageTitle">Subscriptions</div>
+      <div [class]="ui.pageSub">
         {{ approvedCustomers().length }} active subscribers · ${{ mrr() }}/mo MRR
         @if (pending().length) {
           · <span style="color: var(--wn); font-weight: 600">{{ pending().length }} pending approval</span>
@@ -11,18 +11,18 @@
     </div>
   </div>
 
-  <div class="admin-tabs u">
-    <button type="button" class="admin-tab" [class.on]="tab() === 'plans'" (click)="setTab('plans')">
+  <div [class]="ui.adminTabs + ' ' + ui.u">
+    <button type="button" [class]="ui.adminTab + (tab() === 'plans' ? ' ' + ui.adminTabActive : '')" (click)="setTab('plans')">
       Plans
     </button>
-    <button type="button" class="admin-tab" [class.on]="tab() === 'assignments'" (click)="setTab('assignments')">
+    <button type="button" [class]="ui.adminTab + (tab() === 'assignments' ? ' ' + ui.adminTabActive : '')" (click)="setTab('assignments')">
       Assignments
     </button>
   </div>
 
   @if (tab() === 'plans') {
-    <div style="display: flex; justify-content: flex-end; margin-bottom: 14px" class="u">
-      <button type="button" class="btn bp bs" (click)="createPlan()" [disabled]="loading() || planSaving()">
+    <div style="display: flex; justify-content: flex-end; margin-bottom: 14px" [class]="ui.u">
+      <button type="button" [class]="ui.btn + ' ' + ui.btnPrimary + ' ' + ui.btnSm" (click)="createPlan()" [disabled]="loading() || planSaving()">
         @if (planSaving()) {
           <app-icon name="loader" [size]="13" color="#fff" />
           Creating…
@@ -34,21 +34,21 @@
     </div>
 
     @if (loading()) {
-      <div class="g3 u" style="margin-bottom: 22px">
+      <div [class]="ui.grid3 + ' ' + ui.u" style="margin-bottom: 22px">
         @for (i of skeletonCards; track i) {
-          <div class="card" style="padding: 20px">
-            <div class="skel-cell" style="height: 18px; width: 55%; margin-bottom: 14px"></div>
-            <div class="skel-cell" style="height: 28px; width: 40%; margin-bottom: 16px"></div>
-            <div class="skel-cell" style="height: 12px; width: 70%; margin-bottom: 10px"></div>
-            <div class="skel-cell" style="height: 12px; width: 85%; margin-bottom: 10px"></div>
-            <div class="skel-cell" style="height: 12px; width: 60%"></div>
+          <div [class]="ui.card" style="padding: 20px">
+            <div [class]="ui.skelCell" style="height: 18px; width: 55%; margin-bottom: 14px"></div>
+            <div [class]="ui.skelCell" style="height: 28px; width: 40%; margin-bottom: 16px"></div>
+            <div [class]="ui.skelCell" style="height: 12px; width: 70%; margin-bottom: 10px"></div>
+            <div [class]="ui.skelCell" style="height: 12px; width: 85%; margin-bottom: 10px"></div>
+            <div [class]="ui.skelCell" style="height: 12px; width: 60%"></div>
           </div>
         }
       </div>
     } @else if (plans().length === 0) {
-      <div class="card u" style="padding: 40px; text-align: center; margin-bottom: 22px">
+      <div [class]="ui.card + ' ' + ui.u" style="padding: 40px; text-align: center; margin-bottom: 22px">
         <div style="font-size: 14px; color: var(--t2); margin-bottom: 12px">No subscription plans yet</div>
-        <button type="button" class="btn bp bs" (click)="createPlan()" [disabled]="planSaving()">
+        <button type="button" [class]="ui.btn + ' ' + ui.btnPrimary + ' ' + ui.btnSm" (click)="createPlan()" [disabled]="planSaving()">
           @if (planSaving()) {
             <app-icon name="loader" [size]="13" color="#fff" />
             Creating…
@@ -59,9 +59,9 @@
         </button>
       </div>
     } @else {
-      <div class="g3 u" style="margin-bottom: 22px">
+      <div [class]="ui.grid3 + ' ' + ui.u" style="margin-bottom: 22px">
         @for (p of plans(); track p.id) {
-          <div class="card cp admin-plan-card" [style.border-top]="'3px solid ' + p.color">
+          <div [class]="ui.card + ' ' + ui.cardPad + ' ' + ui.cardHover + ' ' + ui.adminPlanCard" [style.border-top]="'3px solid ' + p.color">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px">
               <div>
                 <div style="font-weight: 800; font-size: 18px; color: var(--t1)">{{ p.name }}</div>
@@ -70,10 +70,10 @@
                 </div>
               </div>
               <div style="display: flex; gap: 6px">
-                <button type="button" class="btn bg bs" (click)="editPlan(p)" title="Edit plan">
+                <button type="button" [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm" (click)="editPlan(p)" title="Edit plan">
                   <app-icon name="edit" [size]="12" />
                 </button>
-                <button type="button" class="btn bg bs" (click)="deletePlan(p)" title="Delete plan">
+                <button type="button" [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm" (click)="deletePlan(p)" title="Delete plan">
                   <app-icon name="trash" [size]="12" />
                 </button>
               </div>
@@ -94,10 +94,11 @@
   }
 
   @if (tab() === 'assignments') {
-    <div style="display: flex; gap: 10px; margin-bottom: 16px" class="u">
-      <div class="srch">
+    <div style="display: flex; gap: 10px; margin-bottom: 16px" [class]="ui.u">
+      <div [class]="ui.search">
         <app-icon name="search" [size]="14" color="var(--t3)" />
         <input
+          [class]="ui.searchInput"
           placeholder="Search subscribers…"
           [value]="search()"
           (input)="onSearch($any($event.target).value)"
@@ -105,17 +106,17 @@
       </div>
     </div>
 
-    <div class="card u" style="overflow: hidden">
-      <table>
+    <div [class]="ui.card + ' ' + ui.u" style="overflow: hidden">
+      <table [class]="ui.table">
         <thead>
           <tr>
-            <th>Customer</th>
-            <th>Company</th>
-            <th>Current Plan</th>
-            <th>Change Plan</th>
-            <th>MRR</th>
-            <th>Status</th>
-            <th></th>
+            <th [class]="ui.th">Customer</th>
+            <th [class]="ui.th">Company</th>
+            <th [class]="ui.th">Current Plan</th>
+            <th [class]="ui.th">Change Plan</th>
+            <th [class]="ui.th">MRR</th>
+            <th [class]="ui.th">Status</th>
+            <th [class]="ui.th"></th>
           </tr>
         </thead>
         @if (loading()) {
@@ -123,37 +124,37 @@
         } @else {
           <tbody>
             @for (c of filteredAssignments(); track c.id) {
-              <tr>
-                <td>
+              <tr [class]="ui.trHover">
+                <td [class]="ui.td">
                   <div style="display: flex; align-items: center; gap: 10px">
-                    <div class="av" style="width: 32px; height: 32px; font-size: 12px; border-radius: 8px">{{ c.avatar }}</div>
+                    <div [class]="ui.avatar" style="width: 32px; height: 32px; font-size: 12px; border-radius: 8px">{{ c.avatar }}</div>
                     <div>
                       <div style="font-weight: 600; color: var(--t1); font-size: 13px">{{ c.name }}</div>
                       <div style="font-size: 11.5px; color: var(--t3)">{{ c.email }}</div>
                     </div>
                   </div>
                 </td>
-                <td style="color: var(--t2); font-size: 13px">{{ c.company }}</td>
-                <td>
+                <td [class]="ui.td" style="color: var(--t2); font-size: 13px">{{ c.company }}</td>
+                <td [class]="ui.td">
                   <span
-                    class="admin-plan-pill"
+                    [class]="ui.adminPlanPill"
                     [style.background]="planColor(c.plan) + '18'"
                     [style.color]="planColor(c.plan)"
                   >
                     {{ planLabel(c.plan) }}
                   </span>
                 </td>
-                <td>
-                  <select class="inp admin-inline-select" [value]="c.plan" (change)="onPlanSelect(c, $event)">
+                <td [class]="ui.td">
+                  <select [class]="ui.input + ' ' + ui.adminInlineSelect" [value]="c.plan" (change)="onPlanSelect(c, $event)">
                     @for (p of plans(); track p.id) {
                       <option [value]="p.id">{{ p.name }} ({{ p.priceLabel }})</option>
                     }
                   </select>
                 </td>
-                <td style="font-weight: 700; color: var(--t1)">${{ planPrice(c.plan) }}</td>
-                <td><app-badge [variant]="c.status === 'active' ? 'bok' : 'bwn'">{{ c.status }}</app-badge></td>
-                <td>
-                  <button type="button" class="btn bg bs" (click)="viewCustomer(c.id)">
+                <td [class]="ui.td" style="font-weight: 700; color: var(--t1)">${{ planPrice(c.plan) }}</td>
+                <td [class]="ui.td"><app-badge [variant]="c.status === 'active' ? 'bok' : 'bwn'">{{ c.status }}</app-badge></td>
+                <td [class]="ui.td">
+                  <button type="button" [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm" (click)="viewCustomer(c.id)">
                     <app-icon name="eye" [size]="12" />
                     View
                   </button>
@@ -161,7 +162,7 @@
               </tr>
             } @empty {
               <tr>
-                <td colspan="7" style="text-align: center; padding: 32px; color: var(--t3)">
+                <td [class]="ui.td" colspan="7" style="text-align: center; padding: 32px; color: var(--t3)">
                   No approved subscribers yet
                 </td>
               </tr>

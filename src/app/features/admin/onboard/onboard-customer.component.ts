@@ -13,6 +13,7 @@ import { PLATFORMS } from '../../../core/constants/fixify.constants';
 import { suggestLoginUrl } from '../../../core/utils/fixify.utils';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { ToggleComponent } from '../../../shared/components/toggle/toggle.component';
+import { tw } from '../../../shared/ui/tw';
 
 @Component({
   selector: 'app-admin-onboard-customer',
@@ -22,6 +23,8 @@ import { ToggleComponent } from '../../../shared/components/toggle/toggle.compon
   templateUrl: './onboard-customer.component.html',
 })
 export class AdminOnboardCustomerComponent {
+  protected readonly ui = tw;
+
   private readonly data = inject(FixifyDataService);
   private readonly toast = inject(NotificationService);
   private readonly router = inject(Router);

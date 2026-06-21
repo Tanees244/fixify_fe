@@ -27,6 +27,7 @@ import { TicketsDataService } from './data/tickets-data.service';
 import { SubscriptionsDataService } from './data/subscriptions-data.service';
 import { InsightsDataService } from './data/insights-data.service';
 import { ReportsDataService } from './data/reports-data.service';
+import { CustomerDashboardDataService } from './data/customer-dashboard-data.service';
 
 @Injectable({ providedIn: 'root' })
 export class FixifyDataService {
@@ -37,6 +38,7 @@ export class FixifyDataService {
   private readonly subscriptionsData = inject(SubscriptionsDataService);
   private readonly insightsData = inject(InsightsDataService);
   private readonly reportsData = inject(ReportsDataService);
+  private readonly customerDashboardData = inject(CustomerDashboardDataService);
 
   readonly loading = this.session.loading;
   readonly useApi = this.session.useApi;
@@ -44,7 +46,13 @@ export class FixifyDataService {
 
   readonly customers = this.customersData.customers;
   readonly sites = this.sitesData.sites;
+  readonly sitesPage = this.sitesData.sitesPage;
+  readonly sitesLimit = this.sitesData.sitesLimit;
+  readonly sitesTotal = this.sitesData.sitesTotal;
   readonly tickets = this.ticketsData.tickets;
+  readonly ticketsPage = this.ticketsData.ticketsPage;
+  readonly ticketsLimit = this.ticketsData.ticketsLimit;
+  readonly ticketsTotal = this.ticketsData.ticketsTotal;
   readonly processes = this.insightsData.processes;
   readonly subscriptionPlans = this.subscriptionsData.subscriptionPlans;
   readonly planSaving = this.subscriptionsData.planSaving;
@@ -54,6 +62,16 @@ export class FixifyDataService {
   readonly adminActions = this.reportsData.adminActions;
   readonly monthlyReports = this.reportsData.monthlyReports;
   readonly recommendations = this.reportsData.recommendations;
+  readonly performanceScreen = this.sitesData.performanceScreen;
+  readonly securityScreen = this.sitesData.securityScreen;
+  readonly seoScreen = this.sitesData.seoScreen;
+
+  readonly customerDashboardGreeting = this.customerDashboardData.greetingName;
+  readonly customerDashboardSummary = this.customerDashboardData.summary;
+  readonly customerDashboardTeamUpdates = this.customerDashboardData.teamUpdates;
+  readonly customerDashboardRecommendations = this.customerDashboardData.recommendations;
+  readonly customerDashboardInsights = this.customerDashboardData.latestInsights;
+  readonly customerDashboardRecentTickets = this.customerDashboardData.recentTickets;
 
   loadAll(): void {
     this.initSession();
@@ -81,8 +99,11 @@ export class FixifyDataService {
     this.subscriptionsData.fetchSubscriptions(done);
   }
 
-  fetchWebsites(clientProfileId?: string, done?: () => void): void {
-    this.sitesData.fetchWebsites(clientProfileId, done);
+  fetchWebsites(
+    params?: { clientId?: string; page?: number; limit?: number; status?: string; search?: string },
+    done?: () => void
+  ): void {
+    this.sitesData.fetchWebsites(params ?? {}, done);
   }
 
   fetchWebsitesForCustomer(localCustomerId: number, done?: () => void): void {
@@ -97,7 +118,22 @@ export class FixifyDataService {
     this.sitesData.fetchCustomerWebsites(done);
   }
 
-  fetchTickets(params?: { role?: string; clientId?: string }, done?: () => void): void {
+  fetchCustomerDashboard(siteId?: string, done?: () => void): void {
+    this.customerDashboardData.fetchDashboard(siteId, done);
+  }
+
+  fetchTickets(
+    params?: {
+      role?: string;
+      clientId?: string;
+      page?: number;
+      limit?: number;
+      status?: string;
+      priority?: string;
+      search?: string;
+    },
+    done?: () => void
+  ): void {
     this.ticketsData.fetchTickets(params, done);
   }
 
@@ -189,15 +225,15 @@ export class FixifyDataService {
     return this.insightsData.askAi(question);
   }
 
-  addSite(data: AddSitePayload): void {
-    this.sitesData.addSite(data);
+  addSite(data: AddSitePayload): Promise<Site | null> {
+    return this.sitesData.addSite(data);
   }
 
   addSiteForCustomer(
     custId: number,
     data: AddSitePayload,
     opts?: { selectSite?: boolean; closeModal?: boolean; silent?: boolean }
-  ): Site {
+  ): Promise<Site | null> {
     return this.sitesData.addSiteForCustomer(custId, data, opts);
   }
 
@@ -249,6 +285,22 @@ export class FixifyDataService {
 
   scanSite(site: Site): Promise<void> {
     return this.sitesData.scanSite(site);
+  }
+
+  scanSitePerformance(site: Site): Promise<void> {
+    return this.sitesData.scanSitePerformance(site);
+  }
+
+  scanSiteSecurity(site: Site): Promise<void> {
+    return this.sitesData.scanSiteSecurity(site);
+  }
+
+  scanSiteSeo(site: Site): Promise<void> {
+    return this.sitesData.scanSiteSeo(site);
+  }
+
+  exportPerformancePdf(site: Site): void {
+    this.sitesData.exportPerformancePdf(site);
   }
 
   createProcess(data: CreateProcessPayload): void {

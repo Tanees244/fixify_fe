@@ -15,6 +15,7 @@ import {
 } from '../../../core/models/fixify.models';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { ModalHeaderComponent } from '../../../shared/components/modal-header/modal-header.component';
+import { tw } from '../../../shared/ui/tw';
 
 @Component({
   selector: 'app-create-ticket-modal',
@@ -27,20 +28,20 @@ import { ModalHeaderComponent } from '../../../shared/components/modal-header/mo
       icon="clip"
       (closed)="closed.emit()"
     />
-    <div class="mdl-b">
-      <div class="fld">
-        <label>Title *</label>
+    <div [class]="ui.modalBody">
+      <div [class]="ui.field">
+        <label [class]="ui.label">Title *</label>
         <input
-          class="inp"
+          [class]="ui.input"
           placeholder="Brief description of the issue"
           [ngModel]="title()"
           (ngModelChange)="title.set($event)"
         />
       </div>
-      <div class="fld">
-        <label>Description</label>
+      <div [class]="ui.field">
+        <label [class]="ui.label">Description</label>
         <textarea
-          class="inp"
+          [class]="ui.input"
           rows="3"
           placeholder="Detailed explanation..."
           style="resize: vertical"
@@ -48,18 +49,18 @@ import { ModalHeaderComponent } from '../../../shared/components/modal-header/mo
           (ngModelChange)="desc.set($event)"
         ></textarea>
       </div>
-      <div class="g2">
-        <div class="fld">
-          <label>Site</label>
-          <select class="inp" [ngModel]="site()" (ngModelChange)="site.set($event)">
+      <div [class]="ui.grid2">
+        <div [class]="ui.field">
+          <label [class]="ui.label">Site</label>
+          <select [class]="ui.input" [ngModel]="site()" (ngModelChange)="site.set($event)">
             @for (s of sites; track s.id) {
               <option [value]="s.name">{{ s.name }}</option>
             }
           </select>
         </div>
-        <div class="fld">
-          <label>Type</label>
-          <select class="inp" [ngModel]="type()" (ngModelChange)="type.set($event)">
+        <div [class]="ui.field">
+          <label [class]="ui.label">Type</label>
+          <select [class]="ui.input" [ngModel]="type()" (ngModelChange)="type.set($event)">
             <option>Performance</option>
             <option>Security</option>
             <option>SEO</option>
@@ -68,10 +69,10 @@ import { ModalHeaderComponent } from '../../../shared/components/modal-header/mo
           </select>
         </div>
       </div>
-      <div class="g2">
-        <div class="fld">
-          <label>Priority</label>
-          <select class="inp" [ngModel]="pri()" (ngModelChange)="pri.set($event)">
+      <div [class]="ui.grid2">
+        <div [class]="ui.field">
+          <label [class]="ui.label">Priority</label>
+          <select [class]="ui.input" [ngModel]="pri()" (ngModelChange)="pri.set($event)">
             <option value="critical">Critical</option>
             <option value="high">High</option>
             <option value="medium">Medium</option>
@@ -80,11 +81,11 @@ import { ModalHeaderComponent } from '../../../shared/components/modal-header/mo
         </div>
       </div>
     </div>
-    <div class="mdl-f">
-      <button type="button" class="btn bg" (click)="closed.emit()">Cancel</button>
+    <div [class]="ui.modalFooter">
+      <button type="button" [class]="ui.btn + ' ' + ui.btnGhost" (click)="closed.emit()">Cancel</button>
       <button
         type="button"
-        class="btn bp"
+        [class]="ui.btn + ' ' + ui.btnPrimary"
         [disabled]="!title()"
         (click)="submit()"
       >
@@ -98,6 +99,7 @@ export class CreateTicketModalComponent implements OnChanges {
   @Output() closed = new EventEmitter<void>();
   @Output() submitted = new EventEmitter<CreateTicketPayload>();
 
+  readonly ui = tw;
   readonly title = signal('');
   readonly desc = signal('');
   readonly site = signal('');

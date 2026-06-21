@@ -11,6 +11,7 @@ import { WordPressPlugin } from '../../../../core/models/fixify.models';
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
 import { BadgeComponent } from '../../../../shared/components/badge/badge.component';
 import { TableSkeletonComponent } from '../../../../shared/components/table-skeleton/table-skeleton.component';
+import { tw } from '../../../../shared/ui/tw';
 
 type PluginFilter = 'all' | 'updates' | 'vulnerable' | 'active';
 
@@ -22,6 +23,7 @@ type PluginFilter = 'all' | 'updates' | 'vulnerable' | 'active';
   templateUrl: './plugins-screen.component.html',
 })
 export class PluginsScreenComponent {
+  protected readonly ui = tw;
   protected readonly facade = inject(SiteManageFacade);
   private readonly data = inject(FixifyDataService);
 

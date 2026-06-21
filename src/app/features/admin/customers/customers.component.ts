@@ -13,6 +13,7 @@ import { scoreColor } from '../../../core/utils/fixify.utils';
 import { BadgeComponent, BadgeVariant } from '../../../shared/components/badge/badge.component';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { TableSkeletonComponent } from '../../../shared/components/table-skeleton/table-skeleton.component';
+import { tw } from '../../../shared/ui/tw';
 
 type CustomerTab = 'all' | 'pending' | 'active';
 
@@ -24,6 +25,8 @@ type CustomerTab = 'all' | 'pending' | 'active';
   templateUrl: './customers.component.html',
 })
 export class CustomersComponent {
+  protected readonly ui = tw;
+
   private readonly data = inject(FixifyDataService);
   private readonly ctx = inject(AppContextService);
   private readonly router = inject(Router);

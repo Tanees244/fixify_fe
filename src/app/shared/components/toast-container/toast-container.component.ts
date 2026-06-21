@@ -12,6 +12,7 @@ import {
   NotificationType,
 } from '../../../core/services/notification.service';
 import { IconComponent } from '../icon/icon.component';
+import { tw } from '../../ui/tw';
 
 interface ToastItem extends Notification {
   id: number;
@@ -40,9 +41,9 @@ const MAX_TOASTS = 3;
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (toasts.length) {
-      <div class="toast-wrap">
+      <div [class]="ui.toastWrap">
         @for (toast of toasts; track toast.id) {
-          <div [class]="'toast ' + toastClass(toast.type)">
+          <div [class]="ui.toast + ' ' + toastClass(toast.type)">
             <app-icon
               [name]="toastIcon(toast.type)"
               [size]="15"
@@ -56,6 +57,8 @@ const MAX_TOASTS = 3;
   `,
 })
 export class ToastContainerComponent implements OnInit, OnDestroy {
+  protected readonly ui = tw;
+
   private readonly notificationService = inject(NotificationService);
   private readonly cdr = inject(ChangeDetectorRef);
 
@@ -77,7 +80,10 @@ export class ToastContainerComponent implements OnInit, OnDestroy {
   }
 
   toastClass(type: NotificationType): string {
-    return type === 'warning' ? 'warn' : type;
+    if (type === 'success') return this.ui.toastSuccess;
+    if (type === 'error') return this.ui.toastError;
+    if (type === 'info') return this.ui.toastInfo;
+    return this.ui.toastWarn;
   }
 
   toastIcon(type: NotificationType): string {

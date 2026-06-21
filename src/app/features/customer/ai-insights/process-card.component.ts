@@ -9,6 +9,7 @@ import { Process } from '../../../core/models/fixify.models';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
 import { ToggleComponent } from '../../../shared/components/toggle/toggle.component';
+import { tw } from '../../../shared/ui/tw';
 
 @Component({
   selector: 'app-process-card',
@@ -18,6 +19,8 @@ import { ToggleComponent } from '../../../shared/components/toggle/toggle.compon
   templateUrl: './process-card.component.html',
 })
 export class ProcessCardComponent {
+  protected readonly ui = tw;
+
   @Input({ required: true }) proc!: Process;
   @Output() toggle = new EventEmitter<number>();
   @Output() run = new EventEmitter<Process>();
