@@ -38,7 +38,7 @@ interface ProfileDisplay {
           </div>
           <div [class]="ui.fld">
             <label [class]="ui.label">Email</label>
-            <input [class]="ui.input" [ngModel]="p.email" readonly />
+            <input [class]="ui.input" [ngModel]="p.email" readonly disabled />
           </div>
           <div [class]="ui.fld">
             <label [class]="ui.label">Company</label>
