@@ -194,6 +194,9 @@ export class ReportsDataService {
             return;
           }
           const report = this.mapApiReport(record, site);
+          if (options?.autoSendToClient) {
+            report.status = 'sent';
+          }
           this.upsertReport(report);
           this.logAdminAction(
             site,
@@ -203,9 +206,13 @@ export class ReportsDataService {
           );
           if (res.status === 409) {
             this.toast.show(
-              res.message || 'Report for this website and month already exists.',
-              'warning'
+              options?.autoSendToClient
+                ? `${report.month} report sent to client`
+                : res.message || 'Report for this website and month already exists.',
+              options?.autoSendToClient ? 'success' : 'warning'
             );
+          } else if (options?.autoSendToClient) {
+            this.toast.success(`${report.month} report generated and sent to client`);
           } else {
             this.toast.success(`${report.month} report generated`);
           }
@@ -219,6 +226,26 @@ export class ReportsDataService {
       });
 
     return null;
+  }
+
+  /** Re-runs generation with autoSendToClient=true to move a draft report to sent. */
+  sendReport(report: MonthlyReport, done?: () => void): void {
+    if (!this.session.useApi()) {
+      const idx = this.monthlyReports.findIndex((r) => r.id === report.id);
+      if (idx >= 0) {
+        this.monthlyReports[idx] = { ...this.monthlyReports[idx], status: 'sent' };
+      }
+      this.toast.success(`${report.month} report sent to client`);
+      this.session.bump();
+      done?.();
+      return;
+    }
+    this.createMonthlyReport(
+      report.siteId,
+      report.monthKey,
+      { remarks: report.summary, autoSendToClient: true },
+      done
+    );
   }
 
   openReportDownload(report: MonthlyReport): void {

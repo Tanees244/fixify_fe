@@ -143,6 +143,34 @@ export class AuthService {
     );
   }
 
+  updateProfile(
+    id: string,
+    fields: { name?: string; phone?: string; role?: string }
+  ): Observable<string> {
+    return this.api.updateUser(id, fields).pipe(
+      map((res) => {
+        if (isApiErrorEnvelope(res)) {
+          throw new Error(res.message || 'Failed to update profile');
+        }
+        const current = this.user();
+        if (current && fields.name) {
+          const updated: AuthUser = {
+            ...current,
+            name: fields.name,
+            avatar: initials(fields.name || current.email),
+          };
+          localStorage.setItem(SESSION_KEY, JSON.stringify(updated));
+          this.user.set(updated);
+        }
+        return res.message || 'Profile updated successfully.';
+      }),
+      catchError((err) => {
+        const message = err?.error?.message || err?.message || 'Failed to update profile';
+        return throwError(() => new Error(message));
+      })
+    );
+  }
+
   logout(): void {
     localStorage.removeItem(AUTH_TOKEN_KEY);
     localStorage.removeItem(SESSION_KEY);

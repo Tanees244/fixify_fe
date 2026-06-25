@@ -45,6 +45,7 @@ export const PROCESS_ACTIONS = [
 
 export const CUSTOMER_NAV = [
   { id: 'dashboard', icon: 'dash', label: 'Dashboard' },
+  { id: 'sites', icon: 'globe', label: 'My Websites' },
   { id: 'performance', icon: 'zap', label: 'Performance' },
   { id: 'security', icon: 'shield', label: 'Security' },
   { id: 'seo', icon: 'search', label: 'SEO' },
@@ -67,6 +68,7 @@ export const ADMIN_NAV = [
 
 export const PAGE_TITLES: Record<string, string> = {
   dashboard: 'Dashboard',
+  sites: 'My Websites',
   performance: 'Performance',
   security: 'Security',
   seo: 'SEO',

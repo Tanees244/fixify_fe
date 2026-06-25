@@ -1,76 +1,49 @@
-import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { AppContextService } from '../../../core/services/app-context.service';
-import { NotificationService } from '../../../core/services/notification.service';
-import { IconComponent } from '../../../shared/components/icon/icon.component';
+import { FixifyDataService } from '../../../core/services/fixify-data.service';
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
 import { SparkLineComponent } from '../../../shared/components/spark-line/spark-line.component';
+import { UptimeHistoryDay } from '../../../core/models/site-screens.models';
 import { tw } from '../../../shared/ui/tw';
-
-interface Endpoint {
-  url: string;
-  status: 'Online' | 'Slow';
-  ms: string;
-}
-
-type UptimeSegment = 'ok' | 'warn' | 'bad';
 
 @Component({
   selector: 'app-customer-uptime',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent, BadgeComponent, SparkLineComponent],
+  imports: [BadgeComponent, SparkLineComponent],
   templateUrl: './uptime.component.html',
 })
-export class UptimeComponent implements OnInit {
+export class UptimeComponent {
   protected readonly ui = tw;
 
   readonly ctx = inject(AppContextService);
-  private readonly toast = inject(NotificationService);
+  private readonly data = inject(FixifyDataService);
 
-  readonly endpoints = signal<Endpoint[]>([]);
-  readonly segments = signal<UptimeSegment[]>([]);
-
-  readonly responseData = [182, 195, 171, 188, 203, 165, 178, 185, 182];
-
+  readonly loading = this.data.loading;
   readonly site = computed(() => this.ctx.selectedSite());
 
-  ngOnInit(): void {
-    this.resetEndpoints();
-    this.segments.set(this.generateSegments());
+  readonly dashboard = computed(() => {
+    this.data.dataRevision();
+    return this.data.uptimeDashboard();
+  });
+
+  readonly isOnline = computed(() => this.dashboard()?.status?.toLowerCase() === 'online');
+
+  readonly responseData = computed(() => this.dashboard()?.responseTrend?.points ?? []);
+
+  readonly endpoints = computed(() => this.dashboard()?.endpoints ?? []);
+
+  readonly history = computed(() => this.dashboard()?.history90d ?? []);
+
+  segmentHeight(day: UptimeHistoryDay): number {
+    return day.status === 'up' ? 26 : day.status === 'degraded' ? 16 : 9;
   }
 
-  private resetEndpoints(): void {
-    const site = this.site();
-    if (!site) return;
-    this.endpoints.set([
-      { url: `https://${site.name}`, status: 'Online', ms: '182ms' },
-      { url: `https://${site.name}/api/health`, status: 'Online', ms: '94ms' },
-      { url: `https://${site.name}/checkout`, status: 'Slow', ms: '418ms' },
-    ]);
+  segmentColor(day: UptimeHistoryDay): string {
+    return day.status === 'up' ? '#10b981' : day.status === 'degraded' ? '#f59e0b' : '#ef4444';
   }
 
-  private generateSegments(): UptimeSegment[] {
-    return Array.from({ length: 90 }, () => {
-      const r = Math.random();
-      return r > 0.06 ? 'ok' : r > 0.02 ? 'warn' : 'bad';
-    });
-  }
-
-  segmentHeight(st: UptimeSegment): number {
-    return st === 'ok' ? 26 : st === 'warn' ? 16 : 9;
-  }
-
-  segmentColor(st: UptimeSegment): string {
-    return st === 'ok' ? '#10b981' : st === 'warn' ? '#f59e0b' : '#ef4444';
-  }
-
-  addEndpoint(): void {
-    const site = this.site();
-    if (!site) return;
-    this.endpoints.update((eps) => [
-      ...eps,
-      { url: `https://${site.name}/new-endpoint`, status: 'Online', ms: '200ms' },
-    ]);
-    this.toast.success('Endpoint added');
+  endpointOnline(status: string): boolean {
+    return status.toLowerCase() === 'online';
   }
 }

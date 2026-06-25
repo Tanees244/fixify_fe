@@ -49,6 +49,20 @@ export class RouteDataLoaderService {
       this.customerDashboardData.fetchDashboard(undefined, () => this.tick());
       return;
     }
+    const customerManageMatch = path.match(/^\/customer\/sites\/(\d+)\/manage(?:\/(\w+))?/);
+    if (customerManageMatch) {
+      const siteId = Number(customerManageMatch[1]);
+      const screen = customerManageMatch[2] ?? 'overview';
+      this.data.fetchCustomerWebsites(() => {
+        this.loadSiteManageScreen(siteId, screen);
+        this.tick();
+      });
+      return;
+    }
+    if (path.startsWith('/customer/sites')) {
+      this.data.fetchCustomerWebsites(() => this.tick());
+      return;
+    }
     if (path.startsWith('/customer/performance')) {
       this.data.fetchCustomerWebsites(() => {
         this.sitesData.fetchSitePerformance(this.ctx.selectedSite(), () => this.tick());

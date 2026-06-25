@@ -59,12 +59,25 @@ export class SiteManageFacade {
     }
   }
 
+  /** True when this manage view is rendered inside the customer portal. */
+  isCustomer(): boolean {
+    return this.router.url.startsWith('/customer');
+  }
+
+  private sitesRoot(): string {
+    return this.isCustomer() ? '/customer/sites' : '/admin/sites';
+  }
+
+  backLabel(): string {
+    return this.isCustomer() ? 'My Websites' : 'All Websites';
+  }
+
   manageBasePath(): string {
-    return `/admin/sites/${this.siteId()}/manage`;
+    return `${this.sitesRoot()}/${this.siteId()}/manage`;
   }
 
   goBack(): void {
-    this.router.navigate(['/admin/sites']);
+    this.router.navigate([this.sitesRoot()]);
   }
 
   goToCustomer(): void {

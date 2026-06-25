@@ -2,80 +2,112 @@
   <div>
     <div [class]="ui.pageHeader">
       <div [class]="ui.pageTitle">Uptime & Availability</div>
-      <div [class]="ui.pageSub">{{ site.name }} · Real-time monitoring · 5-min checks</div>
+      <div [class]="ui.pageSub">
+        {{ site.name }} · Real-time monitoring
+        @if (dashboard(); as d) { · {{ d.checkInterval }} }
+      </div>
     </div>
 
-    <div [class]="ui.grid4 + ' ' + ui.u" style="margin-bottom: 22px">
-      @for (stat of [
-        { l: 'Uptime (30d)', v: site.up + '%', col: site.up >= 99.9 ? 'var(--ok)' : 'var(--wn)', sub: '5-min intervals' },
-        { l: 'Avg Response', v: '182ms', col: 'var(--ok)', sub: 'vs 450ms avg' },
-        { l: 'Incidents (30d)', v: site.up >= 99.9 ? 0 : 2, col: site.up >= 99.9 ? 'var(--ok)' : 'var(--wn)', sub: 'No open incidents' },
-        { l: 'Status', v: 'Online', col: 'var(--ok)', sub: 'All endpoints up' }
-      ]; track stat.l) {
+    @if (loading() && !dashboard()) {
+      <div [class]="ui.grid4 + ' ' + ui.u" style="margin-bottom: 22px">
+        @for (i of [1, 2, 3, 4]; track i) {
+          <div [class]="ui.statCard">
+            <div [class]="ui.skelCell" style="height: 12px; width: 55%; margin-bottom: 12px"></div>
+            <div [class]="ui.skelCell" style="height: 26px; width: 40%; margin-bottom: 10px"></div>
+            <div [class]="ui.skelCell" style="height: 11px; width: 70%"></div>
+          </div>
+        }
+      </div>
+      <div [class]="ui.card + ' ' + ui.cardPad + ' ' + ui.u" style="margin-bottom: 18px">
+        <div [class]="ui.skelCell" style="height: 16px; width: 30%; margin-bottom: 16px"></div>
+        <div [class]="ui.skelCell" style="height: 32px; width: 100%"></div>
+      </div>
+    } @else if (dashboard()) {
+      @if (dashboard(); as d) {
+      <div [class]="ui.grid4 + ' ' + ui.u" style="margin-bottom: 22px">
         <div [class]="ui.statCard">
-          <div [class]="ui.statLbl">{{ stat.l }}</div>
-          <div [class]="ui.statVal" [style.color]="stat.col">{{ stat.v }}</div>
-          <div [class]="ui.statSub">{{ stat.sub }}</div>
+          <div [class]="ui.statLbl">Uptime (30d)</div>
+          <div [class]="ui.statVal" [style.color]="d.uptime30d >= 99.9 ? 'var(--ok)' : 'var(--wn)'">{{ d.uptime30d }}%</div>
+          <div [class]="ui.statSub">{{ d.checkInterval }}</div>
         </div>
-      }
-    </div>
-
-    <div [class]="ui.card + ' ' + ui.cardPad + ' ' + ui.u + ' ' + ui.u1" style="margin-bottom: 18px">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px">
-        <div>
-          <div style="font-weight: 700; font-size: 14px">90-Day Uptime History</div>
-          <div style="font-size: 12px; color: var(--t3); margin-top: 2px">
-            Each bar = 1 day · Green = up · Yellow = degraded · Red = incident
-          </div>
+        <div [class]="ui.statCard">
+          <div [class]="ui.statLbl">Avg Response</div>
+          <div [class]="ui.statVal" style="color: var(--ok)">{{ d.avgResponseMs }}ms</div>
+          <div [class]="ui.statSub">vs {{ d.avgResponseTargetMs }}ms target</div>
         </div>
-        <app-badge [variant]="site.up >= 99.9 ? 'bok' : 'bwn'">{{ site.up }}% uptime</app-badge>
-      </div>
-      <div style="display: flex; gap: 3px; align-items: flex-end; flex-wrap: wrap">
-        @for (st of segments(); track $index; let i = $index) {
-          <div
-            [title]="'Day ' + (i + 1)"
-            style="width: 8px; border-radius: 3px; cursor: pointer; transition: opacity 0.15s"
-            [style.height.px]="segmentHeight(st)"
-            [style.background]="segmentColor(st)"
-          ></div>
-        }
-      </div>
-    </div>
-
-    <div [class]="ui.grid2 + ' ' + ui.u + ' ' + ui.u2">
-      <div [class]="ui.card + ' ' + ui.cardPad + ' ' + ui.cardHover">
-        <div style="font-weight: 700; font-size: 14px; margin-bottom: 10px">Response Time Trend</div>
-        <app-spark-line [data]="responseData" color="var(--acc)" [width]="320" [height]="80" chartId="up1" />
-        <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--t3); margin-top: 8px">
-          <span>Min: 165ms</span>
-          <span style="font-weight: 600; color: var(--t1)">Avg: 183ms</span>
-          <span>Max: 203ms</span>
+        <div [class]="ui.statCard">
+          <div [class]="ui.statLbl">Incidents (30d)</div>
+          <div [class]="ui.statVal" [style.color]="d.incidents30d === 0 ? 'var(--ok)' : 'var(--wn)'">{{ d.incidents30d }}</div>
+          <div [class]="ui.statSub">{{ d.incidents30d === 0 ? 'No open incidents' : 'Needs attention' }}</div>
+        </div>
+        <div [class]="ui.statCard">
+          <div [class]="ui.statLbl">Status</div>
+          <div [class]="ui.statVal" [style.color]="isOnline() ? 'var(--ok)' : 'var(--er)'" style="text-transform: capitalize">{{ d.status }}</div>
+          <div [class]="ui.statSub">{{ endpoints().length }} endpoints monitored</div>
         </div>
       </div>
 
-      <div [class]="ui.card + ' ' + ui.cardPad + ' ' + ui.cardHover">
+      <div [class]="ui.card + ' ' + ui.cardPad + ' ' + ui.u" style="margin-bottom: 18px">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px">
-          <div style="font-weight: 700; font-size: 14px">Monitored Endpoints</div>
-          <button type="button" [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm" (click)="addEndpoint()">
-            <app-icon name="plus" [size]="12" />
-            Add
-          </button>
-        </div>
-        @for (ep of endpoints(); track ep.url; let i = $index; let last = $last) {
-          <div
-            style="display: flex; align-items: center; gap: 8px; padding: 10px 0"
-            [style.border-bottom]="last ? 'none' : '1px solid var(--b2)'"
-          >
-            <span
-              style="width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0"
-              [style.background]="ep.status === 'Online' ? 'var(--ok)' : 'var(--wn)'"
-            ></span>
-            <span style="flex: 1; font-family: 'DM Mono', monospace; font-size: 11px; color: var(--t2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{ ep.url }}</span>
-            <span style="font-size: 12px; color: var(--t3)">{{ ep.ms }}</span>
-            <app-badge [variant]="ep.status === 'Online' ? 'bok' : 'bwn'">{{ ep.status }}</app-badge>
+          <div>
+            <div style="font-weight: 700; font-size: 14px">90-Day Uptime History</div>
+            <div style="font-size: 12px; color: var(--t3); margin-top: 2px">
+              Each bar = 1 day · Green = up · Yellow = degraded · Red = incident
+            </div>
           </div>
-        }
+          <app-badge [variant]="d.uptime30d >= 99.9 ? 'bok' : 'bwn'">{{ d.uptime30d }}% uptime</app-badge>
+        </div>
+        <div style="display: flex; gap: 3px; align-items: flex-end; flex-wrap: wrap">
+          @for (day of history(); track day.day) {
+            <div
+              [title]="'Day ' + day.day + ' · ' + day.status"
+              style="width: 8px; border-radius: 3px; cursor: pointer; transition: opacity 0.15s"
+              [style.height.px]="segmentHeight(day)"
+              [style.background]="segmentColor(day)"
+            ></div>
+          }
+        </div>
       </div>
-    </div>
+
+      <div [class]="ui.grid2 + ' ' + ui.u">
+        <div [class]="ui.card + ' ' + ui.cardPad + ' ' + ui.cardHover">
+          <div style="font-weight: 700; font-size: 14px; margin-bottom: 10px">Response Time Trend</div>
+          @if (responseData().length) {
+            <app-spark-line [data]="responseData()" color="var(--acc)" [width]="320" [height]="80" chartId="up1" />
+          }
+          <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--t3); margin-top: 8px">
+            <span>Min: {{ d.responseTrend.min }}ms</span>
+            <span style="font-weight: 600; color: var(--t1)">Avg: {{ d.responseTrend.avg }}ms</span>
+            <span>Max: {{ d.responseTrend.max }}ms</span>
+          </div>
+        </div>
+
+        <div [class]="ui.card + ' ' + ui.cardPad + ' ' + ui.cardHover">
+          <div style="font-weight: 700; font-size: 14px; margin-bottom: 14px">Monitored Endpoints</div>
+          @for (ep of endpoints(); track ep.url; let last = $last) {
+            <div
+              style="display: flex; align-items: center; gap: 8px; padding: 10px 0"
+              [style.border-bottom]="last ? 'none' : '1px solid var(--b2)'"
+            >
+              <span
+                style="width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0"
+                [style.background]="endpointOnline(ep.status) ? 'var(--ok)' : 'var(--wn)'"
+              ></span>
+              <span style="flex: 1; font-family: 'DM Mono', monospace; font-size: 11px; color: var(--t2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{ ep.url }}</span>
+              <span style="font-size: 12px; color: var(--t3)">{{ ep.responseMs }}ms</span>
+              <app-badge [variant]="endpointOnline(ep.status) ? 'bok' : 'bwn'" style="text-transform: capitalize">{{ ep.status }}</app-badge>
+            </div>
+          }
+          @if (!endpoints().length) {
+            <div style="font-size: 12.5px; color: var(--t3); padding: 8px 0">No endpoints monitored yet.</div>
+          }
+        </div>
+      </div>
+      }
+    } @else {
+      <div [class]="ui.card + ' ' + ui.u" style="padding: 32px; text-align: center; color: var(--t3)">
+        Uptime data is not available for {{ site.name }} yet.
+      </div>
+    }
   </div>
 }

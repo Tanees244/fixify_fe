@@ -11,6 +11,7 @@ import { MonthlyReport } from '../../../core/models/fixify.models';
 import { scoreColor } from '../../../core/utils/fixify.utils';
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
+import { ToggleComponent } from '../../../shared/components/toggle/toggle.component';
 import { ListItemsSkeletonComponent } from '../../../shared/components/list-items-skeleton/list-items-skeleton.component';
 import { StatCardsSkeletonComponent } from '../../../shared/components/stat-cards-skeleton/stat-cards-skeleton.component';
 import { tw } from '../../../shared/ui/tw';
@@ -35,6 +36,7 @@ function buildMonthOptions(count = 12): { key: string; label: string }[] {
     FormsModule,
     IconComponent,
     BadgeComponent,
+    ToggleComponent,
     StatCardsSkeletonComponent,
     ListItemsSkeletonComponent,
   ],
@@ -51,11 +53,12 @@ export class ReportsComponent {
   readonly customers = this.data.customers;
 
   readonly generating = signal(false);
+  readonly sendingId = signal<number | null>(null);
   readonly expandedReportId = signal<number | null>(null);
   readonly selectedSiteId = signal<number | ''>('');
   readonly selectedMonth = signal(buildMonthOptions()[0]?.key ?? '');
   readonly remarks = signal('');
-  readonly autoSend = signal(false);
+  readonly autoSend = signal(true);
   readonly yearFilter = signal(new Date().getFullYear());
   readonly siteFilter = signal('all');
   readonly customerFilter = signal('all');
@@ -116,6 +119,17 @@ export class ReportsComponent {
 
   toggleReport(report: MonthlyReport): void {
     this.expandedReportId.set(this.expandedReportId() === report.id ? null : report.id);
+  }
+
+  sendReport(report: MonthlyReport, event?: Event): void {
+    event?.stopPropagation();
+    if (this.sendingId() !== null) return;
+    this.sendingId.set(report.id);
+    this.data.sendReport(report, () => this.sendingId.set(null));
+  }
+
+  isDraft(status?: string): boolean {
+    return (status ?? 'draft').toLowerCase() === 'draft';
   }
 
   downloadReport(report: MonthlyReport, event?: Event): void {

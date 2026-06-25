@@ -36,18 +36,6 @@
     <select
       [class]="ui.input"
       style="width: auto; padding: 7px 12px"
-      [value]="statusFilter()"
-      (change)="setStatusFilter($any($event.target).value)"
-    >
-      <option value="all">All Status</option>
-      <option value="open">Open</option>
-      <option value="inprogress">In Progress</option>
-      <option value="resolved">Resolved</option>
-      <option value="closed">Closed</option>
-    </select>
-    <select
-      [class]="ui.input"
-      style="width: auto; padding: 7px 12px"
       [value]="priorityFilter()"
       (change)="setPriorityFilter($any($event.target).value)"
     >
@@ -68,17 +56,16 @@
           <th [class]="ui.th">Customer</th>
           <th [class]="ui.th">Type</th>
           <th [class]="ui.th">Priority</th>
-          <th [class]="ui.th">Status</th>
           <th [class]="ui.th">Actions</th>
         </tr>
       </thead>
       @if (loading()) {
-        <app-table-skeleton [rows]="6" [cols]="9" />
+        <app-table-skeleton [rows]="6" [cols]="6" />
       } @else {
         <tbody>
           @if (filteredTickets().length === 0) {
             <tr>
-              <td [class]="ui.td" colspan="9" style="text-align: center; padding: 32px; color: var(--t3)">
+              <td [class]="ui.td" colspan="6" style="text-align: center; padding: 32px; color: var(--t3)">
                 No tickets match filters
               </td>
             </tr>
@@ -101,18 +88,6 @@
                 </td>
                 <td [class]="ui.td">
                   <app-badge [variant]="priorityBadge(t.pri)">{{ t.pri }}</app-badge>
-                </td>
-                <td [class]="ui.td">
-                  <select
-                    style="border: 1px solid var(--bd); border-radius: 6px; padding: 3px 7px; font-size: 11.5px; color: var(--t2); background: var(--s2); cursor: pointer; outline: none"
-                    [value]="t.status"
-                    (change)="updateStatus(t.id, $any($event.target).value, $event)"
-                  >
-                    <option value="open">Open</option>
-                    <option value="inprogress">In Progress</option>
-                    <option value="resolved">Resolved</option>
-                    <option value="closed">Closed</option>
-                  </select>
                 </td>
                 <td [class]="ui.td">
                   <div style="display: flex; gap: 5px">

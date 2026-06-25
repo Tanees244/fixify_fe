@@ -35,4 +35,17 @@ export class AuthApiService extends ApiBaseService {
       body
     );
   }
+
+  updateUser(
+    id: string,
+    fields: { name?: string; email?: string; phone?: string; role?: string; password?: string }
+  ): Observable<ApiEnvelope<unknown>> {
+    const form = new FormData();
+    for (const [key, value] of Object.entries(fields)) {
+      if (value !== undefined && value !== null && value !== '') {
+        form.append(key, value);
+      }
+    }
+    return this.http.patch<ApiEnvelope<unknown>>(this.url(`/users/${encodeURIComponent(id)}`), form);
+  }
 }

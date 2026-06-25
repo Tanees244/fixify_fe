@@ -28,6 +28,7 @@ import {
   SitePerformanceScreen,
   SiteSecurityScreen,
   SiteSeoScreen,
+  UptimeDashboard,
 } from '../../models/site-screens.models';
 import { DataSessionService } from './data-session.service';
 import { CustomersDataService } from './customers-data.service';
@@ -66,6 +67,7 @@ export class SitesDataService {
   readonly performanceScreen = signal<SitePerformanceScreen | null>(null);
   readonly securityScreen = signal<SiteSecurityScreen | null>(null);
   readonly seoScreen = signal<SiteSeoScreen | null>(null);
+  readonly uptimeDashboard = signal<UptimeDashboard | null>(null);
 
   private nextSiteId = 100;
 
@@ -226,25 +228,43 @@ export class SitesDataService {
 
   fetchSiteUptime(site: Site | null, done?: () => void): void {
     if (!site || !this.session.useApi()) {
+      this.uptimeDashboard.set(null);
       done?.();
       return;
     }
-    this.analyticsApi.checkUptime(siteUrl(site)).subscribe({
+    const apiId = this.websiteApiId(site.id) ?? site.apiId;
+    if (!apiId) {
+      this.uptimeDashboard.set(null);
+      done?.();
+      return;
+    }
+    this.session.beginLoad();
+    this.uptimeDashboard.set(null);
+    this.analyticsApi.getUptimeDashboard(apiId).subscribe({
       next: (res) => {
-        const idx = this.sites.findIndex((s) => s.id === site.id);
-        if (idx >= 0) {
-          this.sites[idx] = {
-            ...this.sites[idx],
-            up: res.ok ? 99.9 : 95,
-            scan: 'just now',
-          };
-          if (this.ctx.selectedSite()?.id === site.id) {
-            this.ctx.selectedSite.set(this.sites[idx]);
+        const dash = res.data ?? null;
+        this.uptimeDashboard.set(dash);
+        if (dash) {
+          const idx = this.sites.findIndex((s) => s.id === site.id);
+          if (idx >= 0) {
+            this.sites[idx] = {
+              ...this.sites[idx],
+              up: dash.uptime30d,
+              scan: 'just now',
+            };
+            if (this.ctx.selectedSite()?.id === site.id) {
+              this.ctx.selectedSite.set(this.sites[idx]);
+            }
           }
         }
+        this.session.endLoad();
         done?.();
       },
-      error: () => done?.(),
+      error: () => {
+        this.session.endLoad();
+        this.toast.error('Failed to load uptime data');
+        done?.();
+      },
     });
   }
 

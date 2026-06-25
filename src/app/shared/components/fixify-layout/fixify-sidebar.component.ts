@@ -14,6 +14,7 @@ import { tw } from '../../ui/tw';
 
 const CUSTOMER_ROUTES: Record<string, string> = {
   dashboard: '/customer/dashboard',
+  sites: '/customer/sites',
   performance: '/customer/performance',
   security: '/customer/security',
   seo: '/customer/seo',

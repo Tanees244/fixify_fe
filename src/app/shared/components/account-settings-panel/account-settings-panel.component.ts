@@ -34,7 +34,12 @@ interface ProfileDisplay {
         @if (profile(); as p) {
           <div [class]="ui.fld">
             <label [class]="ui.label">Full Name</label>
-            <input [class]="ui.input" [ngModel]="p.name" readonly />
+            <input
+              [class]="ui.input"
+              [ngModel]="editName()"
+              (ngModelChange)="editName.set($event)"
+              [disabled]="savingProfile()"
+            />
           </div>
           <div [class]="ui.fld">
             <label [class]="ui.label">Email</label>
@@ -44,16 +49,33 @@ interface ProfileDisplay {
             <label [class]="ui.label">Company</label>
             <input [class]="ui.input" [ngModel]="p.company || '—'" readonly />
           </div>
-          @if (p.phone) {
-            <div [class]="ui.fld">
-              <label [class]="ui.label">Phone</label>
-              <input [class]="ui.input" [ngModel]="p.phone" readonly />
-            </div>
-          }
+          <div [class]="ui.fld">
+            <label [class]="ui.label">Phone</label>
+            <input
+              [class]="ui.input"
+              placeholder="Add a phone number"
+              [ngModel]="editPhone()"
+              (ngModelChange)="editPhone.set($event)"
+              [disabled]="savingProfile()"
+            />
+          </div>
           <div [class]="ui.fld">
             <label [class]="ui.label">Role</label>
-            <input [class]="ui.input" [ngModel]="p.role" readonly />
+            <input [class]="ui.input" [ngModel]="p.role" readonly disabled />
           </div>
+          <button
+            type="button"
+            [class]="ui.btn + ' ' + ui.btnPrimary"
+            [disabled]="savingProfile() || !canSaveProfile()"
+            (click)="saveProfile()"
+          >
+            @if (savingProfile()) {
+              <app-icon name="loader" [size]="13" color="#fff" />
+              Saving…
+            } @else {
+              Save Changes
+            }
+          </button>
         }
       }
 
@@ -127,6 +149,11 @@ export class AccountSettingsPanelComponent {
   readonly loading = signal(true);
   readonly error = signal('');
   readonly profile = signal<ProfileDisplay | null>(null);
+  readonly profileId = signal('');
+  readonly profileRole = signal('');
+  readonly editName = signal('');
+  readonly editPhone = signal('');
+  readonly savingProfile = signal(false);
   readonly currentPassword = signal('');
   readonly newPassword = signal('');
   readonly confirmPassword = signal('');
@@ -150,6 +177,10 @@ export class AccountSettingsPanelComponent {
           phone: user.phone ?? '',
           role: user.role.toLowerCase() === 'admin' ? 'Administrator' : 'Customer',
         });
+        this.profileId.set(user.id);
+        this.profileRole.set(user.role);
+        this.editName.set(user.name);
+        this.editPhone.set(user.phone ?? '');
         this.auth.syncUserFromProfile(user);
         this.loading.set(false);
       },
@@ -158,6 +189,41 @@ export class AccountSettingsPanelComponent {
         this.loading.set(false);
       },
     });
+  }
+
+  canSaveProfile(): boolean {
+    const p = this.profile();
+    if (!p || !this.profileId()) return false;
+    if (this.editName().trim().length === 0) return false;
+    return this.editName().trim() !== p.name || this.editPhone().trim() !== (p.phone ?? '');
+  }
+
+  saveProfile(): void {
+    if (!this.canSaveProfile() || this.savingProfile()) return;
+    this.savingProfile.set(true);
+    this.auth
+      .updateProfile(this.profileId(), {
+        name: this.editName().trim(),
+        phone: this.editPhone().trim(),
+      })
+      .subscribe({
+        next: (message) => {
+          this.toast.success(message);
+          const p = this.profile();
+          if (p) {
+            this.profile.set({
+              ...p,
+              name: this.editName().trim(),
+              phone: this.editPhone().trim(),
+            });
+          }
+          this.savingProfile.set(false);
+        },
+        error: (err: Error) => {
+          this.toast.error(err.message);
+          this.savingProfile.set(false);
+        },
+      });
   }
 
   canChangePassword(): boolean {

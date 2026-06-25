@@ -66,6 +66,7 @@ export class FixifyDataService {
   readonly performanceScreen = this.sitesData.performanceScreen;
   readonly securityScreen = this.sitesData.securityScreen;
   readonly seoScreen = this.sitesData.seoScreen;
+  readonly uptimeDashboard = this.sitesData.uptimeDashboard;
 
   readonly customerDashboardGreeting = this.customerDashboardData.greetingName;
   readonly customerDashboardSummary = this.customerDashboardData.summary;
@@ -368,6 +369,10 @@ export class FixifyDataService {
 
   openReportDownload(report: MonthlyReport): void {
     this.reportsData.openReportDownload(report);
+  }
+
+  sendReport(report: MonthlyReport, done?: () => void): void {
+    this.reportsData.sendReport(report, done);
   }
 
   recommendationsForCustomer(custId: number): SiteRecommendation[] {

@@ -130,3 +130,37 @@ export interface ReportDownloadMeta {
   fileName?: string;
   url?: string;
 }
+
+export interface UptimeHistoryDay {
+  day: number;
+  status: 'up' | 'degraded' | 'incident' | string;
+}
+
+export interface UptimeEndpoint {
+  url: string;
+  responseMs: number;
+  status: string;
+}
+
+export interface UptimeResponseTrend {
+  min: number;
+  avg: number;
+  max: number;
+  points: number[];
+}
+
+export interface UptimeDashboard {
+  siteId: string;
+  site: string;
+  checkInterval: string;
+  uptime30d: number;
+  avgResponseMs: number;
+  avgResponseTargetMs: number;
+  incidents30d: number;
+  status: string;
+  lastChecked: string;
+  history90d: UptimeHistoryDay[];
+  historyLegend?: Record<string, string>;
+  responseTrend: UptimeResponseTrend;
+  endpoints: UptimeEndpoint[];
+}

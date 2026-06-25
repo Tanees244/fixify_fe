@@ -89,10 +89,13 @@
           [disabled]="generating()"
         />
       </div>
-      <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--t2); padding-top: 22px">
-        <input type="checkbox" [ngModel]="autoSend()" (ngModelChange)="autoSend.set($event)" [disabled]="generating()" />
-        Auto-send to client after generation
-      </label>
+      <div style="display: flex; align-items: center; gap: 10px; padding-top: 22px">
+        <app-toggle [checked]="autoSend()" (toggled)="autoSend.set($event)" />
+        <div>
+          <div style="font-size: 13px; font-weight: 500; color: var(--t1)">Auto-send to client</div>
+          <div style="font-size: 11.5px; color: var(--t3)">Report is emailed and marked as sent on generation</div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -162,6 +165,22 @@
               <app-badge [variant]="reportStatusVariant(r.status)">{{ r.status }}</app-badge>
             }
             @if (i === 0) { <app-badge variant="bac">Latest</app-badge> }
+            @if (isDraft(r.status)) {
+              <button
+                type="button"
+                [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm"
+                [disabled]="sendingId() !== null"
+                (click)="sendReport(r, $event)"
+              >
+                @if (sendingId() === r.id) {
+                  <app-icon name="loader" [size]="12" />
+                  Sending…
+                } @else {
+                  <app-icon name="mail" [size]="12" />
+                  Send
+                }
+              </button>
+            }
             <button
               type="button"
               [class]="ui.btn + ' ' + ui.btnPrimary + ' ' + ui.btnSm"
