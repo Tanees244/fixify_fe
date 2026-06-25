@@ -1,9 +1,9 @@
-@if (facade.wpState(); as state) {
+@if (!facade.loading() && facade.wpState(); as state) {
   <div [class]="ui.smPage + ' ' + ui.u">
     <div [class]="ui.smPageHd">
       <div>
-        <div [class]="ui.sectionTitle">WordPress Core Update</div>
-        <div [class]="ui.pageSub">Manage the WordPress installation for {{ facade.site()?.name }}</div>
+        <div [class]="ui.sectionTitle">WordPress Core</div>
+        <div [class]="ui.pageSub">WordPress installation status for {{ facade.site()?.name }}</div>
       </div>
     </div>
 
@@ -22,7 +22,7 @@
         <div [class]="ui.smUpgradeFlow">
           <div [class]="ui.smVersionCol">
             <span [class]="ui.wpSummaryLabel">Installed</span>
-            <span [class]="ui.smVersionNum">{{ state.wpVersion }}</span>
+            <span [class]="ui.smVersionNum">{{ state.wpVersion || '—' }}</span>
             <app-badge [variant]="facade.wpCoreOutdated() ? 'bwn' : 'bok'">
               {{ facade.wpCoreOutdated() ? 'Outdated' : 'Current' }}
             </app-badge>
@@ -35,7 +35,7 @@
           </div>
           <div [class]="ui.smVersionCol + ' ' + ui.smVersionTarget">
             <span [class]="ui.wpSummaryLabel">Latest stable</span>
-            <span [class]="ui.smVersionNum + ' ' + ui.smVersionNumAcc">{{ state.latestWpVersion }}</span>
+            <span [class]="ui.smVersionNum + ' ' + ui.smVersionNumAcc">{{ state.latestWpVersion || '—' }}</span>
             <app-badge variant="bok">Recommended</app-badge>
           </div>
         </div>
@@ -48,7 +48,7 @@
         <div [class]="ui.wpSummaryGrid">
           <div [class]="ui.wpSummaryItem">
             <span [class]="ui.wpSummaryLabel">PHP version</span>
-            <span [class]="ui.wpSummaryValue + ' ' + ui.wpMono">{{ state.phpVersion }}</span>
+            <span [class]="ui.wpSummaryValue + ' ' + ui.wpMono">{{ state.phpVersion || '—' }}</span>
           </div>
           <div [class]="ui.wpSummaryItem">
             <span [class]="ui.wpSummaryLabel">Last core update</span>
@@ -62,68 +62,24 @@
           </div>
           <div [class]="ui.wpSummaryItem">
             <span [class]="ui.wpSummaryLabel">Active theme</span>
-            <span [class]="ui.wpSummaryValue">{{ state.activeTheme }}</span>
+            <span [class]="ui.wpSummaryValue">{{ state.activeTheme || '—' }}</span>
           </div>
         </div>
       </div>
     </div>
 
-    @if (facade.wpCoreOutdated()) {
-      <div [class]="ui.card + ' ' + ui.cardPad + ' ' + ui.smPanel + ' ' + ui.u" style="margin-bottom: 18px">
-        <div [class]="ui.sectionHead" style="margin-bottom: 14px">
-          <div [class]="ui.sectionTitle" style="font-size: 14px">What's new in {{ state.latestWpVersion }}</div>
-        </div>
-        <ul [class]="ui.smChangelog">
-          @for (item of changelog; track item) {
-            <li [class]="ui.smChangelogItem">
-              <app-icon name="check" [size]="13" color="var(--ok)" />
-              <span>{{ item }}</span>
-            </li>
-          }
-        </ul>
-      </div>
-
-      <div [class]="ui.wpSummary + ' ' + ui.u" style="margin-bottom: 18px">
-        <div [class]="ui.sectionHead" style="margin-bottom: 12px">
-          <div [class]="ui.sectionTitle" style="font-size: 14px; color: var(--acc)">Pre-update checklist</div>
-        </div>
-        <div [class]="ui.smChecklist">
-          <label [class]="ui.adminCheckRow + ' ' + ui.smCheckDone">
-            <input type="checkbox" checked disabled />
-            <span>Full backup completed</span>
-          </label>
-          <label [class]="ui.adminCheckRow + ' ' + ui.smCheckDone">
-            <input type="checkbox" checked disabled />
-            <span>Staging environment verified</span>
-          </label>
-          <label [class]="ui.adminCheckRow + ' ' + ui.smCheckDone">
-            <input type="checkbox" checked disabled />
-            <span>Plugins compatible with {{ state.latestWpVersion }}</span>
-          </label>
-        </div>
-      </div>
-
-      <div [class]="ui.smActionBar">
-        <button type="button" [class]="ui.btn + ' ' + ui.btnPrimary" [disabled]="facade.busy()" (click)="updateCore()">
-          @if (facade.busy()) {
-            <app-icon name="loader" [size]="13" color="#fff" />
-            Updating WordPress…
-          } @else {
-            <app-icon name="refresh" [size]="13" color="#fff" />
-            Update WordPress Core to {{ state.latestWpVersion }}
-          }
-        </button>
-      </div>
-    } @else {
+    @if (!facade.wpCoreOutdated()) {
       <div [class]="ui.card + ' ' + ui.cardPad + ' ' + ui.smPanel + ' ' + ui.smSuccessState + ' ' + ui.u">
         <div [class]="ui.smSuccessIcon">
           <app-icon name="check" [size]="24" color="var(--ok)" />
         </div>
         <div [class]="ui.smSuccessTitle">WordPress is up to date</div>
         <div [class]="ui.smSuccessSub">
-          Running {{ state.wpVersion }} · last updated {{ state.lastCoreUpdate }}
+          Running {{ state.wpVersion || '—' }}
         </div>
       </div>
     }
   </div>
+} @else {
+  <app-manage-skeleton />
 }

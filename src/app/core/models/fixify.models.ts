@@ -131,10 +131,10 @@ export interface AddSitePayload {
 export interface WordPressSiteDetails {
   siteName: string;
   siteUrl: string;
-  loginUrl: string;
-  username: string;
-  password: string;
-  authType: 'password' | 'application-password';
+  loginUrl?: string;
+  username?: string;
+  password?: string;
+  authType?: 'password' | 'application-password';
   wpVersion?: string;
   enablePluginScan: boolean;
   enableAutoUpdates: boolean;

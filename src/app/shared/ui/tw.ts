@@ -339,6 +339,10 @@ export const tw = {
 
     'h-3.5 animate-[skel-shimmer_1.2s_ease-in-out_infinite] rounded-md bg-[linear-gradient(90deg,var(--color-fixify-surface-2)_25%,var(--color-fixify-border-soft)_50%,var(--color-fixify-surface-2)_75%)] bg-[length:200%_100%]',
 
+  skelBlock:
+
+    'animate-[skel-shimmer_1.2s_ease-in-out_infinite] rounded-md bg-[linear-gradient(90deg,var(--color-fixify-surface-2)_25%,var(--color-fixify-border-soft)_50%,var(--color-fixify-surface-2)_75%)] bg-[length:200%_100%]',
+
 
 
   // Modal

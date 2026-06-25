@@ -275,10 +275,10 @@ export interface SubscriptionPlanRequest {
 export interface OnboardSiteWordPressRequest {
   siteName: string;
   siteUrl: string;
-  loginUrl: string;
-  username: string;
-  password: string;
-  authType: string;
+  loginUrl?: string;
+  username?: string;
+  password?: string;
+  authType?: string;
   wpVersion?: string;
   enablePluginScan: boolean;
   enableAutoUpdates: boolean;

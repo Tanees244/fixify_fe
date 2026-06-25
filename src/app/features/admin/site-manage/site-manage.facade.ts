@@ -1,10 +1,8 @@
-import { Injectable, computed, inject, signal } from '@angular/core';
+import { Injectable, computed, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { map } from 'rxjs';
 import { FixifyDataService } from '../../../core/services/fixify-data.service';
-import { AppContextService } from '../../../core/services/app-context.service';
-import { WordPressAdminActionType } from '../../../core/models/fixify.models';
 import { scoreColor } from '../../../core/utils/fixify.utils';
 
 @Injectable()
@@ -12,9 +10,8 @@ export class SiteManageFacade {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly data = inject(FixifyDataService);
-  private readonly ctx = inject(AppContextService);
 
-  readonly busy = signal(false);
+  readonly loading = this.data.loading;
   readonly scoreColor = scoreColor;
 
   readonly siteId = toSignal(
@@ -88,17 +85,5 @@ export class SiteManageFacade {
         queryParams: { tab: 'wordpress', site: s.id },
       });
     }
-  }
-
-  async runAction(type: WordPressAdminActionType, pluginId?: string): Promise<void> {
-    const siteId = this.siteId();
-    if (!siteId || this.busy()) return;
-    this.busy.set(true);
-    await this.data.performWordPressAction(siteId, type, pluginId);
-    this.busy.set(false);
-  }
-
-  scanning(): boolean {
-    return this.ctx.scanning();
   }
 }

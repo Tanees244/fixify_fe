@@ -1,18 +1,18 @@
 import { WordPressSiteState } from '../models/fixify.models';
 
-/** Empty WordPress state until API plugin data is loaded. */
+/** Empty WordPress state until live API data is loaded. */
 export function createDefaultWordPressState(
   siteId: number,
-  wpVersion = '6.4.0'
+  wpVersion = ''
 ): WordPressSiteState {
   return {
     siteId,
     wpVersion,
     latestWpVersion: wpVersion,
-    phpVersion: '8.2',
-    activeTheme: 'Theme',
-    themeVersion: '1.0.0',
-    latestThemeVersion: '1.0.0',
+    phpVersion: '',
+    activeTheme: '',
+    themeVersion: '',
+    latestThemeVersion: '',
     plugins: [],
     cachePlugin: '—',
     lastCacheClear: '—',

@@ -124,10 +124,6 @@ export function mapOnboardCustomerRequest(data: OnboardCustomerPayload): Onboard
         ? {
             siteName: wp.siteName,
             siteUrl: wp.siteUrl,
-            loginUrl: wp.loginUrl,
-            username: wp.username,
-            password: wp.password,
-            authType: wp.authType,
             wpVersion: wp.wpVersion,
             enablePluginScan: wp.enablePluginScan,
             enableAutoUpdates: wp.enableAutoUpdates,

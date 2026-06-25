@@ -24,7 +24,7 @@
         <div [class]="ui.wpStepNum">{{ s.n }}</div>
         <span>{{ s.label }}</span>
       </div>
-      @if (s.n < 4) {
+      @if (s.n < 3) {
         <div [class]="ui.wpStepLine + (step() > s.n ? ' ' + ui.wpStepLineOn : '')"></div>
       }
     }
@@ -78,7 +78,7 @@
         </div>
         <div [class]="ui.fld">
           <label>Site URL *</label>
-          <input [class]="ui.input" placeholder="https://yourblog.com" [ngModel]="siteUrl()" (ngModelChange)="onSiteUrlChange($event)" />
+          <input [class]="ui.input" placeholder="https://yourblog.com" [ngModel]="siteUrl()" (ngModelChange)="siteUrl.set($event)" />
           <span style="font-size: 11.5px; color: var(--t3); margin-top: 4px">Public frontend URL of the WordPress site</span>
         </div>
       </div>
@@ -93,77 +93,6 @@
     }
 
     @if (step() === 3) {
-      <div style="font-weight: 700; font-size: 15px; margin-bottom: 16px">WordPress credentials</div>
-      <p style="font-size: 13.5px; color: var(--t2); margin-bottom: 18px; line-height: 1.6">
-        Enter WordPress admin login details so Fixify can connect and run health scans.
-        <span style="color: var(--t3)">UI-only demo — credentials are not sent anywhere.</span>
-      </p>
-      <div [class]="ui.fld">
-        <label>WordPress login URL *</label>
-        <input [class]="ui.input" placeholder="https://yourblog.com/wp-admin" [ngModel]="loginUrl()" (ngModelChange)="loginUrl.set($event); connectionTested.set(false)" />
-      </div>
-      <div [class]="ui.fld">
-        <label>Authentication type</label>
-        <select [class]="ui.input" [ngModel]="authType()" (ngModelChange)="authType.set($event); connectionTested.set(false)">
-          <option value="application-password">Application Password (recommended)</option>
-          <option value="password">WordPress account password</option>
-        </select>
-      </div>
-      <div [class]="ui.grid2">
-        <div [class]="ui.fld">
-          <label>WordPress username *</label>
-          <input [class]="ui.input" placeholder="admin" autocomplete="username" [ngModel]="username()" (ngModelChange)="username.set($event); connectionTested.set(false)" />
-        </div>
-        <div [class]="ui.fld">
-          <label>{{ authTypeLabel() }} *</label>
-          <div [class]="ui.wpPasswordWrap">
-            <input [class]="ui.input" [type]="showPassword() ? 'text' : 'password'" placeholder="Enter password" autocomplete="new-password" [ngModel]="password()" (ngModelChange)="password.set($event); connectionTested.set(false)" />
-            <button type="button" [class]="ui.wpPasswordToggle" (click)="showPassword.set(!showPassword())">
-              <app-icon [name]="showPassword() ? 'eye' : 'lock'" [size]="15" color="var(--t3)" />
-            </button>
-          </div>
-        </div>
-      </div>
-      @if (authType() === 'application-password') {
-        <div style="background: var(--acs); border: 1px solid var(--acm); border-radius: 10px; padding: 12px 14px; font-size: 12.5px; color: var(--t2); line-height: 1.6; margin-bottom: 14px">
-          <strong style="color: var(--acc)">How to get an Application Password:</strong>
-          WordPress Admin → Users → Profile → Application Passwords → Add New.
-        </div>
-      }
-      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px">
-        <button type="button" [class]="ui.btn + ' ' + ui.btnGhost" (click)="testConnection()" [disabled]="testingConnection() || !canContinueStep3()">
-          @if (testingConnection()) {
-            <app-icon name="loader" [size]="13" color="var(--acc)" /> Testing…
-          } @else {
-            <app-icon name="zap" [size]="13" /> Test connection
-          }
-        </button>
-        @if (connectionTested()) {
-          <span style="font-size: 13px; color: var(--ok); font-weight: 600; display: inline-flex; align-items: center; gap: 6px">
-            <app-icon name="check" [size]="14" color="var(--ok)" />
-            Connected · WordPress {{ wpVersion() }}
-          </span>
-        }
-      </div>
-      <div style="display: flex; flex-direction: column; gap: 4px">
-        <div [class]="ui.wpToggleRow">
-          <div>
-            <div style="font-size: 13.5px; font-weight: 500">Plugin health scanning</div>
-            <div style="font-size: 11.5px; color: var(--t3); margin-top: 2px">Monitor active plugins for vulnerabilities</div>
-          </div>
-          <app-toggle [checked]="enablePluginScan()" (toggled)="enablePluginScan.set($event)" />
-        </div>
-        <div [class]="ui.wpToggleRow">
-          <div>
-            <div style="font-size: 13.5px; font-weight: 500">Auto-update notifications</div>
-            <div style="font-size: 11.5px; color: var(--t3); margin-top: 2px">Alert when WordPress core or plugins need updates</div>
-          </div>
-          <app-toggle [checked]="enableAutoUpdates()" (toggled)="enableAutoUpdates.set($event)" />
-        </div>
-      </div>
-    }
-
-    @if (step() === 4) {
       <div style="font-weight: 700; font-size: 15px; margin-bottom: 16px">Subscription & review</div>
 
       <div [class]="ui.fld">
@@ -182,6 +111,23 @@
           }
         </div>
       }
+
+      <div style="display: flex; flex-direction: column; gap: 4px; margin-bottom: 16px">
+        <div [class]="ui.wpToggleRow">
+          <div>
+            <div style="font-size: 13.5px; font-weight: 500">Plugin health scanning</div>
+            <div style="font-size: 11.5px; color: var(--t3); margin-top: 2px">Monitor active plugins for vulnerabilities</div>
+          </div>
+          <app-toggle [checked]="enablePluginScan()" (toggled)="enablePluginScan.set($event)" />
+        </div>
+        <div [class]="ui.wpToggleRow">
+          <div>
+            <div style="font-size: 13.5px; font-weight: 500">Auto-update notifications</div>
+            <div style="font-size: 11.5px; color: var(--t3); margin-top: 2px">Alert when WordPress core or plugins need updates</div>
+          </div>
+          <app-toggle [checked]="enableAutoUpdates()" (toggled)="enableAutoUpdates.set($event)" />
+        </div>
+      </div>
 
       <div [class]="ui.wpSummary">
         <div style="font-weight: 600; font-size: 13px; color: var(--t1); margin-bottom: 12px">Onboarding summary</div>
@@ -207,14 +153,6 @@
             <span [class]="ui.wpSummaryValue + ' ' + ui.wpMono">{{ siteUrl() || '—' }}</span>
           </div>
           <div [class]="ui.wpSummaryItem">
-            <span [class]="ui.wpSummaryLabel">Login URL</span>
-            <span [class]="ui.wpSummaryValue + ' ' + ui.wpMono">{{ loginUrl() || '—' }}</span>
-          </div>
-          <div [class]="ui.wpSummaryItem">
-            <span [class]="ui.wpSummaryLabel">Username</span>
-            <span [class]="ui.wpSummaryValue">{{ username() || '—' }}</span>
-          </div>
-          <div [class]="ui.wpSummaryItem">
             <span [class]="ui.wpSummaryLabel">Subscription</span>
             <span [class]="ui.wpSummaryValue">{{ planLabel(plan()) }} · ${{ planPrice(plan()) }}/mo</span>
           </div>
@@ -233,11 +171,11 @@
         </button>
       }
       <div style="flex: 1"></div>
-      @if (step() < 4) {
+      @if (step() < 3) {
         <button
           type="button"
           [class]="ui.btn + ' ' + ui.btnPrimary"
-          [disabled]="step() === 1 ? !canContinueStep1() : step() === 2 ? !canContinueStep2() : !canContinueStep3()"
+          [disabled]="step() === 1 ? !canContinueStep1() : !canContinueStep2()"
           (click)="next()"
         >
           Continue <app-icon name="chevR" [size]="13" color="#fff" />

@@ -1,4 +1,4 @@
-@if (facade.wpState(); as state) {
+@if (!facade.loading() && facade.wpState(); as state) {
   <div [class]="ui.smPage + ' ' + ui.u">
     <div [class]="ui.smPageHd">
       <div>
@@ -13,7 +13,7 @@
           <app-icon name="refresh" [size]="13" color="var(--acc)" />
           WordPress
         </div>
-        <div [class]="ui.statVal" [style.color]="facade.wpCoreOutdated() ? 'var(--wn)' : 'var(--ok)'">{{ state.wpVersion }}</div>
+        <div [class]="ui.statVal" [style.color]="facade.wpCoreOutdated() ? 'var(--wn)' : 'var(--ok)'">{{ state.wpVersion || '—' }}</div>
         <div [class]="ui.statSub">{{ facade.wpCoreOutdated() ? 'Update available' : 'Up to date' }}</div>
       </div>
       <div [class]="ui.statCard">
@@ -31,7 +31,7 @@
           <app-icon name="activity" [size]="13" color="var(--acc)" />
           PHP
         </div>
-        <div [class]="ui.statVal" style="color: var(--t1)">{{ state.phpVersion }}</div>
+        <div [class]="ui.statVal" style="color: var(--t1)">{{ state.phpVersion || '—' }}</div>
         <div [class]="ui.statSub">Runtime version</div>
       </div>
       <div [class]="ui.statCard">
@@ -39,8 +39,8 @@
           <app-icon name="file" [size]="13" color="var(--acc)" />
           Theme
         </div>
-        <div [class]="ui.statVal" [style.color]="facade.themeOutdated() ? 'var(--wn)' : 'var(--t1)'">{{ state.activeTheme }}</div>
-        <div [class]="ui.statSub">v{{ state.themeVersion }}</div>
+        <div [class]="ui.statVal" [style.color]="facade.themeOutdated() ? 'var(--wn)' : 'var(--t1)'">{{ state.activeTheme || '—' }}</div>
+        <div [class]="ui.statSub">{{ state.themeVersion ? 'v' + state.themeVersion : '—' }}</div>
       </div>
     </div>
 
@@ -71,4 +71,6 @@
       }
     </div>
   </div>
+} @else {
+  <app-manage-skeleton />
 }

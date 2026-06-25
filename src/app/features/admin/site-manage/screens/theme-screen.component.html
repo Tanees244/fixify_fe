@@ -1,23 +1,17 @@
-@if (facade.wpState(); as state) {
+@if (!facade.loading() && facade.wpState(); as state) {
   <div [class]="ui.smPage + ' ' + ui.u">
     <div [class]="ui.smPageHd">
       <div>
-        <div [class]="ui.sectionTitle">Theme Update</div>
-        <div [class]="ui.pageSub">Active theme: {{ state.activeTheme }}</div>
+        <div [class]="ui.sectionTitle">Theme</div>
+        <div [class]="ui.pageSub">Active theme: {{ state.activeTheme || '—' }}</div>
       </div>
-      @if (facade.themeOutdated()) {
-        <button type="button" [class]="ui.btn + ' ' + ui.btnPrimary + ' ' + ui.btnSm" [disabled]="facade.busy()" (click)="updateTheme()">
-          <app-icon name="refresh" [size]="13" color="#fff" />
-          Update to v{{ state.latestThemeVersion }}
-        </button>
-      }
     </div>
 
     <div [class]="ui.card + ' ' + ui.cardPad + ' ' + ui.smPanel + ' ' + ui.u" style="margin-bottom: 18px">
       <div [class]="ui.smUpgradeFlow">
         <div [class]="ui.smVersionCol">
           <span [class]="ui.wpSummaryLabel">Installed</span>
-          <span [class]="ui.smVersionNum">v{{ state.themeVersion }}</span>
+          <span [class]="ui.smVersionNum">v{{ state.themeVersion || '—' }}</span>
           <app-badge [variant]="facade.themeOutdated() ? 'bwn' : 'bok'">
             {{ facade.themeOutdated() ? 'Update available' : 'Current' }}
           </app-badge>
@@ -30,34 +24,22 @@
         </div>
         <div [class]="ui.smVersionCol + ' ' + ui.smVersionTarget">
           <span [class]="ui.wpSummaryLabel">Latest</span>
-          <span [class]="ui.smVersionNum + ' ' + ui.smVersionNumAcc">v{{ state.latestThemeVersion }}</span>
+          <span [class]="ui.smVersionNum + ' ' + ui.smVersionNumAcc">v{{ state.latestThemeVersion || '—' }}</span>
           <app-badge variant="bok">Recommended</app-badge>
         </div>
       </div>
     </div>
 
-    @if (facade.themeOutdated()) {
-      <div [class]="ui.wpSummary + ' ' + ui.u" style="margin-bottom: 18px">
-        <div style="font-weight: 600; font-size: 13px; margin-bottom: 8px; color: var(--t1)">Update notes</div>
-        <p style="font-size: 13px; color: var(--t2); line-height: 1.6; margin: 0">
-          Theme updates may include layout fixes, WooCommerce compatibility patches, and performance improvements.
-          A backup is recommended before updating.
-        </p>
-      </div>
-      <div [class]="ui.smActionBar">
-        <button type="button" [class]="ui.btn + ' ' + ui.btnPrimary" [disabled]="facade.busy()" (click)="updateTheme()">
-          <app-icon name="file" [size]="13" color="#fff" />
-          Update {{ state.activeTheme }}
-        </button>
-      </div>
-    } @else {
+    @if (!facade.themeOutdated()) {
       <div [class]="ui.card + ' ' + ui.cardPad + ' ' + ui.smPanel + ' ' + ui.smSuccessState + ' ' + ui.u">
         <div [class]="ui.smSuccessIcon">
           <app-icon name="check" [size]="24" color="var(--ok)" />
         </div>
-        <div [class]="ui.smSuccessTitle">{{ state.activeTheme }} is up to date</div>
-        <div [class]="ui.smSuccessSub">Running v{{ state.themeVersion }}</div>
+        <div [class]="ui.smSuccessTitle">{{ state.activeTheme || 'Theme' }} is up to date</div>
+        <div [class]="ui.smSuccessSub">Running v{{ state.themeVersion || '—' }}</div>
       </div>
     }
   </div>
+} @else {
+  <app-manage-skeleton [stats]="false" />
 }

@@ -1,14 +1,10 @@
-@if (facade.wpState(); as state) {
+@if (!facade.loading() && facade.wpState(); as state) {
   <div [class]="ui.smPage + ' ' + ui.u">
     <div [class]="ui.smPageHd">
       <div>
-        <div [class]="ui.sectionTitle">Security Scan</div>
-        <div [class]="ui.pageSub">Run a full vulnerability and malware scan</div>
+        <div [class]="ui.sectionTitle">Security</div>
+        <div [class]="ui.pageSub">Vulnerability and malware posture</div>
       </div>
-      <button type="button" [class]="ui.btn + ' ' + ui.btnPrimary + ' ' + ui.btnSm" [disabled]="facade.busy()" (click)="runScan()">
-        <app-icon name="shield" [size]="13" color="#fff" />
-        Run Scan
-      </button>
     </div>
 
     @if (hasVulnerablePlugins()) {
@@ -64,4 +60,6 @@
       </div>
     </div>
   </div>
+} @else {
+  <app-manage-skeleton />
 }

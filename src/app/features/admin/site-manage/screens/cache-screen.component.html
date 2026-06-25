@@ -1,8 +1,8 @@
-@if (facade.wpState(); as state) {
+@if (!facade.loading() && facade.wpState(); as state) {
   <div [class]="ui.smPage + ' ' + ui.u">
     <div [class]="ui.smPageHd">
       <div>
-        <div [class]="ui.sectionTitle">Cache Management</div>
+        <div [class]="ui.sectionTitle">Cache</div>
         <div [class]="ui.pageSub">Plugin: {{ state.cachePlugin }} · last cleared {{ state.lastCacheClear }}</div>
       </div>
     </div>
@@ -13,13 +13,9 @@
           <app-icon name="zap" [size]="22" color="var(--acc)" />
         </div>
         <div style="font-weight: 700; font-size: 15px; margin: 12px 0 6px">Page Cache</div>
-        <p style="font-size: 13px; color: var(--t2); line-height: 1.6; margin: 0 0 16px">
+        <p style="font-size: 13px; color: var(--t2); line-height: 1.6; margin: 0">
           Clears full page cache and minified CSS/JS via {{ state.cachePlugin }}.
         </p>
-        <button type="button" [class]="ui.btn + ' ' + ui.btnPrimary + ' ' + ui.btnSm" [disabled]="facade.busy()" (click)="clearPageCache()">
-          <app-icon name="zap" [size]="13" color="#fff" />
-          Clear Page Cache
-        </button>
       </div>
 
       <div [class]="ui.card + ' ' + ui.cardPad + ' ' + ui.smPanel">
@@ -27,14 +23,12 @@
           <app-icon name="activity" [size]="22" color="var(--acc)" />
         </div>
         <div style="font-weight: 700; font-size: 15px; margin: 12px 0 6px">Object Cache</div>
-        <p style="font-size: 13px; color: var(--t2); line-height: 1.6; margin: 0 0 16px">
-          Flushes Redis/Memcached object cache. Use after plugin updates or database changes.
+        <p style="font-size: 13px; color: var(--t2); line-height: 1.6; margin: 0">
+          Flushes Redis/Memcached object cache. Used after plugin updates or database changes.
         </p>
-        <button type="button" [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm" [disabled]="facade.busy()" (click)="clearObjectCache()">
-          <app-icon name="activity" [size]="13" />
-          Clear Object Cache
-        </button>
       </div>
     </div>
   </div>
+} @else {
+  <app-manage-skeleton [stats]="false" />
 }
