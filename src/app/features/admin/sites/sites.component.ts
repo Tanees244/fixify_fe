@@ -96,6 +96,10 @@ export class SitesComponent {
     this.toast.info('Bulk scan initiated for all sites');
   }
 
+  addSite(): void {
+    this.ctx.openModal({ type: 'addSite' });
+  }
+
   scanSite(site: Site): void {
     this.data.scanSite(site);
   }

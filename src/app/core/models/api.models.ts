@@ -93,12 +93,36 @@ export interface GetWebsitesParams {
 }
 
 export interface CreateWebsiteRequest {
-  clientProfileId: string;
+  /** Optional — admin only. Customers are resolved from the auth token. */
+  clientProfileId?: string;
   name: string;
-  logoUrl: string | null;
-  wpLoginUrl: string;
-  wpUsername: string;
-  wpPassword: string;
+  type?: string;
+  url: string;
+  logoUrl?: string | null;
+  /** Optional legacy field — use url OR wpLoginUrl. */
+  wpLoginUrl?: string;
+  /** Optional for wordpress. */
+  wpUsername?: string;
+  /** Optional for wordpress. */
+  wpPassword?: string;
+}
+
+export interface WordPressConnectInfo {
+  connectPageUrl: string;
+  connected: boolean;
+}
+
+export interface CreateWebsiteResponseData {
+  _id?: string;
+  id?: string;
+  name?: string;
+  domain?: string;
+  platform?: string;
+  type?: string;
+  wordpressConnected?: boolean;
+  wordpressConnectRequired?: boolean;
+  wordpressConnect?: WordPressConnectInfo;
+  [key: string]: unknown;
 }
 
 export interface CreateTicketRequest {

@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   inject,
   signal,
 } from '@angular/core';
@@ -54,9 +55,10 @@ export class AddWordpressComponent {
     { n: 3, label: 'Monitoring plan' },
   ];
 
-  get plans() {
+  readonly plans = computed(() => {
+    this.data.dataRevision();
     return this.data.subscriptionPlans;
-  }
+  });
 
   planLabel(id: string): string {
     return this.data.planLabel(id);

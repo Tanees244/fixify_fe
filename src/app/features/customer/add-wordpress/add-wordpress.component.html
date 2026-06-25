@@ -194,7 +194,7 @@
       <div [class]="ui.fld">
         <label [class]="ui.label">Plan</label>
         <select [class]="ui.input" [ngModel]="plan()" (ngModelChange)="plan.set($event)">
-          @for (p of plans; track p.id) {
+          @for (p of plans(); track p.id) {
             <option [value]="p.id">{{ p.name }} — {{ p.priceLabel }}</option>
           }
         </select>

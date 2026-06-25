@@ -164,3 +164,107 @@ export interface UptimeDashboard {
   responseTrend: UptimeResponseTrend;
   endpoints: UptimeEndpoint[];
 }
+
+// —— WordPress site management (GET /api/sites/{id}/wordpress/*) ——
+
+export interface WpConnectionStatus {
+  siteId: string;
+  connected: boolean;
+  connectPageUrl: string | null;
+  reachable?: boolean;
+  wpVersion?: string;
+  agentVersion?: string;
+  connectedAt?: string | null;
+}
+
+export interface WpApiPlugin {
+  id: string;
+  name: string;
+  version: string;
+  latestVersion: string;
+  status: string;
+  active: boolean;
+}
+
+export interface WpOverviewScreen {
+  siteId: string;
+  siteName: string;
+  wordpress: { version: string; latestVersion: string; status: string; upToDate: boolean };
+  plugins: { total: number; updatesPending: number; status: string };
+  php: { version: string; status: string; isSupported: boolean };
+  theme: { name: string; version: string };
+}
+
+export interface WpPluginsScreen {
+  siteId: string;
+  siteName: string;
+  stats: { installed: number; updatesNeeded: number; active: number };
+  plugins: WpApiPlugin[];
+}
+
+export interface WpCoreScreen {
+  siteId: string;
+  siteName: string;
+  installed: { version: string; label: string };
+  latest: { version: string; label: string };
+  updateAvailable: boolean;
+  environment: {
+    phpVersion: string;
+    lastCoreUpdate: string | null;
+    ssl: string;
+    sslValid: boolean;
+    activeTheme: string;
+  };
+  status: string;
+  runningVersion: string;
+}
+
+export interface WpThemeScreen {
+  siteId: string;
+  siteName: string;
+  activeTheme: string;
+  installed: { version: string; label: string };
+  latest: { version: string; label: string };
+  updateAvailable: boolean;
+  upToDate: boolean;
+  status: string;
+  runningVersion: string;
+}
+
+export interface WpCacheScreen {
+  siteId: string;
+  siteName: string;
+  cachePlugin: string;
+  lastCacheClear: string | null;
+  pageCache: { description: string };
+  objectCache: { description: string };
+}
+
+export interface WpSecurityScreen {
+  siteId: string;
+  siteName: string;
+  scanCoverage: string[];
+  posture: {
+    wordpress: string;
+    ssl: string;
+    sslValid: boolean;
+    vulnerablePlugins: number;
+    pendingUpdates: number;
+    blacklisted: boolean;
+    healthStatus: string;
+    healthScore: number;
+  };
+}
+
+export interface WpMaintenanceTask {
+  lastRun: string | null;
+  description: string;
+}
+
+export interface WpMaintenanceScreen {
+  siteId: string;
+  siteName: string;
+  optimizeDatabase: WpMaintenanceTask;
+  flushPermalinks: WpMaintenanceTask;
+  regenerateThumbnails: WpMaintenanceTask;
+}

@@ -3,11 +3,15 @@ import {
   Component,
   EventEmitter,
   Output,
+  computed,
+  inject,
   signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { PLATFORMS } from '../../../core/constants/fixify.constants';
 import { AddSitePayload, Platform } from '../../../core/models/fixify.models';
+import { AuthService } from '../../../core/services/auth.service';
+import { FixifyDataService } from '../../../core/services/fixify-data.service';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { ModalHeaderComponent } from '../../../shared/components/modal-header/modal-header.component';
 import { tw } from '../../../shared/ui/tw';
@@ -114,6 +118,17 @@ import { tw } from '../../../shared/ui/tw';
       }
 
       @if (step() === 3) {
+        @if (isAdmin()) {
+          <div [class]="ui.field">
+            <label [class]="ui.label">Customer *</label>
+            <select [class]="ui.input" [ngModel]="customerId()" (ngModelChange)="customerId.set($event)">
+              <option value="">Select a customer…</option>
+              @for (c of customers(); track c.id) {
+                <option [value]="c.id">{{ c.company || c.name }} — {{ c.email }}</option>
+              }
+            </select>
+          </div>
+        }
         @if (selectedPlatform(); as pl) {
           @if (pl.id !== 'custom') {
             <div
@@ -216,7 +231,7 @@ import { tw } from '../../../shared/ui/tw';
         <button
           type="button"
           [class]="ui.btn + ' ' + ui.btnPrimary"
-          [disabled]="!url()"
+          [disabled]="!canSubmit()"
           (click)="submit()"
         >
           <app-icon name="plus" [size]="13" color="#fff" /> Add Website
@@ -229,6 +244,9 @@ export class AddSiteModalComponent {
   @Output() closed = new EventEmitter<void>();
   @Output() submitted = new EventEmitter<AddSitePayload>();
 
+  private readonly auth = inject(AuthService);
+  private readonly data = inject(FixifyDataService);
+
   readonly ui = tw;
   readonly step = signal(1);
   readonly siteType = signal('');
@@ -236,8 +254,21 @@ export class AddSiteModalComponent {
   readonly url = signal('');
   readonly siteName = signal('');
   readonly plan = signal('Pro');
+  readonly customerId = signal<number | ''>('');
 
   readonly cmsPlatforms = PLATFORMS.filter((p) => p.id !== 'custom');
+
+  readonly isAdmin = computed(() => this.auth.user()?.role === 'admin');
+  readonly customers = computed(() => {
+    this.data.dataRevision();
+    return this.data.customers;
+  });
+
+  constructor() {
+    if (this.isAdmin() && this.data.customers.length === 0) {
+      this.data.fetchClients();
+    }
+  }
 
   readonly siteTypes = [
     {
@@ -273,14 +304,21 @@ export class AddSiteModalComponent {
     this.step.set(this.siteType() === 'cms' ? 2 : 3);
   }
 
+  canSubmit(): boolean {
+    if (!this.url().trim()) return false;
+    if (this.isAdmin() && !this.customerId()) return false;
+    return true;
+  }
+
   submit(): void {
+    if (!this.canSubmit()) return;
     this.submitted.emit({
       url: this.url(),
       name: this.siteName() || undefined,
       plan: this.plan(),
       type: this.siteType(),
-      platform:
-        this.siteType() === 'cms' ? this.platform() : 'custom',
+      platform: this.siteType() === 'cms' ? this.platform() : 'custom',
+      custId: this.isAdmin() && this.customerId() ? Number(this.customerId()) : undefined,
     });
   }
 }

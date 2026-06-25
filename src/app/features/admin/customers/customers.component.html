@@ -60,15 +60,13 @@
         <tr>
           <th [class]="ui.th">Customer</th>
           <th [class]="ui.th">Subscription</th>
-          <th [class]="ui.th">Approval</th>
           <th [class]="ui.th">Sites</th>
-          <th [class]="ui.th">Avg Health</th>
           <th [class]="ui.th">Joined</th>
           <th [class]="ui.th">Actions</th>
         </tr>
       </thead>
       @if (loading()) {
-        <app-table-skeleton [rows]="6" [cols]="7" />
+        <app-table-skeleton [rows]="6" [cols]="5" />
       } @else {
         <tbody>
           @for (c of filteredCustomers(); track c.id) {
@@ -91,17 +89,7 @@
                 {{ planLabel(c.plan) }} · ${{ planPrice(c.plan) }}/mo
               </span>
             </td>
-            <td [class]="ui.td">
-              <app-badge [variant]="approvalBadge(c.approvalStatus)">{{ c.approvalStatus }}</app-badge>
-            </td>
             <td [class]="ui.td" style="font-weight: 700; color: var(--acc)">{{ customerSites(c.id).length }}</td>
-            <td
-              [class]="ui.td"
-              style="font-weight: 700"
-              [style.color]="avgHealth(c.id) !== null ? scoreColor(avgHealth(c.id)!) : 'var(--t3)'"
-            >
-              {{ avgHealth(c.id) ?? '—' }}
-            </td>
             <td [class]="ui.td" style="color: var(--t2); font-size: 13px">{{ c.joined }}</td>
             <td [class]="ui.td">
               <div style="display: flex; gap: 6px; flex-wrap: wrap">
@@ -128,7 +116,7 @@
           </tr>
         } @empty {
           <tr>
-            <td [class]="ui.td" colspan="7" style="text-align: center; padding: 32px; color: var(--t3)">
+            <td [class]="ui.td" colspan="5" style="text-align: center; padding: 32px; color: var(--t3)">
               No customers match your filters
             </td>
           </tr>

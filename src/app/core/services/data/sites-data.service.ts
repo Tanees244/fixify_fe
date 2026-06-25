@@ -4,6 +4,8 @@ import {
   AddSitePayload,
   Site,
   WordPressAdminActionType,
+  WordPressPlugin,
+  WordPressPluginStatus,
   WordPressSiteDetails,
   WordPressSiteState,
 } from '../../models/fixify.models';
@@ -24,11 +26,20 @@ import { WebsitesApiService } from '../api/websites-api.service';
 import { AnalyticsApiService } from '../api/analytics-api.service';
 import { DashboardApiService } from '../api/dashboard-api.service';
 import { SiteScreensApiService } from '../api/site-screens-api.service';
+import { WordpressApiService } from '../api/wordpress-api.service';
 import {
   SitePerformanceScreen,
   SiteSecurityScreen,
   SiteSeoScreen,
   UptimeDashboard,
+  WpApiPlugin,
+  WpCacheScreen,
+  WpCoreScreen,
+  WpMaintenanceScreen,
+  WpOverviewScreen,
+  WpPluginsScreen,
+  WpSecurityScreen,
+  WpThemeScreen,
 } from '../../models/site-screens.models';
 import { DataSessionService } from './data-session.service';
 import { CustomersDataService } from './customers-data.service';
@@ -53,6 +64,7 @@ export class SitesDataService {
   private readonly analyticsApi = inject(AnalyticsApiService);
   private readonly dashboardApi = inject(DashboardApiService);
   private readonly siteScreensApi = inject(SiteScreensApiService);
+  private readonly wordpressApi = inject(WordpressApiService);
   private readonly auth = inject(AuthService);
   private readonly ids = inject(EntityIdRegistry);
   private readonly injector = inject(Injector);
@@ -337,6 +349,183 @@ export class SitesDataService {
     });
   }
 
+  /**
+   * Load WordPress management data for a manage screen from the live
+   * /api/sites/{id}/wordpress/* endpoints and merge it into the shared state.
+   */
+  fetchWordPressManage(siteId: number, screen: string, done?: () => void): void {
+    const site = this.sites.find((s) => s.id === siteId);
+    if (!site) {
+      done?.();
+      return;
+    }
+    this.initWordPressState(siteId);
+
+    const apiId = this.websiteApiId(siteId) ?? site.apiId;
+    if (!this.session.useApi() || !apiId) {
+      done?.();
+      return;
+    }
+
+    this.session.beginLoad();
+    const finish = () => {
+      this.session.endLoad();
+      done?.();
+    };
+
+    switch (screen) {
+      case 'plugins':
+        this.wordpressApi.getPlugins(apiId).subscribe({
+          next: (res) => {
+            if (res.data) this.applyWpPlugins(siteId, res.data);
+            finish();
+          },
+          error: finish,
+        });
+        break;
+      case 'core':
+        this.wordpressApi.getCore(apiId).subscribe({
+          next: (res) => {
+            if (res.data) this.applyWpCore(siteId, res.data);
+            finish();
+          },
+          error: finish,
+        });
+        break;
+      case 'theme':
+        this.wordpressApi.getTheme(apiId).subscribe({
+          next: (res) => {
+            if (res.data) this.applyWpTheme(siteId, res.data);
+            finish();
+          },
+          error: finish,
+        });
+        break;
+      case 'cache':
+        this.wordpressApi.getCache(apiId).subscribe({
+          next: (res) => {
+            if (res.data) this.applyWpCache(siteId, res.data);
+            finish();
+          },
+          error: finish,
+        });
+        break;
+      case 'maintenance':
+        this.wordpressApi.getMaintenance(apiId).subscribe({
+          next: (res) => {
+            if (res.data) this.applyWpMaintenance(siteId, res.data);
+            finish();
+          },
+          error: finish,
+        });
+        break;
+      case 'security':
+        forkJoin({
+          security: this.wordpressApi.getSecurity(apiId),
+          plugins: this.wordpressApi.getPlugins(apiId),
+        }).subscribe({
+          next: ({ security, plugins }) => {
+            if (plugins.data) this.applyWpPlugins(siteId, plugins.data);
+            if (security.data) this.applyWpSecurity(siteId, security.data);
+            finish();
+          },
+          error: finish,
+        });
+        break;
+      case 'overview':
+      default:
+        forkJoin({
+          overview: this.wordpressApi.getOverview(apiId),
+          plugins: this.wordpressApi.getPlugins(apiId),
+        }).subscribe({
+          next: ({ overview, plugins }) => {
+            if (plugins.data) this.applyWpPlugins(siteId, plugins.data);
+            if (overview.data) this.applyWpOverview(siteId, overview.data);
+            finish();
+          },
+          error: finish,
+        });
+        break;
+    }
+  }
+
+  private patchWpState(siteId: number, patch: Partial<WordPressSiteState>): void {
+    this.initWordPressState(siteId);
+    const current = this.wordpressStateBySiteId.get(siteId);
+    if (!current) return;
+    this.wordpressStateBySiteId.set(siteId, { ...current, ...patch });
+  }
+
+  private mapWpPluginStatus(p: WpApiPlugin): WordPressPluginStatus {
+    const status = (p.status || '').toLowerCase();
+    if (status === 'vulnerable' || status === 'critical') return 'vulnerable';
+    if (status === 'update' || status === 'update_available' || p.version !== p.latestVersion) {
+      return 'update';
+    }
+    return 'ok';
+  }
+
+  private applyWpPlugins(siteId: number, data: WpPluginsScreen): void {
+    const plugins: WordPressPlugin[] = (data.plugins ?? []).map((p) => ({
+      id: p.id,
+      name: p.name,
+      version: p.version,
+      latestVersion: p.latestVersion,
+      status: this.mapWpPluginStatus(p),
+      active: p.active,
+    }));
+    this.patchWpState(siteId, { plugins });
+  }
+
+  private applyWpOverview(siteId: number, data: WpOverviewScreen): void {
+    this.patchWpState(siteId, {
+      wpVersion: data.wordpress?.version ?? '',
+      latestWpVersion: data.wordpress?.latestVersion ?? data.wordpress?.version ?? '',
+      phpVersion: data.php?.version ?? '',
+      activeTheme: data.theme?.name ?? 'Theme',
+      themeVersion: data.theme?.version?.replace(/^v/i, '') ?? '',
+    });
+  }
+
+  private applyWpCore(siteId: number, data: WpCoreScreen): void {
+    this.patchWpState(siteId, {
+      wpVersion: data.installed?.version ?? data.runningVersion ?? '',
+      latestWpVersion: data.latest?.version ?? data.installed?.version ?? '',
+      phpVersion: data.environment?.phpVersion ?? '',
+      activeTheme: data.environment?.activeTheme ?? 'Theme',
+      sslValid: data.environment?.sslValid ?? true,
+      lastCoreUpdate: data.environment?.lastCoreUpdate ?? '—',
+    });
+  }
+
+  private applyWpTheme(siteId: number, data: WpThemeScreen): void {
+    this.patchWpState(siteId, {
+      activeTheme: data.activeTheme ?? 'Theme',
+      themeVersion: (data.installed?.version ?? data.runningVersion ?? '').replace(/^v/i, ''),
+      latestThemeVersion: (data.latest?.version ?? data.installed?.version ?? '').replace(/^v/i, ''),
+    });
+  }
+
+  private applyWpCache(siteId: number, data: WpCacheScreen): void {
+    this.patchWpState(siteId, {
+      cachePlugin: data.cachePlugin || '—',
+      lastCacheClear: data.lastCacheClear ?? 'Never',
+    });
+  }
+
+  private applyWpSecurity(siteId: number, data: WpSecurityScreen): void {
+    this.patchWpState(siteId, {
+      wpVersion: data.posture?.wordpress ?? this.wordpressStateBySiteId.get(siteId)?.wpVersion ?? '',
+      sslValid: data.posture?.sslValid ?? true,
+    });
+  }
+
+  private applyWpMaintenance(siteId: number, data: WpMaintenanceScreen): void {
+    this.patchWpState(siteId, {
+      dbOptimized: data.optimizeDatabase?.lastRun ?? 'Never',
+    });
+  }
+
   loadWebsiteDashboard(siteId: number): void {
     if (!this.session.useApi()) return;
     const apiId = this.websiteApiId(siteId);
@@ -421,38 +610,41 @@ export class SitesDataService {
     data: AddSitePayload,
     opts: { selectSite?: boolean; closeModal?: boolean; silent?: boolean }
   ): Promise<Site | null> {
+    const user = this.auth.getCurrentUser();
+    const isAdmin = user?.role === 'admin';
     const clientProfileId =
       this.ids.clientApiId(custId) ??
-      this.auth.getCurrentUser()?.clientProfileId ??
+      user?.clientProfileId ??
       this.customers().getCustomer(custId)?.apiId;
 
-    if (!clientProfileId) {
-      this.toast.error('Client profile not found. Please sign in again.');
+    // clientProfileId is admin-only; customers are resolved from the auth token.
+    if (isAdmin && !clientProfileId) {
+      this.toast.error('Client profile not found for this customer.');
+      return Promise.resolve(null);
+    }
+
+    const url = data.url?.trim() || data.wordpress?.siteUrl?.trim() || '';
+    if (!url) {
+      this.toast.error('Website URL is required.');
       return Promise.resolve(null);
     }
 
     const displayName =
       data.wordpress?.siteName?.trim() ||
       data.name?.trim() ||
-      (data.url ? parseSiteName(data.url) : 'new-site.com');
-    const wpLoginUrl =
-      data.wordpress?.loginUrl?.trim() ||
-      (data.url ? `${data.url.replace(/\/$/, '')}/wp-admin` : '');
-
-    if (!wpLoginUrl) {
-      this.toast.error('WordPress login URL is required.');
-      return Promise.resolve(null);
-    }
+      parseSiteName(url);
+    const wpLoginUrl = data.wordpress?.loginUrl?.trim() || undefined;
 
     this.session.beginLoad();
     return firstValueFrom(
       this.websitesApi.createWebsite({
-        clientProfileId,
+        clientProfileId: isAdmin ? clientProfileId : undefined,
         name: displayName,
-        logoUrl: null,
+        type: data.platform || 'wordpress',
+        url,
         wpLoginUrl,
-        wpUsername: data.wordpress?.username?.trim() ?? '',
-        wpPassword: data.wordpress?.password ?? '',
+        wpUsername: data.wordpress?.username?.trim() || undefined,
+        wpPassword: data.wordpress?.password || undefined,
       })
     )
       .then((res) => {
@@ -463,9 +655,19 @@ export class SitesDataService {
         this.initWordPressState(site.id, data.wordpress?.wpVersion);
         this.sites.push(site);
         if (opts.selectSite) this.ctx.selectedSite.set(site);
-        if (!opts.silent) this.toast.success(`${displayName} added`);
         if (opts.closeModal) this.ctx.closeModal();
         this.session.endLoad();
+
+        // WordPress sites must connect the WebCare agent plugin before they are
+        // usable — redirect the user to the connect page returned by the API.
+        const connectUrl = res.data?.wordpressConnect?.connectPageUrl;
+        if (connectUrl && res.data?.wordpressConnected !== true) {
+          if (!opts.silent) this.toast.info('Opening WordPress connect page…');
+          window.location.href = connectUrl;
+          return site;
+        }
+
+        if (!opts.silent) this.toast.success(`${displayName} added`);
         return site;
       })
       .catch((err) => {

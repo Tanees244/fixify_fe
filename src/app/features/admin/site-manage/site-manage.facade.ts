@@ -33,6 +33,7 @@ export class SiteManageFacade {
   });
 
   readonly wpState = computed(() => {
+    this.data.dataRevision();
     const id = this.siteId();
     return id ? this.data.getWordPressState(id) : undefined;
   });

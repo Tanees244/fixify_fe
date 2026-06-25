@@ -161,7 +161,11 @@ export class ModalHostComponent {
   }
 
   onAddSite(payload: AddSitePayload): void {
-    this.data.addSite(payload);
+    if (payload.custId) {
+      this.data.addSiteForCustomer(payload.custId, payload, { closeModal: true });
+    } else {
+      this.data.addSite(payload);
+    }
   }
 
   onAddCustomer(payload: AddCustomerPayload): void {

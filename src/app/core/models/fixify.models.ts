@@ -124,6 +124,8 @@ export interface AddSitePayload {
   type: string;
   platform: string;
   wordpress?: WordPressSiteDetails;
+  /** Admin only — the customer (local id) to add this website for. */
+  custId?: number;
 }
 
 export interface WordPressSiteDetails {

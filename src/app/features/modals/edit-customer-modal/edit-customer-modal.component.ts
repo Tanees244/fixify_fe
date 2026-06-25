@@ -30,7 +30,7 @@ import { tw } from '../../../shared/ui/tw';
         </div>
         <div [class]="ui.field">
           <label [class]="ui.label">Email</label>
-          <input [class]="ui.input" [ngModel]="email()" (ngModelChange)="email.set($event)" />
+          <input [class]="ui.input" [ngModel]="email()" readonly disabled />
         </div>
       </div>
       <div [class]="ui.grid2">
@@ -43,25 +43,13 @@ import { tw } from '../../../shared/ui/tw';
           <input [class]="ui.input" [ngModel]="phone()" (ngModelChange)="phone.set($event)" />
         </div>
       </div>
-      <div [class]="ui.grid2">
-        <div [class]="ui.field">
-          <label [class]="ui.label">Subscription Plan</label>
-          <select [class]="ui.input" [ngModel]="plan()" (ngModelChange)="plan.set($event)">
-            @for (p of data.subscriptionPlans; track p.id) {
-              <option [value]="p.id">{{ p.name }} — {{ p.priceLabel }}</option>
-            }
-          </select>
-        </div>
-        <div [class]="ui.field">
-          <label [class]="ui.label">Status</label>
-          <select [class]="ui.input" [ngModel]="status()" (ngModelChange)="status.set($event)">
-            <option value="active">Active</option>
-            <option value="pending">Pending</option>
-            <option value="warning">Warning</option>
-            <option value="suspended">Suspended</option>
-            <option value="rejected">Rejected</option>
-          </select>
-        </div>
+      <div [class]="ui.field">
+        <label [class]="ui.label">Subscription Plan</label>
+        <select [class]="ui.input" [ngModel]="plan()" (ngModelChange)="plan.set($event)">
+          @for (p of data.subscriptionPlans; track p.id) {
+            <option [value]="p.id">{{ p.name }} — {{ p.priceLabel }}</option>
+          }
+        </select>
       </div>
       
     </div>

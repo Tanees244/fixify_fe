@@ -5,10 +5,16 @@
         <div [class]="ui.pageTitle">All Websites</div>
         <div [class]="ui.pageSub">{{ sitesTotal() || sites.length }} websites</div>
       </div>
-      <button [class]="ui.btn + ' ' + ui.btnPrimary" type="button" (click)="scanAll()">
-        <app-icon name="refresh" [size]="13" color="#fff" />
-        Scan All
-      </button>
+      <div style="display: flex; gap: 8px">
+        <button [class]="ui.btn + ' ' + ui.btnGhost" type="button" (click)="scanAll()">
+          <app-icon name="refresh" [size]="13" />
+          Scan All
+        </button>
+        <button [class]="ui.btn + ' ' + ui.btnPrimary" type="button" (click)="addSite()">
+          <app-icon name="plus" [size]="13" color="#fff" />
+          Add Website
+        </button>
+      </div>
     </div>
   </div>
 

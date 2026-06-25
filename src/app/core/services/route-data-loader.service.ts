@@ -103,7 +103,12 @@ export class RouteDataLoaderService {
       return;
     }
     if (path.startsWith('/customer/add-wordpress')) {
-      this.data.fetchCustomerWebsites(() => this.tick());
+      let pending = 2;
+      const done = () => {
+        if (--pending === 0) this.tick();
+      };
+      this.data.fetchCustomerWebsites(done);
+      this.subscriptionsData.fetchSubscriptions(done);
       return;
     }
 
@@ -114,7 +119,12 @@ export class RouteDataLoaderService {
       return;
     }
     if (path === '/admin/sites') {
-      this.sitesData.fetchWebsites({ page: 1, limit: 10 }, () => this.tick());
+      let pending = 2;
+      const done = () => {
+        if (--pending === 0) this.tick();
+      };
+      this.sitesData.fetchWebsites({ page: 1, limit: 10 }, done);
+      this.customersData.fetchClients(done);
       return;
     }
     if (path === '/admin/customers') {
@@ -208,26 +218,7 @@ export class RouteDataLoaderService {
   }
 
   private loadSiteManageScreen(siteId: number, screen: string): void {
-    const site = this.sitesData.sites.find((s) => s.id === siteId) ?? null;
-    switch (screen) {
-      case 'overview':
-        this.sitesData.loadWebsiteDashboard(siteId);
-        break;
-      case 'plugins':
-      case 'core':
-      case 'theme':
-      case 'maintenance':
-        this.sitesData.fetchWordPressForSite(siteId);
-        break;
-      case 'security':
-        this.sitesData.fetchSiteSecurity(site);
-        break;
-      case 'cache':
-        this.sitesData.loadWebsiteDashboard(siteId);
-        break;
-      default:
-        this.sitesData.loadWebsiteDashboard(siteId);
-    }
+    this.sitesData.fetchWordPressManage(siteId, screen, () => this.tick());
   }
 
   private tick(): void {
