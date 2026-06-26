@@ -313,12 +313,16 @@ export class TicketsDataService {
   }
 
   private async uploadFiles(files: File[] | undefined): Promise<ApiTicketAttachmentInput[]> {
+    const list = files ?? [];
+    if (!list.length) return [];
     const out: ApiTicketAttachmentInput[] = [];
-    for (const file of files ?? []) {
+    for (const file of list) {
       try {
         out.push(await this.media.uploadFile(file, 'tickets'));
-      } catch {
-        this.toast.error(`Failed to upload ${file.name}`);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'Upload failed';
+        this.toast.error(`Failed to upload ${file.name}: ${msg}`);
+        throw err;
       }
     }
     return out;

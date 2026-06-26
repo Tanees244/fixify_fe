@@ -6,6 +6,11 @@ import { NotificationService } from '../services/notification.service';
 import { AuthService } from '../services/auth.service';
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
+  // S3 presigned uploads are handled outside HttpClient; skip if any slip through.
+  if (/amazonaws\.com/i.test(req.url)) {
+    return next(req);
+  }
+
   const router = inject(Router);
   const notification = inject(NotificationService);
   const authService = inject(AuthService);
