@@ -10,7 +10,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { DataSessionService, TicketsDataService } from '../../core/services/data';
 import { AuthService } from '../../core/services/auth.service';
 import {
-  TicketAttachment,
   TicketMessage,
   TicketStatus,
 } from '../../core/models/fixify.models';
@@ -30,6 +29,12 @@ const STATUS_OPTIONS: { value: TicketStatus; label: string }[] = [
   { value: 'resolved', label: 'Resolved' },
   { value: 'closed', label: 'Closed' },
 ];
+
+interface StagedFile {
+  id: string;
+  file: File;
+  preview: string;
+}
 
 @Component({
   selector: 'app-ticket-detail',
@@ -59,8 +64,9 @@ export class TicketDetailComponent {
 
   readonly ticketId = signal('');
   readonly reply = signal('');
-  readonly staged = signal<TicketAttachment[]>([]);
+  readonly staged = signal<StagedFile[]>([]);
   readonly internalNote = signal(false);
+  readonly sending = signal(false);
   readonly lightbox = signal<string | null>(null);
 
   readonly ticket = computed(() => {
@@ -80,10 +86,13 @@ export class TicketDetailComponent {
   });
 
   constructor() {
-    this.route.paramMap.subscribe((p) => this.ticketId.set(p.get('id') ?? ''));
-    if (this.ticketsData.tickets.length === 0) {
-      this.ticketsData.fetchTickets(this.isAdmin ? {} : { role: 'client' });
-    }
+    this.route.paramMap.subscribe((p) => {
+      const id = p.get('id') ?? '';
+      this.ticketId.set(id);
+      if (id) {
+        this.ticketsData.fetchTicketDetail(id);
+      }
+    });
   }
 
   back(): void {
@@ -123,13 +132,14 @@ export class TicketDetailComponent {
     Array.from(files).forEach((file) => {
       const reader = new FileReader();
       reader.onload = () => {
-        const att: TicketAttachment = {
-          id: `att-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-          url: String(reader.result),
-          name: file.name,
-          kind: file.type.startsWith('image/') ? 'image' : 'file',
-        };
-        this.staged.update((list) => [...list, att]);
+        this.staged.update((list) => [
+          ...list,
+          {
+            id: `att-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+            file,
+            preview: String(reader.result),
+          },
+        ]);
       };
       reader.readAsDataURL(file);
     });
@@ -140,30 +150,27 @@ export class TicketDetailComponent {
     this.staged.update((list) => list.filter((a) => a.id !== id));
   }
 
-  private actorName(): string {
-    const me = this.auth.getCurrentUser();
-    if (me?.name) return me.name;
-    return this.isAdmin ? 'Fixify Support' : this.ticket()?.customerName || 'You';
-  }
-
-  send(): void {
+  async send(): Promise<void> {
     const body = this.reply().trim();
-    const attachments = this.staged();
-    if (!body && attachments.length === 0) return;
-    this.ticketsData.addMessage(this.ticketId(), {
-      authorName: this.actorName(),
-      authorRole: this.viewerRole,
-      body: body || '(no message)',
-      attachments,
-      isInternal: this.isAdmin && this.internalNote(),
-    });
-    this.reply.set('');
-    this.staged.set([]);
-    this.internalNote.set(false);
+    const files = this.staged().map((s) => s.file);
+    if (!body && files.length === 0) return;
+    this.sending.set(true);
+    try {
+      await this.ticketsData.addMessage(this.ticketId(), {
+        body,
+        files,
+        isInternal: this.isAdmin && this.internalNote(),
+      });
+      this.reply.set('');
+      this.staged.set([]);
+      this.internalNote.set(false);
+    } finally {
+      this.sending.set(false);
+    }
   }
 
   setStatus(status: string): void {
-    this.ticketsData.setTicketStatus(this.ticketId(), status as TicketStatus, this.actorName());
+    this.ticketsData.setTicketStatus(this.ticketId(), status as TicketStatus);
   }
 
   resolve(): void {

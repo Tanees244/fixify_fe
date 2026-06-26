@@ -9,6 +9,7 @@ import { Router } from '@angular/router';
 import {
   DataSessionService,
   CustomersDataService,
+  SitesDataService,
   TicketsDataService,
 } from '../../../core/services/data';
 import { AppContextService } from '../../../core/services/app-context.service';
@@ -31,6 +32,7 @@ export class TicketsComponent {
 
   private readonly session = inject(DataSessionService);
   private readonly customersData = inject(CustomersDataService);
+  private readonly sitesData = inject(SitesDataService);
   private readonly ticketsData = inject(TicketsDataService);
   private readonly ctx = inject(AppContextService);
   private readonly router = inject(Router);
@@ -86,7 +88,7 @@ export class TicketsComponent {
         (cust === 'all' || String(t.custId) === cust) &&
         (q === '' ||
           t.title.toLowerCase().includes(q) ||
-          t.id.toLowerCase().includes(q))
+          (t.number ?? '').toLowerCase().includes(q))
     );
   });
 
@@ -119,7 +121,7 @@ export class TicketsComponent {
   }
 
   createTicket(): void {
-    this.ctx.openModal({ type: 'createTicket' });
+    this.ctx.openModal({ type: 'createTicket', sites: this.sitesData.sites });
   }
 
   viewTicket(ticket: Ticket): void {

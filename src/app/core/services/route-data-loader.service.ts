@@ -208,6 +208,11 @@ export class RouteDataLoaderService {
   private loadAdminCustomerTab(customerId: number, tab: string): void {
     const sites = this.sitesData.sitesForCustomer(customerId);
     const site = sites[0];
+    // Tickets back the overview preview and the activity tab, so always load them.
+    this.ticketsData.fetchTickets({
+      clientId: this.customersData.clientApiIdFor(customerId),
+      limit: 50,
+    });
     switch (tab) {
       case 'wordpress':
         if (site) {
@@ -216,9 +221,6 @@ export class RouteDataLoaderService {
         break;
       case 'reports':
         sites.forEach((s) => this.reportsData.loadWebsiteReports(s.id, new Date().getFullYear()));
-        break;
-      case 'activity':
-        this.ticketsData.fetchTickets({ clientId: this.customersData.clientApiIdFor(customerId) });
         break;
       default:
         break;

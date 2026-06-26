@@ -67,6 +67,8 @@ export interface Ticket {
   id: string;
   /** Backend ticket id */
   apiId?: string;
+  /** Human-friendly reference, e.g. "TK-2001". */
+  number?: string;
   /** Backend website id */
   websiteApiId?: string;
   title: string;
@@ -286,15 +288,18 @@ export interface AddCustomerPayload {
 }
 
 export interface CreateTicketPayload {
-  title: string;
-  desc: string;
-  site: string;
-  type: string;
-  pri: TicketPriority;
-  status?: TicketStatus;
-  who?: string;
-  /** Images the requester attached when opening the ticket. */
-  attachments?: TicketAttachment[];
+  subject: string;
+  description: string;
+  /** Backend website id. */
+  websiteId: string;
+  /** Website display name (used for optimistic UI). */
+  siteName: string;
+  category: string;
+  severity: TicketPriority;
+  /** Raw files to upload to S3 before creating the ticket. */
+  files: File[];
+  /** Admin-only: create on behalf of a client. */
+  custId?: string | null;
 }
 
 export interface CreateProcessPayload {

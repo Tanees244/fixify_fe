@@ -11,12 +11,17 @@ import { FormsModule } from '@angular/forms';
 import {
   CreateTicketPayload,
   Site,
-  TicketAttachment,
   TicketPriority,
 } from '../../../core/models/fixify.models';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { ModalHeaderComponent } from '../../../shared/components/modal-header/modal-header.component';
 import { tw } from '../../../shared/ui/tw';
+
+interface StagedFile {
+  id: string;
+  file: File;
+  preview: string;
+}
 
 @Component({
   selector: 'app-create-ticket-modal',
@@ -31,22 +36,23 @@ import { tw } from '../../../shared/ui/tw';
         <input
           [class]="ui.input"
           placeholder="Brief summary of the issue"
-          [ngModel]="title()"
-          (ngModelChange)="title.set($event)"
+          [ngModel]="subject()"
+          (ngModelChange)="subject.set($event)"
         />
       </div>
       <div [class]="ui.grid2">
         <div [class]="ui.field">
-          <label [class]="ui.label">Website</label>
-          <select [class]="ui.input" [ngModel]="site()" (ngModelChange)="site.set($event)">
+          <label [class]="ui.label">Website *</label>
+          <select [class]="ui.input" [ngModel]="websiteId()" (ngModelChange)="websiteId.set($event)">
+            <option value="" disabled>Select a website</option>
             @for (s of sites; track s.id) {
-              <option [value]="s.name">{{ s.name }}</option>
+              <option [value]="s.apiId">{{ s.name }}</option>
             }
           </select>
         </div>
         <div [class]="ui.field">
           <label [class]="ui.label">Category</label>
-          <select [class]="ui.input" [ngModel]="type()" (ngModelChange)="type.set($event)">
+          <select [class]="ui.input" [ngModel]="category()" (ngModelChange)="category.set($event)">
             <option>Performance</option>
             <option>Security</option>
             <option>SEO</option>
@@ -57,7 +63,7 @@ import { tw } from '../../../shared/ui/tw';
       </div>
       <div [class]="ui.field">
         <label [class]="ui.label">Severity</label>
-        <select [class]="ui.input" [ngModel]="pri()" (ngModelChange)="pri.set($event)">
+        <select [class]="ui.input" [ngModel]="severity()" (ngModelChange)="severity.set($event)">
           <option value="critical">Critical — site is down / unusable</option>
           <option value="high">High — major feature broken</option>
           <option value="medium">Medium — degraded experience</option>
@@ -71,8 +77,8 @@ import { tw } from '../../../shared/ui/tw';
           rows="4"
           placeholder="What happened, what you expected, and any steps to reproduce…"
           style="resize: vertical"
-          [ngModel]="desc()"
-          (ngModelChange)="desc.set($event)"
+          [ngModel]="description()"
+          (ngModelChange)="description.set($event)"
         ></textarea>
       </div>
 
@@ -82,7 +88,7 @@ import { tw } from '../../../shared/ui/tw';
           <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px">
             @for (att of staged(); track att.id) {
               <div style="position: relative; width: 72px; height: 72px; border-radius: 10px; overflow: hidden; border: 1px solid var(--bd)">
-                <img [src]="att.url" [alt]="att.name" style="width: 100%; height: 100%; object-fit: cover" />
+                <img [src]="att.preview" alt="" style="width: 100%; height: 100%; object-fit: cover" />
                 <button
                   type="button"
                   (click)="removeStaged(att.id)"
@@ -110,7 +116,7 @@ import { tw } from '../../../shared/ui/tw';
       <button
         type="button"
         [class]="ui.btn + ' ' + ui.btnPrimary"
-        [disabled]="!title().trim()"
+        [disabled]="!subject().trim() || !websiteId()"
         (click)="submit()"
       >
         <app-icon name="plus" [size]="13" color="#fff" /> Create ticket
@@ -124,17 +130,16 @@ export class CreateTicketModalComponent implements OnChanges {
   @Output() submitted = new EventEmitter<CreateTicketPayload>();
 
   readonly ui = tw;
-  readonly title = signal('');
-  readonly desc = signal('');
-  readonly site = signal('');
-  readonly type = signal('Performance');
-  readonly pri = signal<TicketPriority>('medium');
-  readonly who = signal('');
-  readonly staged = signal<TicketAttachment[]>([]);
+  readonly subject = signal('');
+  readonly description = signal('');
+  readonly websiteId = signal('');
+  readonly category = signal('Performance');
+  readonly severity = signal<TicketPriority>('medium');
+  readonly staged = signal<StagedFile[]>([]);
 
   ngOnChanges(): void {
-    if (this.sites.length && !this.site()) {
-      this.site.set(this.sites[0].name);
+    if (this.sites.length && !this.websiteId()) {
+      this.websiteId.set(this.sites[0].apiId ?? '');
     }
   }
 
@@ -148,9 +153,8 @@ export class CreateTicketModalComponent implements OnChanges {
           ...list,
           {
             id: `att-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-            url: String(reader.result),
-            name: file.name,
-            kind: 'image',
+            file,
+            preview: String(reader.result),
           },
         ]);
       };
@@ -164,16 +168,16 @@ export class CreateTicketModalComponent implements OnChanges {
   }
 
   submit(): void {
-    if (!this.title().trim()) return;
+    if (!this.subject().trim() || !this.websiteId()) return;
+    const selected = this.sites.find((s) => s.apiId === this.websiteId());
     this.submitted.emit({
-      title: this.title().trim(),
-      desc: this.desc().trim(),
-      site: this.site(),
-      type: this.type(),
-      pri: this.pri(),
-      status: 'open',
-      who: this.who() || undefined,
-      attachments: this.staged(),
+      subject: this.subject().trim(),
+      description: this.description().trim(),
+      websiteId: this.websiteId(),
+      siteName: selected?.name ?? '',
+      category: this.category(),
+      severity: this.severity(),
+      files: this.staged().map((s) => s.file),
     });
   }
 }

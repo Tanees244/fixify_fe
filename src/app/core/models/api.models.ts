@@ -125,11 +125,28 @@ export interface CreateWebsiteResponseData {
   [key: string]: unknown;
 }
 
+/** Attachment metadata sent to the API after the file has been uploaded to S3. */
+export interface ApiTicketAttachmentInput {
+  key: string;
+  fileName: string;
+  contentType: string;
+  size: number;
+}
+
 export interface CreateTicketRequest {
-  websiteId: string;
-  title: string;
+  subject: string;
+  /** Backend website id. */
+  website: string;
+  category: string;
+  severity: string;
   description: string;
-  priority: 'low' | 'medium' | 'high' | 'urgent' | string;
+  attachments?: ApiTicketAttachmentInput[];
+  /** Admin-only: open a ticket on behalf of a client. */
+  custId?: string | null;
+}
+
+export interface ResolveTicketRequest {
+  note?: string;
 }
 
 export interface GetTicketsParams {
@@ -150,6 +167,21 @@ export interface UpdateTicketStatusRequest {
 export interface AddTicketMessageRequest {
   message: string;
   isInternal: boolean;
+  attachments?: ApiTicketAttachmentInput[];
+}
+
+export interface PresignUploadRequest {
+  fileName: string;
+  folderName: string;
+  contentType: string;
+}
+
+export interface PresignUploadResponse {
+  fileName: string;
+  key: string;
+  url: string;
+  expiresIn: number;
+  method: string;
 }
 
 export interface PageSpeedRequest {

@@ -82,7 +82,7 @@ export class TicketsComponent {
         (priority === 'all' || t.pri === priority) &&
         (search === '' ||
           t.title.toLowerCase().includes(search) ||
-          t.id.toLowerCase().includes(search))
+          (t.number ?? '').toLowerCase().includes(search))
     );
   });
 

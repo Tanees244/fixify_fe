@@ -48,6 +48,50 @@ export function ticketStatusLabel(s: TicketStatus | string): string {
   })[s] || s;
 }
 
+/** Maps a backend ticket status (e.g. "in_progress") to the FE union. */
+export function apiTicketStatus(s: string | undefined | null): TicketStatus {
+  switch ((s ?? '').toLowerCase().replace(/[\s-]/g, '_')) {
+    case 'in_progress':
+    case 'inprogress':
+      return 'inprogress';
+    case 'resolved':
+      return 'resolved';
+    case 'closed':
+      return 'closed';
+    case 'testing':
+      return 'testing';
+    default:
+      return 'open';
+  }
+}
+
+/** Maps the FE status union back to the backend's expected value. */
+export function ticketStatusToApi(s: TicketStatus): string {
+  return s === 'inprogress' ? 'in_progress' : s;
+}
+
+/** Title-cases a backend category for display + badge matching. */
+export function prettyTicketCategory(c: string | undefined | null): string {
+  const key = (c ?? '').toLowerCase();
+  const map: Record<string, string> = {
+    performance: 'Performance',
+    security: 'Security',
+    seo: 'SEO',
+    bug: 'Bug',
+    uptime: 'Uptime',
+  };
+  if (map[key]) return map[key];
+  return key ? key.charAt(0).toUpperCase() + key.slice(1) : 'General';
+}
+
+export function normalizeTicketPriority(p: string | undefined | null): TicketPriority {
+  const key = (p ?? '').toLowerCase();
+  if (key === 'critical' || key === 'urgent') return 'critical';
+  if (key === 'high') return 'high';
+  if (key === 'low') return 'low';
+  return 'medium';
+}
+
 export function severityBadge(s: InsightSeverity): BadgeVariant {
   const map: Record<InsightSeverity, BadgeVariant> = {
     critical: 'ber',

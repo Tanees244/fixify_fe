@@ -5,14 +5,15 @@ import {
   ApiEnvelope,
   CreateTicketRequest,
   GetTicketsParams,
+  ResolveTicketRequest,
   UpdateTicketStatusRequest,
 } from '../../models/api.models';
 import { ApiBaseService } from './api-base.service';
 
 @Injectable({ providedIn: 'root' })
 export class TicketsApiService extends ApiBaseService {
-  createTicket(body: CreateTicketRequest): Observable<ApiEnvelope<{ ticket: unknown }>> {
-    return this.http.post<ApiEnvelope<{ ticket: unknown }>>(this.url('/api/tickets'), body);
+  createTicket(body: CreateTicketRequest): Observable<ApiEnvelope<unknown>> {
+    return this.http.post<ApiEnvelope<unknown>>(this.url('/api/tickets'), body);
   }
 
   getTickets(
@@ -51,6 +52,17 @@ export class TicketsApiService extends ApiBaseService {
   ): Observable<ApiEnvelope<unknown>> {
     return this.http.patch<ApiEnvelope<unknown>>(
       this.url(`/api/tickets/${encodeURIComponent(ticketId)}/status`),
+      body
+    );
+  }
+
+  /** POST /api/tickets/{id}/resolve — close/resolve with optional note. */
+  resolveTicket(
+    ticketId: string,
+    body: ResolveTicketRequest = {}
+  ): Observable<ApiEnvelope<unknown>> {
+    return this.http.post<ApiEnvelope<unknown>>(
+      this.url(`/api/tickets/${encodeURIComponent(ticketId)}/resolve`),
       body
     );
   }

@@ -193,8 +193,9 @@ export class ModalHostComponent {
     }
   }
 
-  onCreateTicket(payload: CreateTicketPayload): void {
-    const id = this.ticketsData.createTicket(payload);
+  async onCreateTicket(payload: CreateTicketPayload): Promise<void> {
+    const id = await this.ticketsData.createTicket(payload);
+    if (!id) return;
     const role = this.auth.getCurrentUser()?.role === 'admin' ? 'admin' : 'customer';
     this.router.navigate([`/${role}/tickets`, id]);
   }
