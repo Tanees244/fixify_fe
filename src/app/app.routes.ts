@@ -30,5 +30,12 @@ export const appRoutes: Routes = [
     loadChildren: () =>
       import('./features/admin/admin.routes').then((m) => m.ADMIN_ROUTES),
   },
+  {
+    path: 'sites/:id/wordpress/connect',
+    loadComponent: () =>
+      import('./features/wordpress-connect/wordpress-connect.component').then(
+        (m) => m.WordpressConnectComponent
+      ),
+  },
   { path: '**', redirectTo: 'auth' },
 ];

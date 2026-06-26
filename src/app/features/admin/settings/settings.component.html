@@ -1,17 +1,19 @@
 <div>
-  <div class="ph">
-    <div class="pt">Admin Settings</div>
-    <div class="ps">Platform configuration & preferences</div>
+  <div [class]="ui.pageHeader">
+    <div [class]="ui.pageTitle">Admin Settings</div>
+    <div [class]="ui.pageSub">Platform configuration & preferences</div>
   </div>
 
-  <div class="g2 u">
+  <div [class]="ui.grid2 + ' ' + ui.u">
     <div style="display: flex; flex-direction: column; gap: 18px">
-      <div class="card cp">
-        <div class="st" style="margin-bottom: 14px">Scan Configuration</div>
-        <div class="fld">
+      <app-account-settings-panel />
+
+      <div [class]="ui.card + ' ' + ui.cardPad + ' ' + ui.cardHover">
+        <div [class]="ui.sectionTitle" style="margin-bottom: 14px">Scan Configuration</div>
+        <div [class]="ui.fld">
           <label>Scan Interval (minutes)</label>
           <select
-            class="inp"
+            [class]="ui.input"
             [value]="scan().interval"
             (change)="setScanInterval($any($event.target).value)"
           >
@@ -35,40 +37,40 @@
             />
           </div>
         }
-        <button class="btn bp" type="button" style="margin-top: 14px" (click)="saveScanSettings()">
+        <button [class]="ui.btn + ' ' + ui.btnPrimary" type="button" style="margin-top: 14px" (click)="saveScanSettings()">
           Save Settings
         </button>
       </div>
 
-      <div class="card cp">
-        <div class="st" style="margin-bottom: 14px">API Configuration</div>
-        <div class="fld">
+      <div [class]="ui.card + ' ' + ui.cardPad + ' ' + ui.cardHover">
+        <div [class]="ui.sectionTitle" style="margin-bottom: 14px">API Configuration</div>
+        <div [class]="ui.fld">
           <label>API Key</label>
           <div style="display: flex; gap: 8px">
             <input
-              class="inp"
+              [class]="ui.input"
               value="fx_live_••••••••••••••••"
               readonly
               style="flex: 1; letter-spacing: 2px"
             />
-            <button class="btn bg bs" type="button" (click)="copyApiKey()">Copy</button>
+            <button [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm" type="button" (click)="copyApiKey()">Copy</button>
           </div>
         </div>
-        <div class="fld">
+        <div [class]="ui.fld">
           <label>Webhook URL</label>
           <input
-            class="inp"
+            [class]="ui.input"
             placeholder="https://your-server.com/webhook"
             [value]="webhookUrl()"
             (input)="setWebhookUrl($any($event.target).value)"
           />
         </div>
-        <button class="btn bp" type="button" (click)="saveApiSettings()">Save</button>
+        <button [class]="ui.btn + ' ' + ui.btnPrimary" type="button" (click)="saveApiSettings()">Save</button>
       </div>
     </div>
 
-    <div class="card cp u u1" style="height: fit-content">
-      <div class="st" style="margin-bottom: 14px">Admin Notifications</div>
+    <div [class]="ui.card + ' ' + ui.cardPad + ' ' + ui.cardHover + ' ' + ui.u + ' ' + ui.u1" style="height: fit-content">
+      <div [class]="ui.sectionTitle" style="margin-bottom: 14px">Admin Notifications</div>
       @for (item of notificationToggles; track item.key) {
         <div
           style="display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--b2)"
@@ -84,7 +86,7 @@
         </div>
       }
       <button
-        class="btn bp"
+        [class]="ui.btn + ' ' + ui.btnPrimary"
         type="button"
         style="margin-top: 14px; width: 100%; justify-content: center"
         (click)="saveNotificationPrefs()"

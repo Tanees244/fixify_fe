@@ -13,6 +13,7 @@ import { CreateProcessPayload, Site } from '../../../core/models/fixify.models';
 import { AppContextService } from '../../../core/services/app-context.service';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { ModalHeaderComponent } from '../../../shared/components/modal-header/modal-header.component';
+import { tw } from '../../../shared/ui/tw';
 
 @Component({
   selector: 'app-create-process-modal',
@@ -25,20 +26,20 @@ import { ModalHeaderComponent } from '../../../shared/components/modal-header/mo
       icon="refresh"
       (closed)="closed.emit()"
     />
-    <div class="mdl-b">
-      <div class="fld">
-        <label>Process Name *</label>
+    <div [class]="ui.modalBody">
+      <div [class]="ui.field">
+        <label [class]="ui.label">Process Name *</label>
         <input
-          class="inp"
+          [class]="ui.input"
           placeholder="e.g. Monthly Plugin Updates"
           [ngModel]="name()"
           (ngModelChange)="name.set($event)"
         />
       </div>
-      <div class="fld">
-        <label>Description</label>
+      <div [class]="ui.field">
+        <label [class]="ui.label">Description</label>
         <textarea
-          class="inp"
+          [class]="ui.input"
           rows="2"
           placeholder="What does this process do?"
           style="resize: vertical"
@@ -46,26 +47,26 @@ import { ModalHeaderComponent } from '../../../shared/components/modal-header/mo
           (ngModelChange)="desc.set($event)"
         ></textarea>
       </div>
-      <div class="g2">
-        <div class="fld">
-          <label>Schedule</label>
-          <select class="inp" [ngModel]="trigger()" (ngModelChange)="trigger.set($event)">
+      <div [class]="ui.grid2">
+        <div [class]="ui.field">
+          <label [class]="ui.label">Schedule</label>
+          <select [class]="ui.input" [ngModel]="trigger()" (ngModelChange)="trigger.set($event)">
             <option value="daily">Every Day</option>
             <option value="weekly">Every Week</option>
             <option value="monthly">Every Month</option>
           </select>
         </div>
-        <div class="fld">
-          <label>{{ scheduleLabel() }}</label>
+        <div [class]="ui.field">
+          <label [class]="ui.label">{{ scheduleLabel() }}</label>
           @if (trigger() === 'monthly') {
-            <select class="inp" [ngModel]="day()" (ngModelChange)="day.set($event)">
+            <select [class]="ui.input" [ngModel]="day()" (ngModelChange)="day.set($event)">
               @for (d of monthDays; track d) {
                 <option [value]="d">Day {{ d }}</option>
               }
             </select>
           }
           @if (trigger() === 'weekly') {
-            <select class="inp" [ngModel]="day()" (ngModelChange)="day.set($event)">
+            <select [class]="ui.input" [ngModel]="day()" (ngModelChange)="day.set($event)">
               @for (d of weekDays; track d) {
                 <option [value]="d">{{ d }}</option>
               }
@@ -73,7 +74,7 @@ import { ModalHeaderComponent } from '../../../shared/components/modal-header/mo
           }
           @if (trigger() === 'daily') {
             <input
-              class="inp"
+              [class]="ui.input"
               type="time"
               [ngModel]="time()"
               (ngModelChange)="time.set($event)"
@@ -81,17 +82,17 @@ import { ModalHeaderComponent } from '../../../shared/components/modal-header/mo
           }
         </div>
       </div>
-      <div class="fld">
-        <label>Target Sites</label>
-        <select class="inp" [ngModel]="targetSites()" (ngModelChange)="targetSites.set($event)">
+      <div [class]="ui.field">
+        <label [class]="ui.label">Target Sites</label>
+        <select [class]="ui.input" [ngModel]="targetSites()" (ngModelChange)="targetSites.set($event)">
           <option value="all">All My Sites</option>
           @for (s of mySites; track s.id) {
             <option [value]="s.name">{{ s.name }}</option>
           }
         </select>
       </div>
-      <div class="fld">
-        <label>Actions — select steps in order</label>
+      <div [class]="ui.field">
+        <label [class]="ui.label">Actions — select steps in order</label>
         <div style="display: flex; flex-wrap: wrap; gap: 7px; margin-top: 6px">
           @for (action of actions; track action) {
             <div
@@ -121,13 +122,13 @@ import { ModalHeaderComponent } from '../../../shared/components/modal-header/mo
             style="margin-top: 10px; padding: 10px 12px; background: var(--s2); border-radius: 9px; border: 1px solid var(--bd)"
           >
             <div
-              style="font-size: 11px; color: var(--t3); margin-bottom: 6px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase"
+              class="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-fixify-text-3"
             >
               Execution Order
             </div>
             @for (action of selectedActions(); track action; let i = $index) {
               <div
-                style="display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 12.5px; color: var(--t2)"
+                class="flex items-center gap-2 py-1 text-[12.5px] text-fixify-text-2"
               >
                 <span
                   style="width: 18px; height: 18px; border-radius: 50%; background: var(--acc); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; flex-shrink: 0"
@@ -140,11 +141,11 @@ import { ModalHeaderComponent } from '../../../shared/components/modal-header/mo
         }
       </div>
     </div>
-    <div class="mdl-f">
-      <button type="button" class="btn bg" (click)="closed.emit()">Cancel</button>
+    <div [class]="ui.modalFooter">
+      <button type="button" [class]="ui.btn + ' ' + ui.btnGhost" (click)="closed.emit()">Cancel</button>
       <button
         type="button"
-        class="btn bp"
+        [class]="ui.btn + ' ' + ui.btnPrimary"
         [disabled]="!name() || !selectedActions().length"
         (click)="submit()"
       >
@@ -160,6 +161,7 @@ export class CreateProcessModalComponent {
   @Output() closed = new EventEmitter<void>();
   @Output() submitted = new EventEmitter<CreateProcessPayload>();
 
+  readonly ui = tw;
   readonly name = signal('');
   readonly desc = signal('');
   readonly trigger = signal('monthly');

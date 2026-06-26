@@ -1,26 +1,26 @@
 <div>
-  <div class="ph">
-    <div class="pt">Admin Overview</div>
-    <div class="ps">Platform health · {{ dateLabel }}</div>
+  <div [class]="ui.pageHeader">
+    <div [class]="ui.pageTitle">Admin Overview</div>
+    <div [class]="ui.pageSub">Platform health · {{ dateLabel }}</div>
   </div>
 
-  <div class="g4 u" style="margin-bottom: 22px">
+  <div [class]="ui.grid4 + ' ' + ui.u" style="margin-bottom: 22px">
     @for (stat of statCards(); track stat.label) {
-      <div class="stat-card">
-        <div class="slbl">
+      <div [class]="ui.statCard">
+        <div [class]="ui.statLbl">
           <app-icon [name]="stat.icon" [size]="13" [color]="stat.color" />
           {{ stat.label }}
         </div>
-        <div class="sval" [style.color]="stat.color">{{ stat.value }}</div>
-        <div class="ssub">{{ stat.sub }}</div>
+        <div [class]="ui.statVal" [style.color]="stat.color">{{ stat.value }}</div>
+        <div [class]="ui.statSub">{{ stat.sub }}</div>
       </div>
     }
   </div>
 
-  <div class="g2 u u1" style="margin-bottom: 22px">
-    <div class="card cp">
-      <div class="sh" style="margin-bottom: 14px">
-        <div class="st">Site Health Distribution</div>
+  <div [class]="ui.grid2 + ' ' + ui.u + ' ' + ui.u1" style="margin-bottom: 22px">
+    <div [class]="ui.card + ' ' + ui.cardPad + ' ' + ui.cardHover">
+      <div [class]="ui.sectionHead" style="margin-bottom: 14px">
+        <div [class]="ui.sectionTitle">Site Health Distribution</div>
       </div>
       @for (item of healthDistribution(); track item.label) {
         <div
@@ -41,9 +41,9 @@
       }
     </div>
 
-    <div class="card cp">
-      <div class="sh" style="margin-bottom: 14px">
-        <div class="st">Revenue by Plan</div>
+    <div [class]="ui.card + ' ' + ui.cardPad + ' ' + ui.cardHover">
+      <div [class]="ui.sectionHead" style="margin-bottom: 14px">
+        <div [class]="ui.sectionTitle">Revenue by Plan</div>
       </div>
       @for (item of revenuePlans(); track item.plan) {
         <div
@@ -61,21 +61,21 @@
     </div>
   </div>
 
-  <div class="sh">
-    <div class="st">Recent Activity</div>
-    <button class="btn bg bs" type="button" (click)="viewAllTickets()">View All Tickets</button>
+  <div [class]="ui.sectionHead">
+    <div [class]="ui.sectionTitle">Recent Activity</div>
+    <button [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm" type="button" (click)="viewAllTickets()">View All Tickets</button>
   </div>
 
-  <div class="card" style="overflow: hidden">
-    <table>
+  <div [class]="ui.card" style="overflow: hidden">
+    <table [class]="ui.table">
       <thead>
         <tr>
-          <th>Ticket</th>
-          <th>Site</th>
-          <th>Customer</th>
-          <th>Priority</th>
-          <th>Status</th>
-          <th>Age</th>
+          <th [class]="ui.th">Ticket</th>
+          <th [class]="ui.th">Site</th>
+          <th [class]="ui.th">Customer</th>
+          <th [class]="ui.th">Priority</th>
+          <th [class]="ui.th">Status</th>
+          <th [class]="ui.th">Age</th>
         </tr>
       </thead>
       @if (loading()) {
@@ -83,8 +83,8 @@
       } @else {
         <tbody>
           @for (t of recentTickets(); track t.id) {
-            <tr>
-              <td>
+            <tr [class]="ui.trHover">
+              <td [class]="ui.td">
                 <div>
                   <span
                     style="font-family: 'DM Mono', monospace; font-size: 11px; color: var(--acc); font-weight: 600"
@@ -95,23 +95,23 @@
                   </div>
                 </div>
               </td>
-              <td style="font-size: 12.5px">{{ t.site }}</td>
-              <td style="font-size: 12.5px; color: var(--t2)">
+              <td [class]="ui.td" style="font-size: 12.5px">{{ t.site }}</td>
+              <td [class]="ui.td" style="font-size: 12.5px; color: var(--t2)">
                 {{ customerName(t) }}
               </td>
-              <td>
+              <td [class]="ui.td">
                 <app-badge [variant]="priorityBadge(t.pri)">{{ t.pri }}</app-badge>
               </td>
-              <td>
+              <td [class]="ui.td">
                 <app-badge [variant]="ticketStatusBadge(t.status)">{{
                   ticketStatusLabel(t.status)
                 }}</app-badge>
               </td>
-              <td style="font-size: 12px; color: var(--t3)">{{ t.ago }}</td>
+              <td [class]="ui.td" style="font-size: 12px; color: var(--t3)">{{ t.ago }}</td>
             </tr>
           } @empty {
             <tr>
-              <td colspan="6" style="text-align: center; padding: 28px; color: var(--t3)">
+              <td [class]="ui.td" colspan="6" style="text-align: center; padding: 28px; color: var(--t3)">
                 No recent tickets
               </td>
             </tr>

@@ -8,6 +8,21 @@ export const CUSTOMER_ROUTES: Routes = [
       import('./dashboard/dashboard.component').then((m) => m.DashboardComponent),
   },
   {
+    path: 'sites',
+    pathMatch: 'full',
+    loadComponent: () =>
+      import('./websites/websites.component').then((m) => m.WebsitesComponent),
+  },
+  {
+    path: 'sites/:siteId/manage',
+    loadComponent: () =>
+      import('../admin/site-manage/site-manage-shell.component').then(
+        (m) => m.SiteManageShellComponent
+      ),
+    loadChildren: () =>
+      import('../admin/site-manage/site-manage.routes').then((m) => m.SITE_MANAGE_ROUTES),
+  },
+  {
     path: 'performance',
     loadComponent: () =>
       import('./performance/performance.component').then((m) => m.PerformanceComponent),

@@ -12,6 +12,22 @@ export interface AuthUser {
   clientProfileId?: string;
 }
 
+export interface UserProfile {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+  avatar: string;
+  subtitle: string;
+  accountStatus?: string;
+  isActive?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  companyName?: string;
+  phone?: string;
+  address?: string;
+}
+
 export interface LoginCredentials {
   email: string;
   password: string;

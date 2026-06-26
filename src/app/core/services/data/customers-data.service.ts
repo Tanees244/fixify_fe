@@ -4,8 +4,11 @@ import {
   Customer,
   OnboardCustomerPayload,
 } from '../../models/fixify.models';
-import { cloneMockData, MOCK_CUSTOMERS } from '../../data/mock-data';
-import { mapApiClientToCustomer } from '../../utils/api-mappers.util';
+import { mapApiClientToCustomer, mapApiWebsiteToSite, mapOnboardCustomerRequest } from '../../utils/api-mappers.util';
+import {
+  isApiErrorEnvelope,
+  isEmailAlreadyExistsError,
+} from '../../utils/api-response.util';
 import { NotificationService } from '../notification.service';
 import { AppContextService } from '../app-context.service';
 import { AuthService } from '../auth.service';
@@ -26,12 +29,6 @@ export class CustomersDataService {
   private readonly injector = inject(Injector);
 
   readonly customers: Customer[] = [];
-
-  private nextCustomerId = 100;
-
-  loadMockCustomers(): void {
-    this.customers.splice(0, this.customers.length, ...cloneMockData(MOCK_CUSTOMERS));
-  }
 
   clientApiIdFor(localCustomerId: number): string | undefined {
     return (
@@ -73,8 +70,7 @@ export class CustomersDataService {
 
   fetchClients(done?: () => void): void {
     if (!this.session.useApi()) {
-      this.loadMockCustomers();
-      this.session.bump();
+      this.customers.splice(0, this.customers.length);
       done?.();
       return;
     }
@@ -98,8 +94,11 @@ export class CustomersDataService {
   }
 
   addCustomer(data: AddCustomerPayload): void {
-    if (this.session.useApi()) {
-      this.clientsApi
+    if (!this.session.useApi()) {
+      this.toast.error('Sign in to add customers');
+      return;
+    }
+    this.clientsApi
         .createClient({
           clientName: data.company || data.name,
           email: data.email,
@@ -121,96 +120,78 @@ export class CustomersDataService {
           },
           error: (err) => this.toast.error(err?.error?.message || 'Failed to create customer'),
         });
+  }
+
+  onboardCustomer(
+    data: OnboardCustomerPayload,
+    callbacks?: {
+      onSuccess?: () => void;
+      onError?: (error: { message: string; field?: 'email' }) => void;
+    }
+  ): void {
+    if (!this.session.useApi()) {
+      this.toast.error('Sign in to onboard customers');
+      callbacks?.onError?.({ message: 'Sign in to onboard customers' });
       return;
     }
+    this.clientsApi.onboardCustomer(mapOnboardCustomerRequest(data)).subscribe({
+      next: (res) => {
+        if (isApiErrorEnvelope(res) || !isRecord(res.data)) {
+          this.handleOnboardFailure(res.message, res.status, callbacks);
+          return;
+        }
 
-    this.addCustomerLocal(data);
+        const payload = res.data;
+        const profileRaw =
+          payload['clientProfile'] ?? payload['clientProfileId'] ?? payload['client'];
+        const websiteRaw = payload['website'] ?? payload['websiteId'] ?? payload['site'];
+
+        const customer = mapApiClientToCustomer(profileRaw ?? {}, this.ids);
+        customer.approvalStatus = data.requireApproval ? 'pending' : 'approved';
+        customer.status = data.requireApproval ? 'pending' : 'active';
+        customer.plan = data.plan || 'free';
+        this.customers.push(customer);
+
+        if (isRecord(websiteRaw)) {
+          const site = mapApiWebsiteToSite(websiteRaw, this.ids, customer.apiId);
+          site.custId = customer.id;
+          this.sites().sites.push(site);
+          if (data.site.wordpress) {
+            this.sites().wordpressBySiteId.set(site.id, { ...data.site.wordpress });
+            this.sites().initWordPressState(site.id, data.site.wordpress.wpVersion);
+          }
+        }
+
+        this.session.bump();
+        this.toast.success(
+          data.requireApproval
+            ? `${data.name} submitted for approval with WordPress site`
+            : `${data.name} onboarded with WordPress site`
+        );
+        callbacks?.onSuccess?.();
+      },
+      error: (err) => {
+        const message = err?.error?.message || 'Failed to onboard customer';
+        const status = err?.status ?? err?.error?.status;
+        this.handleOnboardFailure(message, status, callbacks);
+      },
+    });
   }
 
-  private addCustomerLocal(data: AddCustomerPayload): void {
-    const requireApproval = data.requireApproval ?? false;
-    const customer: Customer = {
-      id: this.nextCustomerId++,
-      name: data.name,
-      email: data.email,
-      company: data.company || data.name,
-      plan: data.plan || 'free',
-      status: requireApproval ? 'pending' : 'active',
-      approvalStatus: requireApproval ? 'pending' : 'approved',
-      joined: new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
-      avatar: data.name
-        .split(' ')
-        .map((w) => w[0])
-        .join('')
-        .slice(0, 2)
-        .toUpperCase(),
-      phone: data.phone || '',
-    };
-    this.customers.push(customer);
-    const msg = requireApproval
-      ? `${data.name} submitted for approval`
-      : `Customer ${data.name} onboarded`;
-    this.toast.success(msg);
-    this.ctx.closeModal();
-  }
-
-  onboardCustomer(data: OnboardCustomerPayload): void {
-    if (this.session.useApi()) {
-      this.clientsApi
-        .createClient({
-          clientName: data.company || data.name,
-          email: data.email,
-          whatsappNumber: data.phone || '',
-          address: data.company,
-        })
-        .subscribe({
-          next: (res) => {
-            const profile = (res.data?.clientProfile ?? res.data) as Record<string, unknown>;
-            const customer = mapApiClientToCustomer(profile, this.ids);
-            customer.approvalStatus = data.requireApproval ? 'pending' : 'approved';
-            customer.status = data.requireApproval ? 'pending' : 'active';
-            customer.plan = data.plan || 'free';
-            this.customers.push(customer);
-            this.sites().addSiteForCustomer(customer.id, data.site, { silent: true });
-            this.toast.success(
-              data.requireApproval
-                ? `${data.name} submitted for approval with WordPress site`
-                : `${data.name} onboarded with WordPress site`
-            );
-          },
-          error: (err) => this.toast.error(err?.error?.message || 'Failed to onboard customer'),
-        });
-      return;
+  private handleOnboardFailure(
+    message: string | undefined,
+    status: number | undefined,
+    callbacks?: {
+      onSuccess?: () => void;
+      onError?: (error: { message: string; field?: 'email' }) => void;
     }
-
-    this.onboardCustomerLocal(data);
-  }
-
-  private onboardCustomerLocal(data: OnboardCustomerPayload): void {
-    const requireApproval = data.requireApproval ?? false;
-    const customer: Customer = {
-      id: this.nextCustomerId++,
-      name: data.name,
-      email: data.email,
-      company: data.company || data.name,
-      plan: data.plan || 'free',
-      status: requireApproval ? 'pending' : 'active',
-      approvalStatus: requireApproval ? 'pending' : 'approved',
-      joined: new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
-      avatar: data.name
-        .split(' ')
-        .map((w) => w[0])
-        .join('')
-        .slice(0, 2)
-        .toUpperCase(),
-      phone: data.phone || '',
-    };
-    this.customers.push(customer);
-    this.sites().addSiteForCustomer(customer.id, data.site, { silent: true });
-    const msg = requireApproval
-      ? `${data.name} submitted for approval with WordPress site`
-      : `${data.name} onboarded with WordPress site`;
-    this.toast.success(msg);
+  ): void {
+    const resolvedMessage = message || 'Failed to onboard customer';
+    const field = isEmailAlreadyExistsError(resolvedMessage, status) ? 'email' : undefined;
+    if (!field) {
+      this.toast.error(resolvedMessage);
+    }
+    callbacks?.onError?.({ message: resolvedMessage, field });
   }
 
   approveCustomer(id: number): void {
@@ -284,4 +265,8 @@ export class CustomersDataService {
   private subscriptions(): SubscriptionsDataService {
     return this.injector.get(SubscriptionsDataService);
   }
+}
+
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return v !== null && typeof v === 'object' && !Array.isArray(v);
 }

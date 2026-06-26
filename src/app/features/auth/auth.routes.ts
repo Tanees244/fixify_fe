@@ -8,6 +8,11 @@ export const AUTH_ROUTES: Routes = [
       import('./auth-landing.component').then((m) => m.AuthLandingComponent),
     canActivate: [guestGuard],
   },
+  {
+    path: 'forgot-password',
+    loadComponent: () =>
+      import('./forgot-password.component').then((m) => m.ForgotPasswordComponent),
+  },
   { path: 'customer/login', redirectTo: '', pathMatch: 'full' },
   { path: 'admin/login', redirectTo: '', pathMatch: 'full' },
 ];

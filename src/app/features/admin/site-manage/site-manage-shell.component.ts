@@ -9,6 +9,7 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { SiteManageFacade } from './site-manage.facade';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { SiteAvatarComponent } from '../../../shared/components/site-avatar/site-avatar.component';
+import { tw } from '../../../shared/ui/tw';
 
 interface ManageNavItem {
   path: string;
@@ -32,6 +33,7 @@ interface ManageNavItem {
   templateUrl: './site-manage-shell.component.html',
 })
 export class SiteManageShellComponent implements OnInit {
+  protected readonly ui = tw;
   protected readonly facade = inject(SiteManageFacade);
 
   readonly navItems: ManageNavItem[] = [

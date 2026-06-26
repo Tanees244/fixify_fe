@@ -26,7 +26,8 @@ import { SitesDataService } from './data/sites-data.service';
 import { TicketsDataService } from './data/tickets-data.service';
 import { SubscriptionsDataService } from './data/subscriptions-data.service';
 import { InsightsDataService } from './data/insights-data.service';
-import { ReportsDataService } from './data/reports-data.service';
+import { ReportsDataService, FetchReportsParams, GenerateReportOptions } from './data/reports-data.service';
+import { CustomerDashboardDataService } from './data/customer-dashboard-data.service';
 
 @Injectable({ providedIn: 'root' })
 export class FixifyDataService {
@@ -37,6 +38,7 @@ export class FixifyDataService {
   private readonly subscriptionsData = inject(SubscriptionsDataService);
   private readonly insightsData = inject(InsightsDataService);
   private readonly reportsData = inject(ReportsDataService);
+  private readonly customerDashboardData = inject(CustomerDashboardDataService);
 
   readonly loading = this.session.loading;
   readonly useApi = this.session.useApi;
@@ -44,34 +46,41 @@ export class FixifyDataService {
 
   readonly customers = this.customersData.customers;
   readonly sites = this.sitesData.sites;
+  readonly sitesPage = this.sitesData.sitesPage;
+  readonly sitesLimit = this.sitesData.sitesLimit;
+  readonly sitesTotal = this.sitesData.sitesTotal;
   readonly tickets = this.ticketsData.tickets;
+  readonly ticketsPage = this.ticketsData.ticketsPage;
+  readonly ticketsLimit = this.ticketsData.ticketsLimit;
+  readonly ticketsTotal = this.ticketsData.ticketsTotal;
   readonly processes = this.insightsData.processes;
   readonly subscriptionPlans = this.subscriptionsData.subscriptionPlans;
+  readonly planSaving = this.subscriptionsData.planSaving;
   readonly insights = this.insightsData.insights;
   readonly wordpressBySiteId = this.sitesData.wordpressBySiteId;
   readonly wordpressStateBySiteId = this.sitesData.wordpressStateBySiteId;
   readonly adminActions = this.reportsData.adminActions;
   readonly monthlyReports = this.reportsData.monthlyReports;
+  readonly reportsTotal = this.reportsData.reportsTotal;
   readonly recommendations = this.reportsData.recommendations;
+  readonly performanceScreen = this.sitesData.performanceScreen;
+  readonly securityScreen = this.sitesData.securityScreen;
+  readonly seoScreen = this.sitesData.seoScreen;
+  readonly uptimeDashboard = this.sitesData.uptimeDashboard;
+
+  readonly customerDashboardGreeting = this.customerDashboardData.greetingName;
+  readonly customerDashboardSummary = this.customerDashboardData.summary;
+  readonly customerDashboardTeamUpdates = this.customerDashboardData.teamUpdates;
+  readonly customerDashboardRecommendations = this.customerDashboardData.recommendations;
+  readonly customerDashboardInsights = this.customerDashboardData.latestInsights;
+  readonly customerDashboardRecentTickets = this.customerDashboardData.recentTickets;
 
   loadAll(): void {
     this.initSession();
   }
 
   initSession(): void {
-    this.subscriptionsData.initSession();
-    this.insightsData.initSession();
-    this.reportsData.initSession();
     this.session.init();
-  }
-
-  loadMockCoreData(): void {
-    this.customersData.loadMockCustomers();
-    this.sitesData.loadMockSites();
-    this.ticketsData.loadMockTickets();
-    this.reportsData.loadMockReports();
-    this.sitesData.loadMockWordPressStates();
-    this.sitesData.syncSelectedSiteAfterMockLoad();
   }
 
   reload(): void {
@@ -88,8 +97,15 @@ export class FixifyDataService {
     this.customersData.fetchClients(done);
   }
 
-  fetchWebsites(clientProfileId?: string, done?: () => void): void {
-    this.sitesData.fetchWebsites(clientProfileId, done);
+  fetchSubscriptions(done?: () => void): void {
+    this.subscriptionsData.fetchSubscriptions(done);
+  }
+
+  fetchWebsites(
+    params?: { clientId?: string; page?: number; limit?: number; status?: string; search?: string },
+    done?: () => void
+  ): void {
+    this.sitesData.fetchWebsites(params ?? {}, done);
   }
 
   fetchWebsitesForCustomer(localCustomerId: number, done?: () => void): void {
@@ -98,14 +114,28 @@ export class FixifyDataService {
 
   fetchCustomerWebsites(done?: () => void): void {
     if (!this.session.useApi()) {
-      this.loadMockCoreData();
       done?.();
       return;
     }
     this.sitesData.fetchCustomerWebsites(done);
   }
 
-  fetchTickets(params?: { role?: string; clientId?: string }, done?: () => void): void {
+  fetchCustomerDashboard(siteId?: string, done?: () => void): void {
+    this.customerDashboardData.fetchDashboard(siteId, done);
+  }
+
+  fetchTickets(
+    params?: {
+      role?: string;
+      clientId?: string;
+      page?: number;
+      limit?: number;
+      status?: string;
+      priority?: string;
+      search?: string;
+    },
+    done?: () => void
+  ): void {
     this.ticketsData.fetchTickets(params, done);
   }
 
@@ -135,6 +165,10 @@ export class FixifyDataService {
 
   loadWebsiteReports(siteId: number, year?: number): void {
     this.reportsData.loadWebsiteReports(siteId, year);
+  }
+
+  fetchReports(params?: FetchReportsParams, done?: () => void): void {
+    this.reportsData.fetchReports(params, done);
   }
 
   mySites(): Site[] {
@@ -197,15 +231,15 @@ export class FixifyDataService {
     return this.insightsData.askAi(question);
   }
 
-  addSite(data: AddSitePayload): void {
-    this.sitesData.addSite(data);
+  addSite(data: AddSitePayload): Promise<Site | null> {
+    return this.sitesData.addSite(data);
   }
 
   addSiteForCustomer(
     custId: number,
     data: AddSitePayload,
     opts?: { selectSite?: boolean; closeModal?: boolean; silent?: boolean }
-  ): Site {
+  ): Promise<Site | null> {
     return this.sitesData.addSiteForCustomer(custId, data, opts);
   }
 
@@ -217,8 +251,14 @@ export class FixifyDataService {
     this.sitesData.removeSite(id);
   }
 
-  onboardCustomer(data: OnboardCustomerPayload): void {
-    this.customersData.onboardCustomer(data);
+  onboardCustomer(
+    data: OnboardCustomerPayload,
+    callbacks?: {
+      onSuccess?: () => void;
+      onError?: (error: { message: string; field?: 'email' }) => void;
+    }
+  ): void {
+    this.customersData.onboardCustomer(data, callbacks);
   }
 
   addCustomer(data: AddCustomerPayload): void {
@@ -251,6 +291,22 @@ export class FixifyDataService {
 
   scanSite(site: Site): Promise<void> {
     return this.sitesData.scanSite(site);
+  }
+
+  scanSitePerformance(site: Site): Promise<void> {
+    return this.sitesData.scanSitePerformance(site);
+  }
+
+  scanSiteSecurity(site: Site): Promise<void> {
+    return this.sitesData.scanSiteSecurity(site);
+  }
+
+  scanSiteSeo(site: Site): Promise<void> {
+    return this.sitesData.scanSiteSeo(site);
+  }
+
+  exportPerformancePdf(site: Site): void {
+    this.sitesData.exportPerformancePdf(site);
   }
 
   createProcess(data: CreateProcessPayload): void {
@@ -302,8 +358,21 @@ export class FixifyDataService {
     return this.reportsData.reportsForSite(siteId);
   }
 
-  createMonthlyReport(siteId: number, monthKey: string): MonthlyReport | null {
-    return this.reportsData.createMonthlyReport(siteId, monthKey);
+  createMonthlyReport(
+    siteId: number,
+    monthKey: string,
+    options?: GenerateReportOptions,
+    done?: () => void
+  ): MonthlyReport | null {
+    return this.reportsData.createMonthlyReport(siteId, monthKey, options, done);
+  }
+
+  openReportDownload(report: MonthlyReport): void {
+    this.reportsData.openReportDownload(report);
+  }
+
+  sendReport(report: MonthlyReport, done?: () => void): void {
+    this.reportsData.sendReport(report, done);
   }
 
   recommendationsForCustomer(custId: number): SiteRecommendation[] {

@@ -1,69 +1,220 @@
 <div>
-  <div class="ph">
-    <div style="display: flex; justify-content: space-between; align-items: flex-start">
-      <div>
-        <div class="pt">Reports</div>
-        <div class="ps">Platform analytics & customer reports</div>
+  <div [class]="ui.pageHeader">
+    <div>
+      <div [class]="ui.pageTitle">Reports</div>
+      <div [class]="ui.pageSub">Generate and manage monthly website health reports</div>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <app-stat-cards-skeleton [count]="4" [gridClass]="ui.grid4" [class]="ui.u" style="margin-bottom: 22px" />
+  } @else {
+    <div [class]="ui.grid4 + ' ' + ui.u" style="margin-bottom: 22px">
+      <div [class]="ui.statCard">
+        <div [class]="ui.statLbl">Total Reports</div>
+        <div [class]="ui.statVal" style="color: var(--acc)">{{ stats().total }}</div>
+        <div [class]="ui.statSub">On file for {{ yearFilter() }}</div>
       </div>
-      <button class="btn bp" type="button" (click)="generateReport()" [disabled]="generating()">
+      <div [class]="ui.statCard">
+        <div [class]="ui.statLbl">Draft</div>
+        <div [class]="ui.statVal" style="color: var(--wn)">{{ stats().draft }}</div>
+        <div [class]="ui.statSub">Awaiting review or send</div>
+      </div>
+      <div [class]="ui.statCard">
+        <div [class]="ui.statLbl">Sites Covered</div>
+        <div [class]="ui.statVal">{{ stats().sites }}</div>
+        <div [class]="ui.statSub">With at least one report</div>
+      </div>
+      <div [class]="ui.statCard">
+        <div [class]="ui.statLbl">Latest Report</div>
+        <div [class]="ui.statVal" style="font-size: 18px">{{ stats().latest }}</div>
+        <div [class]="ui.statSub">Most recent month</div>
+      </div>
+    </div>
+  }
+
+  <div [class]="ui.card + ' ' + ui.cardPad + ' ' + ui.cardHover + ' ' + ui.u" style="margin-bottom: 18px">
+    <div style="font-weight: 700; font-size: 14px; margin-bottom: 14px">Generate Monthly Report</div>
+    <div [class]="ui.grid3" style="align-items: end; margin-bottom: 12px">
+      <div [class]="ui.fld">
+        <label [class]="ui.label">Website</label>
+        <select
+          [class]="ui.input"
+          [ngModel]="selectedSiteId()"
+          (ngModelChange)="selectedSiteId.set($event)"
+          [disabled]="generating()"
+        >
+          <option value="">Select website…</option>
+          @for (s of sites; track s.id) {
+            <option [value]="s.id">{{ s.name }}</option>
+          }
+        </select>
+      </div>
+      <div [class]="ui.fld">
+        <label [class]="ui.label">Month</label>
+        <select
+          [class]="ui.input"
+          [ngModel]="selectedMonth()"
+          (ngModelChange)="selectedMonth.set($event)"
+          [disabled]="generating()"
+        >
+          @for (m of monthOptions; track m.key) {
+            <option [value]="m.key">{{ m.label }}</option>
+          }
+        </select>
+      </div>
+      <button
+        type="button"
+        [class]="ui.btn + ' ' + ui.btnPrimary"
+        [disabled]="!selectedSiteId() || generating()"
+        (click)="generateReport()"
+      >
         @if (generating()) {
           <app-icon name="loader" [size]="13" color="#fff" />
+          Generating…
         } @else {
           <app-icon name="file" [size]="13" color="#fff" />
+          Generate Report
         }
-        {{ generating() ? 'Generating…' : 'Generate Platform Report' }}
+      </button>
+    </div>
+    <div [class]="ui.grid2">
+      <div [class]="ui.fld">
+        <label [class]="ui.label">Remarks (optional)</label>
+        <input
+          [class]="ui.input"
+          placeholder="Notes included in report metadata"
+          [ngModel]="remarks()"
+          (ngModelChange)="remarks.set($event)"
+          [disabled]="generating()"
+        />
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px; padding-top: 22px">
+        <app-toggle [checked]="autoSend()" (toggled)="autoSend.set($event)" />
+        <div>
+          <div style="font-size: 13px; font-weight: 500; color: var(--t1)">Auto-send to client</div>
+          <div style="font-size: 11.5px; color: var(--t3)">Report is emailed and marked as sent on generation</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div [class]="ui.card + ' ' + ui.cardPad + ' ' + ui.u" style="margin-bottom: 18px">
+    <div style="font-weight: 700; font-size: 14px; margin-bottom: 14px">Filter Reports</div>
+    <div [class]="ui.grid4" style="align-items: end">
+      <div [class]="ui.fld">
+        <label [class]="ui.label">Year</label>
+        <select [class]="ui.input" [ngModel]="yearFilter()" (ngModelChange)="yearFilter.set(+$event)">
+          @for (y of yearOptions; track y) {
+            <option [value]="y">{{ y }}</option>
+          }
+        </select>
+      </div>
+      <div [class]="ui.fld">
+        <label [class]="ui.label">Customer</label>
+        <select [class]="ui.input" [ngModel]="customerFilter()" (ngModelChange)="customerFilter.set($event)">
+          <option value="all">All customers</option>
+          @for (c of customers; track c.id) {
+            <option [value]="c.id">{{ c.company || c.name }}</option>
+          }
+        </select>
+      </div>
+      <div [class]="ui.fld">
+        <label [class]="ui.label">Website</label>
+        <select [class]="ui.input" [ngModel]="siteFilter()" (ngModelChange)="siteFilter.set($event)">
+          <option value="all">All websites</option>
+          @for (s of sites; track s.id) {
+            <option [value]="s.id">{{ s.name }}</option>
+          }
+        </select>
+      </div>
+      <button type="button" [class]="ui.btn + ' ' + ui.btnGhost" (click)="applyFilters()" [disabled]="loading()">
+        Apply Filters
       </button>
     </div>
   </div>
 
-  <div class="g4 u" style="margin-bottom: 22px">
-    @for (stat of mrrStats(); track stat.label) {
-      <div class="stat-card">
-        <div class="slbl">{{ stat.label }}</div>
-        <div class="sval" [style.color]="stat.color">{{ stat.value }}</div>
-        <div class="ssub">{{ stat.sub }}</div>
-      </div>
-    }
+  <div [class]="ui.sectionHead + ' ' + ui.u">
+    <div [class]="ui.sectionTitle">Monthly Reports ({{ reports().length }})</div>
   </div>
 
-  <div class="sh">
-    <div class="st">Customer Reports</div>
-  </div>
-
-  <div style="display: flex; flex-direction: column; gap: 10px">
-    @for (c of customers; track c.id; let i = $index) {
-      <div
-        class="card cp u"
-        [class.u1]="i % 4 === 1"
-        [class.u2]="i % 4 === 2"
-        [class.u3]="i % 4 === 3"
-        style="display: flex; align-items: center; gap: 14px"
-      >
-        <div class="av" style="width: 38px; height: 38px; font-size: 13px; border-radius: 10px">
-          {{ c.avatar }}
-        </div>
-        <div style="flex: 1">
-          <div style="font-weight: 600; font-size: 14px">{{ c.name }} — {{ c.company }}</div>
-          <div style="font-size: 12px; color: var(--t3); margin-top: 2px">
-            {{ c.plan }} Plan · Monthly Health Report
+  @if (loading()) {
+    <app-list-items-skeleton [rows]="5" [class]="ui.u" />
+  } @else if (reports().length === 0) {
+    <div [class]="ui.card + ' ' + ui.u" style="padding: 32px; text-align: center; color: var(--t3)">
+      No reports found — generate one above or adjust filters.
+    </div>
+  } @else {
+    <div style="display: flex; flex-direction: column; gap: 10px" [class]="ui.u">
+      @for (r of reports(); track r.apiId ?? r.id; let i = $index) {
+        <div [class]="ui.card + ' ' + ui.cardPad + ' ' + ui.cardHover">
+          <div style="display: flex; align-items: center; gap: 14px; cursor: pointer" (click)="toggleReport(r)">
+            <div style="width: 44px; height: 44px; border-radius: 10px; background: var(--acl); display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+              <app-icon name="file" [size]="20" color="var(--acc)" />
+            </div>
+            <div style="flex: 1; min-width: 0">
+              <div style="font-weight: 600; font-size: 14px; color: var(--t1)">
+                {{ r.month || r.monthKey }} — {{ r.siteName || siteLabel(r.siteId) }}
+              </div>
+              <div style="font-size: 12px; color: var(--t3); margin-top: 3px">
+                Health {{ r.health }} · Generated {{ r.generatedAt }}
+                @if (r.generatedBy) { · {{ r.generatedBy }} }
+              </div>
+            </div>
+            @if (r.status) {
+              <app-badge [variant]="reportStatusVariant(r.status)">{{ r.status }}</app-badge>
+            }
+            @if (i === 0) { <app-badge variant="bac">Latest</app-badge> }
+            @if (isDraft(r.status)) {
+              <button
+                type="button"
+                [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm"
+                [disabled]="sendingId() !== null"
+                (click)="sendReport(r, $event)"
+              >
+                @if (sendingId() === r.id) {
+                  <app-icon name="loader" [size]="12" />
+                  Sending…
+                } @else {
+                  <app-icon name="mail" [size]="12" />
+                  Send
+                }
+              </button>
+            }
+            <button
+              type="button"
+              [class]="ui.btn + ' ' + ui.btnPrimary + ' ' + ui.btnSm"
+              (click)="downloadReport(r, $event)"
+            >
+              <app-icon name="dl" [size]="12" color="#fff" />
+              Download
+            </button>
+            <app-icon [name]="expandedReportId() === r.id ? 'chevD' : 'chevR'" [size]="14" color="var(--t3)" />
           </div>
+          @if (expandedReportId() === r.id) {
+            <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--b2)">
+              <div [class]="ui.grid4" style="margin-bottom: 14px">
+                <div><span [class]="ui.adminInfoLabel">Health</span><strong [style.color]="scoreColor(r.health)">{{ r.health }}</strong></div>
+                <div><span [class]="ui.adminInfoLabel">Performance</span><strong>{{ r.perf }}</strong></div>
+                <div><span [class]="ui.adminInfoLabel">Security</span><strong>{{ r.sec }}</strong></div>
+                <div><span [class]="ui.adminInfoLabel">SEO</span><strong>{{ r.seo }}</strong></div>
+              </div>
+              @if (r.summary) {
+                <p style="font-size: 13px; color: var(--t2); line-height: 1.6; margin-bottom: 12px">{{ r.summary }}</p>
+              }
+              @if (r.highlights.length) {
+                <div style="font-size: 12.5px; color: var(--t3)">
+                  @for (h of r.highlights; track h) { <div>✓ {{ h }}</div> }
+                </div>
+              }
+              <div style="margin-top: 10px; font-size: 12px; color: var(--t3)">
+                Issues: {{ r.issuesFound }} found · {{ r.issuesResolved }} resolved · Uptime {{ r.uptime }}%
+                @if (r.fileName) { · {{ r.fileName }} }
+              </div>
+            </div>
+          }
         </div>
-        <app-badge variant="bac">{{ c.plan }}</app-badge>
-        <div style="display: flex; gap: 8px">
-          <button class="btn bg bs" type="button" (click)="viewReport(c)">
-            <app-icon name="eye" [size]="12" />
-            View
-          </button>
-          <button class="btn bp bs" type="button" (click)="downloadReport(c)">
-            <app-icon name="dl" [size]="12" color="#fff" />
-            Download
-          </button>
-          <button class="btn bg bs" type="button" (click)="sendReport(c)">
-            <app-icon name="mail" [size]="12" />
-            Send
-          </button>
-        </div>
-      </div>
-    }
-  </div>
+      }
+    </div>
+  }
 </div>

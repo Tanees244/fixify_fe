@@ -124,15 +124,17 @@ export interface AddSitePayload {
   type: string;
   platform: string;
   wordpress?: WordPressSiteDetails;
+  /** Admin only — the customer (local id) to add this website for. */
+  custId?: number;
 }
 
 export interface WordPressSiteDetails {
   siteName: string;
   siteUrl: string;
-  loginUrl: string;
-  username: string;
-  password: string;
-  authType: 'password' | 'application-password';
+  loginUrl?: string;
+  username?: string;
+  password?: string;
+  authType?: 'password' | 'application-password';
   wpVersion?: string;
   enablePluginScan: boolean;
   enableAutoUpdates: boolean;
@@ -193,6 +195,7 @@ export interface AdminSiteAction {
 
 export interface MonthlyReport {
   id: number;
+  apiId?: string;
   siteId: number;
   custId: number;
   siteName: string;
@@ -209,6 +212,9 @@ export interface MonthlyReport {
   highlights: string[];
   generatedAt: string;
   generatedBy: string;
+  fileUrl?: string;
+  fileName?: string;
+  status?: string;
 }
 
 export interface SiteRecommendation {

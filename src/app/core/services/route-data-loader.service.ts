@@ -7,6 +7,8 @@ import { CustomersDataService } from './data/customers-data.service';
 import { SitesDataService } from './data/sites-data.service';
 import { TicketsDataService } from './data/tickets-data.service';
 import { ReportsDataService } from './data/reports-data.service';
+import { SubscriptionsDataService } from './data/subscriptions-data.service';
+import { CustomerDashboardDataService } from './data/customer-dashboard-data.service';
 import { FixifyDataService } from './fixify-data.service';
 
 @Injectable({ providedIn: 'root' })
@@ -17,6 +19,8 @@ export class RouteDataLoaderService {
   private readonly sitesData = inject(SitesDataService);
   private readonly ticketsData = inject(TicketsDataService);
   private readonly reportsData = inject(ReportsDataService);
+  private readonly subscriptionsData = inject(SubscriptionsDataService);
+  private readonly customerDashboardData = inject(CustomerDashboardDataService);
   private readonly auth = inject(AuthService);
   private readonly ctx = inject(AppContextService);
   private readonly appRef = inject(ApplicationRef);
@@ -33,7 +37,6 @@ export class RouteDataLoaderService {
 
     this.data.initSession();
     if (!this.auth.getToken()) {
-      this.data.loadMockCoreData();
       this.tick();
       return;
     }
@@ -43,12 +46,21 @@ export class RouteDataLoaderService {
 
     // —— Customer ——
     if (path.startsWith('/customer/dashboard')) {
-      let pending = 2;
-      const done = () => {
-        if (--pending === 0) this.tick();
-      };
-      this.data.fetchCustomerWebsites(done);
-      this.ticketsData.fetchTickets({ role: 'client' }, done);
+      this.customerDashboardData.fetchDashboard(undefined, () => this.tick());
+      return;
+    }
+    const customerManageMatch = path.match(/^\/customer\/sites\/(\d+)\/manage(?:\/(\w+))?/);
+    if (customerManageMatch) {
+      const siteId = Number(customerManageMatch[1]);
+      const screen = customerManageMatch[2] ?? 'overview';
+      this.data.fetchCustomerWebsites(() => {
+        this.loadSiteManageScreen(siteId, screen);
+        this.tick();
+      });
+      return;
+    }
+    if (path.startsWith('/customer/sites')) {
+      this.data.fetchCustomerWebsites(() => this.tick());
       return;
     }
     if (path.startsWith('/customer/performance')) {
@@ -76,21 +88,27 @@ export class RouteDataLoaderService {
       return;
     }
     if (path.startsWith('/customer/tickets')) {
-      this.ticketsData.fetchTickets({ role: 'client' }, () => this.tick());
+      this.ticketsData.fetchTickets({ role: 'client', page: 1, limit: 10 }, () => this.tick());
       return;
     }
     if (path.startsWith('/customer/reports')) {
       this.data.fetchCustomerWebsites(() => {
         const site = this.ctx.selectedSite();
         if (site) {
-          this.reportsData.loadWebsiteReports(site.id, new Date().getFullYear());
+          this.reportsData.loadWebsiteReports(site.id, new Date().getFullYear(), () => this.tick());
+        } else {
+          this.tick();
         }
-        this.tick();
       });
       return;
     }
     if (path.startsWith('/customer/add-wordpress')) {
-      this.data.fetchCustomerWebsites(() => this.tick());
+      let pending = 2;
+      const done = () => {
+        if (--pending === 0) this.tick();
+      };
+      this.data.fetchCustomerWebsites(done);
+      this.subscriptionsData.fetchSubscriptions(done);
       return;
     }
 
@@ -105,24 +123,44 @@ export class RouteDataLoaderService {
       const done = () => {
         if (--pending === 0) this.tick();
       };
-      this.sitesData.fetchWebsites(undefined, done);
+      this.sitesData.fetchWebsites({ page: 1, limit: 10 }, done);
       this.customersData.fetchClients(done);
       return;
     }
     if (path === '/admin/customers') {
-      this.customersData.fetchClients(() => this.tick());
+      let pending = 2;
+      const done = () => {
+        if (--pending === 0) this.tick();
+      };
+      this.customersData.fetchClients(done);
+      this.subscriptionsData.fetchSubscriptions(done);
       return;
     }
     if (path === '/admin/tickets') {
-      this.ticketsData.fetchTickets(undefined, () => this.tick());
+      this.ticketsData.fetchTickets({ page: 1, limit: 10 }, () => this.tick());
+      return;
+    }
+    if (path === '/admin/subscriptions') {
+      let pending = 2;
+      const done = () => {
+        if (--pending === 0) this.tick();
+      };
+      this.subscriptionsData.fetchSubscriptions(done);
+      this.customersData.fetchClients(done);
       return;
     }
     if (path === '/admin/reports') {
-      this.sitesData.fetchWebsites(undefined, () => this.tick());
+      let pending = 3;
+      const done = () => {
+        if (--pending === 0) this.tick();
+      };
+      this.sitesData.fetchWebsites(undefined, done);
+      this.customersData.fetchClients(done);
+      this.reportsData.fetchReports({ year: new Date().getFullYear() }, done);
       return;
     }
     if (path.startsWith('/admin/onboard')) {
-      this.customersData.fetchClients(() => this.tick());
+      this.subscriptionsData.fetchSubscriptions(() => this.tick());
       return;
     }
 
@@ -180,26 +218,7 @@ export class RouteDataLoaderService {
   }
 
   private loadSiteManageScreen(siteId: number, screen: string): void {
-    const site = this.sitesData.sites.find((s) => s.id === siteId) ?? null;
-    switch (screen) {
-      case 'overview':
-        this.sitesData.loadWebsiteDashboard(siteId);
-        break;
-      case 'plugins':
-      case 'core':
-      case 'theme':
-      case 'maintenance':
-        this.sitesData.fetchWordPressForSite(siteId);
-        break;
-      case 'security':
-        this.sitesData.fetchSiteSecurity(site);
-        break;
-      case 'cache':
-        this.sitesData.loadWebsiteDashboard(siteId);
-        break;
-      default:
-        this.sitesData.loadWebsiteDashboard(siteId);
-    }
+    this.sitesData.fetchWordPressManage(siteId, screen, () => this.tick());
   }
 
   private tick(): void {

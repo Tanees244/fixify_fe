@@ -5,6 +5,7 @@ import {
   CreateClientRequest,
   CreateClientResponseData,
   GetClientsParams,
+  OnboardCustomerRequest,
 } from '../../models/api.models';
 import { ApiBaseService } from './api-base.service';
 
@@ -53,6 +54,13 @@ export class ClientsApiService extends ApiBaseService {
     return this.http.patch<ApiEnvelope<unknown>>(
       this.url(`/admin/clients/${encodeURIComponent(clientProfileId)}/deactivate`),
       {}
+    );
+  }
+
+  onboardCustomer(body: OnboardCustomerRequest): Observable<ApiEnvelope<unknown>> {
+    return this.http.post<ApiEnvelope<unknown>>(
+      this.url('/api/admin/customers/onboard'),
+      body
     );
   }
 }

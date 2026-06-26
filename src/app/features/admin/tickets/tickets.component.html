@@ -1,11 +1,11 @@
 <div>
-  <div class="ph">
+  <div [class]="ui.pageHeader">
     <div style="display: flex; justify-content: space-between; align-items: flex-start">
       <div>
-        <div class="pt">All Tickets</div>
-        <div class="ps">{{ tickets.length }} total · {{ openCount() }} open</div>
+        <div [class]="ui.pageTitle">All Tickets</div>
+        <div [class]="ui.pageSub">{{ ticketsTotal() }} total · {{ openCount() }} open on this page</div>
       </div>
-      <button class="btn bp" type="button" (click)="createTicket()">
+      <button [class]="ui.btn + ' ' + ui.btnPrimary" type="button" (click)="createTicket()">
         <app-icon name="plus" [size]="13" color="#fff" />
         New Ticket
       </button>
@@ -13,16 +13,17 @@
   </div>
 
   <div style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap">
-    <div class="srch" style="max-width: 240px">
+    <div [class]="ui.search" style="max-width: 240px">
       <app-icon name="search" [size]="14" color="var(--t3)" />
       <input
+        [class]="ui.searchInput"
         placeholder="Search…"
         [value]="search()"
         (input)="onSearch($any($event.target).value)"
       />
     </div>
     <select
-      class="inp"
+      [class]="ui.input"
       style="width: auto; padding: 7px 12px"
       [value]="customerFilter()"
       (change)="setCustomerFilter($any($event.target).value)"
@@ -33,19 +34,7 @@
       }
     </select>
     <select
-      class="inp"
-      style="width: auto; padding: 7px 12px"
-      [value]="statusFilter()"
-      (change)="setStatusFilter($any($event.target).value)"
-    >
-      <option value="all">All Status</option>
-      <option value="open">Open</option>
-      <option value="inprogress">In Progress</option>
-      <option value="resolved">Resolved</option>
-      <option value="closed">Closed</option>
-    </select>
-    <select
-      class="inp"
+      [class]="ui.input"
       style="width: auto; padding: 7px 12px"
       [value]="priorityFilter()"
       (change)="setPriorityFilter($any($event.target).value)"
@@ -58,64 +47,52 @@
     </select>
   </div>
 
-  <div class="card" style="overflow: hidden">
-    <table>
+  <div [class]="ui.card" style="overflow: hidden">
+    <table [class]="ui.table">
       <thead>
         <tr>
-          <th>Issue</th>
-          <th>Site</th>
-          <th>Customer</th>
-          <th>Type</th>
-          <th>Priority</th>
-          <th>Status</th>
-          <th>Actions</th>
+          <th [class]="ui.th">Issue</th>
+          <th [class]="ui.th">Site</th>
+          <th [class]="ui.th">Customer</th>
+          <th [class]="ui.th">Type</th>
+          <th [class]="ui.th">Priority</th>
+          <th [class]="ui.th">Actions</th>
         </tr>
       </thead>
       @if (loading()) {
-        <app-table-skeleton [rows]="6" [cols]="9" />
+        <app-table-skeleton [rows]="6" [cols]="6" />
       } @else {
         <tbody>
           @if (filteredTickets().length === 0) {
             <tr>
-              <td colspan="9" style="text-align: center; padding: 32px; color: var(--t3)">
+              <td [class]="ui.td" colspan="6" style="text-align: center; padding: 32px; color: var(--t3)">
                 No tickets match filters
               </td>
             </tr>
           } @else {
             @for (t of filteredTickets(); track t.id) {
-              <tr style="cursor: pointer">
+              <tr [class]="ui.trHover" style="cursor: pointer">
                 <td
+                  [class]="ui.td"
                   (click)="viewTicket(t)"
                   style="max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; font-size: 12.5px; color: var(--t1)"
                 >
                   {{ t.title }}
                 </td>
-                <td style="font-size: 12px">{{ t.site }}</td>
-                <td style="font-size: 12px; color: var(--t2)">
+                <td [class]="ui.td" style="font-size: 12px">{{ t.site }}</td>
+                <td [class]="ui.td" style="font-size: 12px; color: var(--t2)">
                   {{ customerName(t) }}
                 </td>
-                <td>
+                <td [class]="ui.td">
                   <app-badge [variant]="typeBadge(t.type)">{{ t.type }}</app-badge>
                 </td>
-                <td>
+                <td [class]="ui.td">
                   <app-badge [variant]="priorityBadge(t.pri)">{{ t.pri }}</app-badge>
                 </td>
-                <td>
-                  <select
-                    style="border: 1px solid var(--bd); border-radius: 6px; padding: 3px 7px; font-size: 11.5px; color: var(--t2); background: var(--s2); cursor: pointer; outline: none"
-                    [value]="t.status"
-                    (change)="updateStatus(t.id, $any($event.target).value, $event)"
-                  >
-                    <option value="open">Open</option>
-                    <option value="inprogress">In Progress</option>
-                    <option value="resolved">Resolved</option>
-                    <option value="closed">Closed</option>
-                  </select>
-                </td>
-                <td>
+                <td [class]="ui.td">
                   <div style="display: flex; gap: 5px">
                     <button
-                      class="btn bg bs"
+                      [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm"
                       type="button"
                       (click)="$event.stopPropagation(); viewTicket(t)"
                     >
@@ -131,4 +108,41 @@
       }
     </table>
   </div>
+
+  @if (showPagination()) {
+    <div
+      style="display: flex; align-items: center; justify-content: space-between; margin-top: 14px; flex-wrap: wrap; gap: 10px"
+    >
+      <div style="font-size: 13px; color: var(--t3)">
+        Showing
+        {{ (ticketsPage() - 1) * ticketsLimit() + 1 }}–{{
+          Math.min(ticketsPage() * ticketsLimit(), ticketsTotal() || tickets.length)
+        }}
+        of {{ ticketsTotal() || tickets.length }}
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px">
+        <button
+          type="button"
+          [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm"
+          [disabled]="ticketsPage() <= 1 || loading()"
+          (click)="goToPage(ticketsPage() - 1)"
+        >
+          <app-icon name="chevL" [size]="13" />
+          Previous
+        </button>
+        <span style="font-size: 13px; color: var(--t2); min-width: 88px; text-align: center">
+          Page {{ ticketsPage() }} of {{ totalPages() }}
+        </span>
+        <button
+          type="button"
+          [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm"
+          [disabled]="ticketsPage() >= totalPages() || loading()"
+          (click)="goToPage(ticketsPage() + 1)"
+        >
+          Next
+          <app-icon name="chevR" [size]="13" />
+        </button>
+      </div>
+    </div>
+  }
 </div>

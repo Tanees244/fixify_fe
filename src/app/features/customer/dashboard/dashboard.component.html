@@ -1,218 +1,265 @@
 <div>
-  <div class="ph">
-    <div class="pt">Good morning, {{ customerName }} 👋</div>
-    <div class="ps">Website health overview · {{ formatDateLong() }}</div>
+  <div [class]="ui.pageHeader">
+    <div [class]="ui.pageTitle">Good morning, {{ customerName }} 👋</div>
+    <div [class]="ui.pageSub">Website health overview · {{ formatDateLong() }}</div>
   </div>
 
-  <div class="g4 u" style="margin-bottom: 22px">
-    @for (stat of [
-      { lbl: 'Healthy Sites', val: okCount, sub: 'All systems go', col: 'var(--ok)', ic: 'check' },
-      { lbl: 'Warnings', val: warnCount, sub: 'Needs attention', col: 'var(--wn)', ic: 'alert' },
-      { lbl: 'Critical', val: badCount, sub: 'Act now', col: 'var(--er)', ic: 'zap' },
-      { lbl: 'Open Issues', val: totalIssues, sub: 'Across all sites', col: 'var(--acc)', ic: 'clip' }
-    ]; track stat.lbl) {
-      <div class="stat-card">
-        <div class="slbl">
-          <app-icon [name]="stat.ic" [size]="13" [color]="stat.col" />
-          {{ stat.lbl }}
-        </div>
-        <div class="sval" [style.color]="stat.col">{{ stat.val }}</div>
-        <div class="ssub">{{ stat.sub }}</div>
+  <div [class]="ui.pageBody">
+    @if (loading()) {
+      <app-stat-cards-skeleton />
+    } @else {
+      <div [class]="ui.grid4 + ' ' + ui.u">
+        @for (stat of [
+          { lbl: 'Healthy Sites', val: summary().healthy, sub: 'All systems go', col: 'var(--ok)', ic: 'check' },
+          { lbl: 'Warnings', val: summary().warnings, sub: 'Needs attention', col: 'var(--wn)', ic: 'alert' },
+          { lbl: 'Critical', val: summary().critical, sub: 'Act now', col: 'var(--er)', ic: 'zap' },
+          { lbl: 'Open Issues', val: summary().openIssues, sub: 'Across all sites', col: 'var(--acc)', ic: 'clip' }
+        ]; track stat.lbl) {
+          <div [class]="ui.statCard">
+            <div [class]="ui.statLbl">
+              <app-icon [name]="stat.ic" [size]="13" [color]="stat.col" />
+              {{ stat.lbl }}
+            </div>
+            <div [class]="ui.statVal" [style.color]="stat.col">{{ stat.val }}</div>
+            <div [class]="ui.statSub">{{ stat.sub }}</div>
+          </div>
+        }
       </div>
     }
-  </div>
 
-  <div class="sh">
-    <div class="st">Your Websites</div>
-    <div style="display: flex; gap: 8px">
-      <a routerLink="/customer/add-wordpress" class="btn bg bs" style="text-decoration: none">
-        <app-icon name="plus" [size]="13" />
-        Add WordPress
-      </a>
-      <button type="button" class="btn bp bs" (click)="addSite()">
-        <app-icon name="plus" [size]="13" color="#fff" />
-        Add Website
-      </button>
-    </div>
-  </div>
+    <div [class]="ui.pageSection">
+      <div [class]="ui.sectionHead">
+        <div [class]="ui.sectionTitle">Your Websites</div>
+        <div style="display: flex; gap: 8px">
+          <a routerLink="/customer/add-wordpress" [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm" style="text-decoration: none">
+            <app-icon name="plus" [size]="13" />
+            Add WordPress
+          </a>
+        </div>
+      </div>
 
-  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 26px">
-    @for (s of sites; track s.id; let i = $index) {
-      <div
-        class="card cp u"
-        [class.u1]="i === 0"
-        [class.u2]="i === 1"
-        [class.u3]="i === 2"
-        style="cursor: pointer"
-        (click)="openSite(s)"
-      >
-        <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px">
-          <div style="display: flex; align-items: center; gap: 10px">
-            <app-site-avatar [fa]="s.fa" [size]="40" />
-            <div>
-              <div style="font-weight: 700; font-size: 14px; color: var(--t1)">{{ s.name }}</div>
-              <div style="font-size: 11.5px; color: var(--t3); margin-top: 2px">
-                {{ s.plan }} · Scanned {{ s.scan }}
+      @if (loading()) {
+        <div [class]="ui.grid2">
+          @for (i of [1, 2]; track i) {
+            <div [class]="ui.card + ' ' + ui.cardPad">
+              <div style="display: flex; gap: 10px; margin-bottom: 16px">
+                <div [class]="ui.skelCell" style="width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0"></div>
+                <div style="flex: 1">
+                  <div [class]="ui.skelCell" style="height: 14px; width: 55%; margin-bottom: 8px"></div>
+                  <div [class]="ui.skelCell" style="height: 11px; width: 40%"></div>
+                </div>
+              </div>
+              <div [class]="ui.skelCell" style="height: 72px; width: 72px; border-radius: 50%; margin-bottom: 16px"></div>
+              <div [class]="ui.skelCell" style="height: 11px; width: 100%; margin-bottom: 8px"></div>
+              <div [class]="ui.skelCell" style="height: 11px; width: 85%"></div>
+            </div>
+          }
+        </div>
+      } @else {
+        <div [class]="ui.grid2">
+          @for (s of sites; track s.id; let i = $index) {
+            <div
+              [class]="ui.card + ' ' + ui.cardPad + ' ' + ui.cardHover + ' ' + ui.u + (i === 0 ? ' ' + ui.u1 : i === 1 ? ' ' + ui.u2 : i === 2 ? ' ' + ui.u3 : '')"
+              style="cursor: pointer"
+              (click)="openSite(s)"
+            >
+              <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px">
+                <div style="display: flex; align-items: center; gap: 10px">
+                  <app-site-avatar [fa]="s.fa" [size]="40" />
+                  <div>
+                    <div style="font-weight: 700; font-size: 14px; color: var(--t1)">{{ s.name }}</div>
+                    <div style="font-size: 11.5px; color: var(--t3); margin-top: 2px">
+                      {{ s.plan }} · Scanned {{ s.scan }}
+                    </div>
+                  </div>
+                </div>
+                <app-badge [variant]="siteStatusBadge(s.st)">{{ siteStatusLabel(s.st) }}</app-badge>
+              </div>
+
+              <div style="display: flex; align-items: center; gap: 18px; margin-bottom: 16px">
+                <app-progress-ring [score]="s.health" [size]="72" [strokeWidth]="7" />
+                <div style="flex: 1; display: flex; flex-direction: column; gap: 9px">
+                  @for (m of [
+                    { l: 'Performance', v: s.perf },
+                    { l: 'Security', v: s.sec },
+                    { l: 'SEO', v: s.seo }
+                  ]; track m.l) {
+                    <div>
+                      <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--t2); margin-bottom: 3px">
+                        <span>{{ m.l }}</span>
+                        <span style="font-weight: 700" [style.color]="scoreColor(m.v)">{{ m.v }}</span>
+                      </div>
+                      <app-progress-bar [value]="m.v" />
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <div style="display: flex; justify-content: space-between; padding-top: 12px; border-top: 1px solid var(--b2); font-size: 12.5px">
+                <span style="color: var(--t3)">
+                  Uptime
+                  <strong [style.color]="s.up >= 99.5 ? 'var(--ok)' : 'var(--wn)'">{{ s.up }}%</strong>
+                </span>
+                <span [style.color]="s.issues > 0 ? 'var(--er)' : 'var(--ok)'" style="font-weight: 500">
+                  {{ s.issues > 0 ? s.issues + ' issues' : 'No issues ✓' }}
+                </span>
+                <span style="color: var(--acc); font-weight: 600; display: flex; align-items: center; gap: 3px">
+                  View <app-icon name="chevR" [size]="12" color="var(--acc)" />
+                </span>
               </div>
             </div>
-          </div>
-          <app-badge [variant]="siteStatusBadge(s.st)">{{ siteStatusLabel(s.st) }}</app-badge>
-        </div>
-
-        <div style="display: flex; align-items: center; gap: 18px; margin-bottom: 16px">
-          <app-progress-ring [score]="s.health" [size]="72" [strokeWidth]="7" />
-          <div style="flex: 1; display: flex; flex-direction: column; gap: 9px">
-            @for (m of [
-              { l: 'Performance', v: s.perf },
-              { l: 'Security', v: s.sec },
-              { l: 'SEO', v: s.seo }
-            ]; track m.l) {
-              <div>
-                <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--t2); margin-bottom: 3px">
-                  <span>{{ m.l }}</span>
-                  <span style="font-weight: 700" [style.color]="scoreColor(m.v)">{{ m.v }}</span>
-                </div>
-                <app-progress-bar [value]="m.v" />
-              </div>
-            }
-          </div>
-        </div>
-
-        <div style="display: flex; justify-content: space-between; padding-top: 12px; border-top: 1px solid var(--b2); font-size: 12.5px">
-          <span style="color: var(--t3)">
-            Uptime
-            <strong [style.color]="s.up >= 99.5 ? 'var(--ok)' : 'var(--wn)'">{{ s.up }}%</strong>
-          </span>
-          <span [style.color]="s.issues > 0 ? 'var(--er)' : 'var(--ok)'" style="font-weight: 500">
-            {{ s.issues > 0 ? s.issues + ' issues' : 'No issues ✓' }}
-          </span>
-          <span style="color: var(--acc); font-weight: 600; display: flex; align-items: center; gap: 3px">
-            View <app-icon name="chevR" [size]="12" color="var(--acc)" />
-          </span>
-        </div>
-      </div>
-    }
-  </div>
-
-  @if (adminUpdates.length) {
-    <div class="sh">
-      <div class="st">Fixify Team Updates</div>
-      <button type="button" class="btn bg bs" (click)="navTo('reports')">View All</button>
-    </div>
-
-    <div style="background: var(--sr); border: 1px solid var(--bd); border-radius: 14px; overflow: hidden; margin-bottom: 26px; box-shadow: var(--s1)">
-      @for (a of adminUpdates; track a.id; let last = $last) {
-        <div
-          style="padding: 14px 18px; display: flex; gap: 12px; align-items: flex-start"
-          [style.border-bottom]="last ? 'none' : '1px solid var(--b2)'"
-        >
-          <div style="width: 32px; height: 32px; border-radius: 8px; background: var(--acl); display: flex; align-items: center; justify-content: center; flex-shrink: 0">
-            <app-icon name="zap" [size]="14" color="var(--acc)" />
-          </div>
-          <div style="flex: 1; min-width: 0">
-            <div style="font-weight: 600; font-size: 13.5px; color: var(--t1)">{{ a.action }}</div>
-            <div style="font-size: 11px; color: var(--t3); margin: 3px 0 4px">{{ a.siteName }} · {{ a.performedAt }}</div>
-            <div style="font-size: 13px; color: var(--t2); line-height: 1.55">{{ a.details }}</div>
-          </div>
-        </div>
-      }
-    </div>
-  }
-
-  @if (openRecommendations.length) {
-    <div class="sh">
-      <div class="st">Recommendations</div>
-      <button type="button" class="btn bg bs" (click)="navTo('reports')">View Reports</button>
-    </div>
-
-    <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 26px">
-      @for (r of openRecommendations; track r.id) {
-        <div class="card cp" style="padding: 14px 18px">
-          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap">
-            <span style="font-weight: 600; font-size: 13.5px; color: var(--t1)">{{ r.title }}</span>
-            <app-badge [variant]="priorityBadge(r.priority)">{{ r.priority }}</app-badge>
-          </div>
-          <div style="font-size: 13px; color: var(--t2); line-height: 1.55">{{ r.body }}</div>
-          <div style="font-size: 11px; color: var(--t3); margin-top: 6px">{{ r.siteName }}</div>
-        </div>
-      }
-    </div>
-  }
-
-  <div class="sh">
-    <div class="st">Latest AI Insights</div>
-    <button type="button" class="btn bg bs" (click)="navTo('ai')">
-      <app-icon name="sparkles" [size]="13" />
-      View All
-    </button>
-  </div>
-
-  <div style="background: var(--sr); border: 1px solid var(--bd); border-radius: 14px; overflow: hidden; margin-bottom: 26px; box-shadow: var(--s1)">
-    @for (ins of insights(); track ins.id; let i = $index; let last = $last) {
-      <div
-        style="padding: 14px 18px; display: flex; gap: 12px; align-items: flex-start; cursor: pointer; transition: background 0.15s"
-        [style.border-bottom]="last ? 'none' : '1px solid var(--b2)'"
-      >
-        <div
-          style="width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 13px"
-          [style.background]="severityBg(ins.sev)"
-        >
-          {{ severityIcon(ins.sev) }}
-        </div>
-        <div style="flex: 1; min-width: 0">
-          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 3px; flex-wrap: wrap">
-            <span style="font-weight: 600; font-size: 13.5px; color: var(--t1)">{{ ins.title }}</span>
-            <app-badge [variant]="severityBadge(ins.sev)">{{ ins.sev }}</app-badge>
-            <span style="font-size: 11px; color: var(--t3); margin-left: auto">{{ ins.site }} · {{ ins.time }}</span>
-          </div>
-          <div style="font-size: 13px; color: var(--t2); line-height: 1.55; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">
-            {{ ins.body }}
-          </div>
-        </div>
-      </div>
-    }
-  </div>
-
-  <div class="sh">
-    <div class="st">Recent Tickets</div>
-    <button type="button" class="btn bg bs" (click)="navTo('tickets')">View All</button>
-  </div>
-
-  <div class="card" style="overflow: hidden">
-    <table>
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Issue</th>
-          <th>Type</th>
-          <th>Priority</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      @if (loading()) {
-        <app-table-skeleton [rows]="3" [cols]="6" />
-      } @else {
-        <tbody>
-          @for (t of recentTickets(); track t.id) {
-            <tr style="cursor: pointer" (click)="viewTicket(t)">
-              <td>
-                <span style="font-family: 'DM Mono', monospace; font-size: 11.5px; color: var(--acc); font-weight: 600">{{ t.id }}</span>
-              </td>
-              <td style="max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--t1); font-weight: 500; font-size: 13">
-                {{ t.title }}
-              </td>
-              <td><app-badge [variant]="ticketTypeBadge(t.type)">{{ t.type }}</app-badge></td>
-              <td><app-badge [variant]="priorityBadge(t.pri)">{{ t.pri }}</app-badge></td>
-              <td><app-badge [variant]="ticketStatusBadge(t.status)">{{ ticketStatusLabel(t.status) }}</app-badge></td>
-              <!-- <td style="font-size: 12.5px">{{ t.who }}</td> -->
-            </tr>
           } @empty {
-            <tr>
-              <td colspan="6" style="text-align: center; padding: 28px; color: var(--t3)">No tickets yet</td>
-            </tr>
+            <div [class]="ui.card + ' ' + ui.cardPad" style="grid-column: 1 / -1; text-align: center; color: var(--t3); padding: 32px">
+              No websites yet. Add your first WordPress site to get started.
+            </div>
           }
-        </tbody>
+        </div>
       }
-    </table>
+    </div>
+
+    @if (loading()) {
+      <div [class]="ui.pageSection">
+        <div [class]="ui.sectionHead">
+          <div [class]="ui.sectionTitle">Fixify Team Updates</div>
+        </div>
+        <app-list-items-skeleton [rows]="2" />
+      </div>
+    } @else if (teamUpdates().length) {
+      <div [class]="ui.pageSection + ' ' + ui.u">
+        <div [class]="ui.sectionHead">
+          <div [class]="ui.sectionTitle">Fixify Team Updates</div>
+          <button type="button" [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm" (click)="navTo('reports')">View All</button>
+        </div>
+
+        <div style="background: var(--sr); border: 1px solid var(--bd); border-radius: 14px; overflow: hidden; box-shadow: var(--s1)">
+          @for (a of teamUpdates(); track a.id; let last = $last) {
+            <div
+              style="padding: 14px 18px; display: flex; gap: 12px; align-items: flex-start"
+              [style.border-bottom]="last ? 'none' : '1px solid var(--b2)'"
+            >
+              <div style="width: 32px; height: 32px; border-radius: 8px; background: var(--acl); display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+                <app-icon name="zap" [size]="14" color="var(--acc)" />
+              </div>
+              <div style="flex: 1; min-width: 0">
+                <div style="font-weight: 600; font-size: 13.5px; color: var(--t1)">{{ a.action }}</div>
+                <div style="font-size: 11px; color: var(--t3); margin: 3px 0 4px">{{ a.siteName }} · {{ a.performedAt }}</div>
+                <div style="font-size: 13px; color: var(--t2); line-height: 1.55">{{ a.details }}</div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    @if (loading()) {
+      <div [class]="ui.pageSection">
+        <div [class]="ui.sectionHead">
+          <div [class]="ui.sectionTitle">Recommendations</div>
+        </div>
+        <app-list-items-skeleton [rows]="2" />
+      </div>
+    } @else if (recommendations().length) {
+      <div [class]="ui.pageSection + ' ' + ui.u">
+        <div [class]="ui.sectionHead">
+          <div [class]="ui.sectionTitle">Recommendations</div>
+          <button type="button" [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm" (click)="navTo('reports')">View Reports</button>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          @for (r of recommendations(); track r.id) {
+            <div [class]="ui.card + ' ' + ui.cardPad" style="padding: 14px 18px">
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap">
+                <span style="font-weight: 600; font-size: 13.5px; color: var(--t1)">{{ r.title }}</span>
+                <app-badge [variant]="priorityBadge(r.priority)">{{ r.priority }}</app-badge>
+              </div>
+              <div style="font-size: 13px; color: var(--t2); line-height: 1.55">{{ r.body }}</div>
+              <div style="font-size: 11px; color: var(--t3); margin-top: 6px">{{ r.siteName }}</div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <div [class]="ui.pageSection + ' ' + (loading() ? '' : ui.u)">
+      <div [class]="ui.sectionHead">
+        <div [class]="ui.sectionTitle">Latest AI Insights</div>
+        <button type="button" [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm" (click)="navTo('ai')">
+          <app-icon name="sparkles" [size]="13" />
+          View All
+        </button>
+      </div>
+
+      @if (loading()) {
+        <app-list-items-skeleton [rows]="3" />
+      } @else {
+        <div style="background: var(--sr); border: 1px solid var(--bd); border-radius: 14px; overflow: hidden; box-shadow: var(--s1)">
+          @for (ins of insights(); track ins.id; let last = $last) {
+            <div
+              style="padding: 14px 18px; display: flex; gap: 12px; align-items: flex-start; cursor: pointer; transition: background 0.15s"
+              [style.border-bottom]="last ? 'none' : '1px solid var(--b2)'"
+            >
+              <div
+                style="width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 13px"
+                [style.background]="severityBg(ins.sev)"
+              >
+                {{ severityIcon(ins.sev) }}
+              </div>
+              <div style="flex: 1; min-width: 0">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 3px; flex-wrap: wrap">
+                  <span style="font-weight: 600; font-size: 13.5px; color: var(--t1)">{{ ins.title }}</span>
+                  <app-badge [variant]="severityBadge(ins.sev)">{{ ins.sev }}</app-badge>
+                  <span style="font-size: 11px; color: var(--t3); margin-left: auto">{{ ins.site }} · {{ ins.time }}</span>
+                </div>
+                <div style="font-size: 13px; color: var(--t2); line-height: 1.55; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">
+                  {{ ins.body }}
+                </div>
+              </div>
+            </div>
+          } @empty {
+            <div style="padding: 28px; text-align: center; color: var(--t3); font-size: 13px">No AI insights yet</div>
+          }
+        </div>
+      }
+    </div>
+
+    <div [class]="ui.pageSection + ' ' + (loading() ? '' : ui.u)">
+      <div [class]="ui.sectionHead">
+        <div [class]="ui.sectionTitle">Recent Tickets</div>
+        <button type="button" [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm" (click)="navTo('tickets')">View All</button>
+      </div>
+
+      <div [class]="ui.card" style="overflow: hidden">
+        <table [class]="ui.table">
+          <thead>
+            <tr>
+              <th [class]="ui.th">Issue</th>
+              <th [class]="ui.th">Type</th>
+              <th [class]="ui.th">Priority</th>
+              <th [class]="ui.th">Status</th>
+            </tr>
+          </thead>
+          @if (loading()) {
+            <app-table-skeleton [rows]="3" [cols]="5" />
+          } @else {
+            <tbody>
+              @for (t of recentTickets(); track t.id) {
+                <tr [class]="ui.trHover" style="cursor: pointer" (click)="viewTicket(t)">
+                  <td [class]="ui.td" style="max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--t1); font-weight: 500; font-size: 13">
+                    {{ t.title }}
+                  </td>
+                  <td [class]="ui.td"><app-badge [variant]="ticketTypeBadge(t.type)">{{ t.type }}</app-badge></td>
+                  <td [class]="ui.td"><app-badge [variant]="priorityBadge(t.pri)">{{ t.pri }}</app-badge></td>
+                  <td [class]="ui.td"><app-badge [variant]="ticketStatusBadge(t.status)">{{ ticketStatusLabel(t.status) }}</app-badge></td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td [class]="ui.td" colspan="5" style="text-align: center; padding: 28px; color: var(--t3)">No tickets yet</td>
+                </tr>
+              }
+            </tbody>
+          }
+        </table>
+      </div>
+    </div>
   </div>
 </div>

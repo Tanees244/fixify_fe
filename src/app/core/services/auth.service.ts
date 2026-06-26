@@ -1,14 +1,19 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { Observable, map, tap, catchError, throwError } from 'rxjs';
-import { AuthUser, UserRole } from '../models/auth.models';
+import { Observable, map, catchError, throwError } from 'rxjs';
+import { AuthUser, UserProfile, UserRole } from '../models/auth.models';
 import { AuthApiService } from './api/auth-api.service';
 import { EntityIdRegistry } from './entity-id-registry.service';
 import { initials, normalizeApiUser, roleToAppRole } from '../utils/api-user.util';
 import { mapApiClientToCustomer } from '../utils/api-mappers.util';
+import { isApiErrorEnvelope } from '../utils/api-response.util';
 
 const SESSION_KEY = 'fixify_session';
 const AUTH_TOKEN_KEY = 'authToken';
 const CLIENT_PROFILE_KEY = 'clientProfile';
+
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return typeof v === 'object' && v !== null && !Array.isArray(v);
+}
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -20,52 +25,16 @@ export class AuthService {
   login(email: string, password: string): Observable<AuthUser> {
     return this.api.login({ email, password }).pipe(
       map((res) => {
+        if (isApiErrorEnvelope(res)) {
+          throw new Error(res.message || 'Login failed');
+        }
         const data = res.data;
         if (!data?.token || !data?.user) {
           throw new Error(res.message || 'Login failed');
         }
 
-        const normalized = normalizeApiUser(data.user);
-        const role = roleToAppRole(normalized.role);
-
+        const authUser = this.buildAuthUser(data.user, data.clientProfile);
         localStorage.setItem(AUTH_TOKEN_KEY, data.token);
-
-        let customerId: number | undefined;
-        let clientProfileId: string | undefined;
-
-        if (data.clientProfile && typeof data.clientProfile === 'object') {
-          const cp = data.clientProfile as Record<string, unknown>;
-          clientProfileId = String(cp['_id'] ?? cp['id'] ?? '');
-          if (clientProfileId) {
-            customerId = this.ids.clientLocalId(clientProfileId);
-            localStorage.setItem(CLIENT_PROFILE_KEY, JSON.stringify(data.clientProfile));
-          }
-        } else if (role === 'customer') {
-          const cpRaw = localStorage.getItem(CLIENT_PROFILE_KEY);
-          if (cpRaw) {
-            try {
-              const cp = JSON.parse(cpRaw) as Record<string, unknown>;
-              clientProfileId = String(cp['_id'] ?? cp['id'] ?? '');
-              if (clientProfileId) {
-                customerId = this.ids.clientLocalId(clientProfileId);
-              }
-            } catch {
-              /* ignore */
-            }
-          }
-        }
-
-        const authUser: AuthUser = {
-          id: normalized.id,
-          email: normalized.email,
-          name: normalized.name || normalized.email.split('@')[0],
-          role,
-          avatar: initials(normalized.name || normalized.email),
-          subtitle: role === 'admin' ? 'Platform Admin' : 'Customer Account',
-          customerId,
-          clientProfileId,
-        };
-
         localStorage.setItem(SESSION_KEY, JSON.stringify(authUser));
         this.user.set(authUser);
         return authUser;
@@ -95,35 +64,9 @@ export class AuthService {
       });
     }
 
-    return this.api.getCurrentUser().pipe(
-      map((res) => {
-        const data = res.data;
-        if (!data?.user) return null;
-
-        const normalized = normalizeApiUser(data.user);
-        const role = roleToAppRole(normalized.role);
-
-        let customerId: number | undefined;
-        let clientProfileId: string | undefined;
-        if (data.clientProfile) {
-          clientProfileId = String(data.clientProfile._id ?? data.clientProfile.id ?? '');
-          if (clientProfileId) {
-            customerId = this.ids.clientLocalId(clientProfileId);
-            localStorage.setItem(CLIENT_PROFILE_KEY, JSON.stringify(data.clientProfile));
-          }
-        }
-
-        const authUser: AuthUser = {
-          id: normalized.id,
-          email: normalized.email,
-          name: normalized.name || normalized.email.split('@')[0],
-          role,
-          avatar: initials(normalized.name || normalized.email),
-          subtitle: role === 'admin' ? 'Platform Admin' : 'Customer Account',
-          customerId,
-          clientProfileId,
-        };
-
+    return this.fetchProfile().pipe(
+      map((profile) => {
+        const authUser = this.authUserFromProfile(profile);
         localStorage.setItem(SESSION_KEY, JSON.stringify(authUser));
         this.user.set(authUser);
         return authUser;
@@ -134,6 +77,96 @@ export class AuthService {
           sub.next(null);
           sub.complete();
         });
+      })
+    );
+  }
+
+  fetchProfile(): Observable<UserProfile> {
+    return this.api.getCurrentUser().pipe(
+      map((res) => {
+        if (isApiErrorEnvelope(res) || !res.data) {
+          throw new Error(res.message || 'Failed to load profile');
+        }
+        return this.mapProfileFromMe(res.data as Record<string, unknown>);
+      }),
+      catchError((err) => {
+        const message = err?.error?.message || err?.message || 'Failed to load profile';
+        return throwError(() => new Error(message));
+      })
+    );
+  }
+
+  forgotPassword(email: string): Observable<string> {
+    return this.api.forgotPassword({ email: email.trim() }).pipe(
+      map((res) => {
+        if (isApiErrorEnvelope(res)) {
+          throw new Error(res.message || 'Failed to send reset code');
+        }
+        return res.message || 'OTP has been sent to your email.';
+      }),
+      catchError((err) => {
+        const message = err?.error?.message || err?.message || 'Failed to send reset code';
+        return throwError(() => new Error(message));
+      })
+    );
+  }
+
+  verifyResetPassword(email: string, otp: string, password: string): Observable<string> {
+    return this.api
+      .verifyResetPassword({ email: email.trim(), otp: otp.trim(), password })
+      .pipe(
+        map((res) => {
+          if (isApiErrorEnvelope(res)) {
+            throw new Error(res.message || 'Failed to reset password');
+          }
+          return res.message || 'The password has been successfully reset.';
+        }),
+        catchError((err) => {
+          const message = err?.error?.message || err?.message || 'Failed to reset password';
+          return throwError(() => new Error(message));
+        })
+      );
+  }
+
+  changePassword(currentPassword: string, newPassword: string): Observable<string> {
+    return this.api.changePassword({ currentPassword, newPassword }).pipe(
+      map((res) => {
+        if (isApiErrorEnvelope(res)) {
+          throw new Error(res.message || 'Failed to change password');
+        }
+        return res.message || 'Your password has been successfully changed.';
+      }),
+      catchError((err) => {
+        const message = err?.error?.message || err?.message || 'Failed to change password';
+        return throwError(() => new Error(message));
+      })
+    );
+  }
+
+  updateProfile(
+    id: string,
+    fields: { name?: string; phone?: string; role?: string }
+  ): Observable<string> {
+    return this.api.updateUser(id, fields).pipe(
+      map((res) => {
+        if (isApiErrorEnvelope(res)) {
+          throw new Error(res.message || 'Failed to update profile');
+        }
+        const current = this.user();
+        if (current && fields.name) {
+          const updated: AuthUser = {
+            ...current,
+            name: fields.name,
+            avatar: initials(fields.name || current.email),
+          };
+          localStorage.setItem(SESSION_KEY, JSON.stringify(updated));
+          this.user.set(updated);
+        }
+        return res.message || 'Profile updated successfully.';
+      }),
+      catchError((err) => {
+        const message = err?.error?.message || err?.message || 'Failed to update profile';
+        return throwError(() => new Error(message));
       })
     );
   }
@@ -161,10 +194,125 @@ export class AuthService {
     return this.user();
   }
 
-  /** Map client profile from login/create response into local customer id */
+  syncUserFromProfile(profile: UserProfile): void {
+    const authUser = this.authUserFromProfile(profile);
+    localStorage.setItem(SESSION_KEY, JSON.stringify(authUser));
+    this.user.set(authUser);
+  }
+
   registerClientFromApi(raw: unknown): number {
     const customer = mapApiClientToCustomer(raw, this.ids);
     return customer.id;
+  }
+
+  private buildAuthUser(
+    userRaw: Record<string, unknown>,
+    clientProfileRaw?: Record<string, unknown> | null
+  ): AuthUser {
+    const normalized = normalizeApiUser(userRaw);
+    const role = roleToAppRole(normalized.role);
+
+    let customerId: number | undefined;
+    let clientProfileId: string | undefined;
+
+    if (clientProfileRaw && typeof clientProfileRaw === 'object') {
+      clientProfileId = String(clientProfileRaw['_id'] ?? clientProfileRaw['id'] ?? '');
+      if (clientProfileId) {
+        customerId = this.ids.clientLocalId(clientProfileId);
+        localStorage.setItem(CLIENT_PROFILE_KEY, JSON.stringify(clientProfileRaw));
+      }
+    } else if (role === 'customer') {
+      const cpRaw = localStorage.getItem(CLIENT_PROFILE_KEY);
+      if (cpRaw) {
+        try {
+          const cp = JSON.parse(cpRaw) as Record<string, unknown>;
+          clientProfileId = String(cp['_id'] ?? cp['id'] ?? '');
+          if (clientProfileId) {
+            customerId = this.ids.clientLocalId(clientProfileId);
+          }
+        } catch {
+          /* ignore */
+        }
+      }
+    }
+
+    return {
+      id: normalized.id,
+      email: normalized.email,
+      name: normalized.name || normalized.email.split('@')[0],
+      role,
+      avatar: initials(normalized.name || normalized.email),
+      subtitle: role === 'admin' ? 'Platform Admin' : 'Customer Account',
+      customerId,
+      clientProfileId,
+    };
+  }
+
+  private mapProfileFromMe(data: Record<string, unknown>): UserProfile {
+    const account = isRecord(data['account']) ? data['account'] : {};
+    const clientProfile = isRecord(data['clientProfile']) ? data['clientProfile'] : null;
+    const userRaw = isRecord(data['user']) ? data['user'] : data;
+
+    const id = String(data['id'] ?? userRaw['id'] ?? account['_id'] ?? account['id'] ?? '');
+    const email = String(data['email'] ?? userRaw['email'] ?? account['email'] ?? '');
+    const name = String(data['name'] ?? userRaw['name'] ?? account['name'] ?? '');
+    const role = String(data['role'] ?? userRaw['role'] ?? account['role'] ?? '');
+    const subtitle = String(
+      data['subtitle'] ??
+        (roleToAppRole(role) === 'admin' ? 'Platform Admin' : 'Customer Account')
+    );
+    const avatar =
+      String(data['avatar'] ?? '') || initials(name || email);
+
+    if (clientProfile) {
+      localStorage.setItem(CLIENT_PROFILE_KEY, JSON.stringify(clientProfile));
+    }
+
+    return {
+      id,
+      email,
+      name,
+      role,
+      avatar,
+      subtitle,
+      accountStatus: String(account['status'] ?? data['status'] ?? ''),
+      isActive: account['isActive'] !== false,
+      createdAt: String(account['createdAt'] ?? data['createdAt'] ?? ''),
+      updatedAt: String(account['updatedAt'] ?? data['updatedAt'] ?? ''),
+      companyName: clientProfile ? String(clientProfile['companyName'] ?? '') : undefined,
+      phone: clientProfile ? String(clientProfile['phone'] ?? '') : undefined,
+      address: clientProfile ? String(clientProfile['address'] ?? '') : undefined,
+    };
+  }
+
+  private authUserFromProfile(profile: UserProfile): AuthUser {
+    const role = roleToAppRole(profile.role);
+    let customerId: number | undefined;
+    let clientProfileId: string | undefined;
+
+    const cpRaw = localStorage.getItem(CLIENT_PROFILE_KEY);
+    if (cpRaw) {
+      try {
+        const cp = JSON.parse(cpRaw) as Record<string, unknown>;
+        clientProfileId = String(cp['_id'] ?? cp['id'] ?? '');
+        if (clientProfileId) {
+          customerId = this.ids.clientLocalId(clientProfileId);
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+
+    return {
+      id: profile.id,
+      email: profile.email,
+      name: profile.name,
+      role,
+      avatar: profile.avatar,
+      subtitle: profile.subtitle,
+      customerId,
+      clientProfileId,
+    };
   }
 
   private readSession(): AuthUser | null {

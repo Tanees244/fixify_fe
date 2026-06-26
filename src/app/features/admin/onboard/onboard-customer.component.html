@@ -1,6 +1,6 @@
-<div class="u wp-page">
-  <div class="ph">
-    <a routerLink="/admin/customers" class="btn bg bs admin-back-btn" style="text-decoration: none; display: inline-flex">
+<div [class]="ui.u + ' ' + ui.wpPage">
+  <div [class]="ui.pageHeader">
+    <a routerLink="/admin/customers" [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm + ' ' + ui.adminBackBtn" style="text-decoration: none; display: inline-flex">
       <app-icon name="chevL" [size]="13" />
       Back to Customers
     </a>
@@ -12,48 +12,56 @@
         <span style="color: #fff; font-weight: 800; font-size: 13px">WP</span>
       </div>
       <div>
-        <div class="pt">Onboard Customer</div>
-        <div class="ps">Create customer account, connect WordPress site, and assign subscription</div>
+        <div [class]="ui.pageTitle">Onboard Customer</div>
+        <div [class]="ui.pageSub">Create customer account, connect WordPress site, and assign subscription</div>
       </div>
     </div>
   </div>
 
-  <div class="wp-steps">
+  <div [class]="ui.wpSteps">
     @for (s of steps; track s.n) {
-      <div class="wp-step" [class.on]="step() >= s.n" [class.active]="step() === s.n">
-        <div class="wp-step-num">{{ s.n }}</div>
+      <div [class]="ui.wpStep + (step() >= s.n ? ' ' + ui.wpStepOn : '') + (step() === s.n ? ' ' + ui.wpStepActive : '')">
+        <div [class]="ui.wpStepNum">{{ s.n }}</div>
         <span>{{ s.label }}</span>
       </div>
-      @if (s.n < 4) {
-        <div class="wp-step-line" [class.on]="step() > s.n"></div>
+      @if (s.n < 3) {
+        <div [class]="ui.wpStepLine + (step() > s.n ? ' ' + ui.wpStepLineOn : '')"></div>
       }
     }
   </div>
 
-  <div class="card cp wp-form-card">
+  <div [class]="ui.card + ' ' + ui.cardPad + ' ' + ui.wpFormCard">
     @if (step() === 1) {
       <div style="font-weight: 700; font-size: 15px; margin-bottom: 16px">Customer details</div>
       <p style="font-size: 13.5px; color: var(--t2); margin-bottom: 18px; line-height: 1.6">
         Enter the customer's contact information. They'll receive access once approved (if required).
       </p>
-      <div class="g2">
-        <div class="fld">
+      <div [class]="ui.grid2">
+        <div [class]="ui.fld">
           <label>Full name *</label>
-          <input class="inp" placeholder="Jane Smith" [ngModel]="customerName()" (ngModelChange)="customerName.set($event)" />
+          <input [class]="ui.input" placeholder="Jane Smith" [ngModel]="customerName()" (ngModelChange)="customerName.set($event)" />
         </div>
-        <div class="fld">
+        <div [class]="ui.fld">
           <label>Email *</label>
-          <input class="inp" placeholder="jane@company.com" [ngModel]="email()" (ngModelChange)="email.set($event)" />
+          <input
+            [class]="ui.input + (emailError() ? ' ' + ui.inputError : '')"
+            placeholder="jane@company.com"
+            [ngModel]="email()"
+            (ngModelChange)="onEmailChange($event)"
+          />
+          @if (emailError()) {
+            <span [class]="ui.fieldError">{{ emailError() }}</span>
+          }
         </div>
       </div>
-      <div class="g2">
-        <div class="fld">
+      <div [class]="ui.grid2">
+        <div [class]="ui.fld">
           <label>Company</label>
-          <input class="inp" placeholder="Acme Corp" [ngModel]="company()" (ngModelChange)="company.set($event)" />
+          <input [class]="ui.input" placeholder="Acme Corp" [ngModel]="company()" (ngModelChange)="company.set($event)" />
         </div>
-        <div class="fld">
+        <div [class]="ui.fld">
           <label>Phone</label>
-          <input class="inp" placeholder="+1 555-0100" [ngModel]="phone()" (ngModelChange)="phone.set($event)" />
+          <input [class]="ui.input" placeholder="+1 555-0100" [ngModel]="phone()" (ngModelChange)="phone.set($event)" />
         </div>
       </div>
     }
@@ -63,20 +71,20 @@
       <p style="font-size: 13.5px; color: var(--t2); margin-bottom: 18px; line-height: 1.6">
         Give the WordPress site a name and public URL for monitoring.
       </p>
-      <div class="g2">
-        <div class="fld">
+      <div [class]="ui.grid2">
+        <div [class]="ui.fld">
           <label>Site name *</label>
-          <input class="inp" placeholder="e.g. Acme Blog" [ngModel]="siteName()" (ngModelChange)="siteName.set($event)" />
+          <input [class]="ui.input" placeholder="e.g. Acme Blog" [ngModel]="siteName()" (ngModelChange)="siteName.set($event)" />
         </div>
-        <div class="fld">
+        <div [class]="ui.fld">
           <label>Site URL *</label>
-          <input class="inp" placeholder="https://yourblog.com" [ngModel]="siteUrl()" (ngModelChange)="onSiteUrlChange($event)" />
+          <input [class]="ui.input" placeholder="https://yourblog.com" [ngModel]="siteUrl()" (ngModelChange)="siteUrl.set($event)" />
           <span style="font-size: 11.5px; color: var(--t3); margin-top: 4px">Public frontend URL of the WordPress site</span>
         </div>
       </div>
-      <div class="fld">
+      <div [class]="ui.fld">
         <label>Description <span style="font-weight: 400; color: var(--t3)">(optional)</span></label>
-        <textarea class="inp" rows="2" placeholder="e.g. Company blog and marketing site" style="resize: vertical" [ngModel]="siteDescription()" (ngModelChange)="siteDescription.set($event)"></textarea>
+        <textarea [class]="ui.input" rows="2" placeholder="e.g. Company blog and marketing site" style="resize: vertical" [ngModel]="siteDescription()" (ngModelChange)="siteDescription.set($event)"></textarea>
       </div>
       <div [style.background]="wp.bg" [style.border]="'1px solid ' + wp.color + '40'" style="border-radius: 10px; padding: 12px 14px; font-size: 13px; color: var(--t2); line-height: 1.65">
         <strong [style.color]="wp.color">WordPress monitoring includes:</strong>
@@ -85,82 +93,11 @@
     }
 
     @if (step() === 3) {
-      <div style="font-weight: 700; font-size: 15px; margin-bottom: 16px">WordPress credentials</div>
-      <p style="font-size: 13.5px; color: var(--t2); margin-bottom: 18px; line-height: 1.6">
-        Enter WordPress admin login details so Fixify can connect and run health scans.
-        <span style="color: var(--t3)">UI-only demo — credentials are not sent anywhere.</span>
-      </p>
-      <div class="fld">
-        <label>WordPress login URL *</label>
-        <input class="inp" placeholder="https://yourblog.com/wp-admin" [ngModel]="loginUrl()" (ngModelChange)="loginUrl.set($event); connectionTested.set(false)" />
-      </div>
-      <div class="fld">
-        <label>Authentication type</label>
-        <select class="inp" [ngModel]="authType()" (ngModelChange)="authType.set($event); connectionTested.set(false)">
-          <option value="application-password">Application Password (recommended)</option>
-          <option value="password">WordPress account password</option>
-        </select>
-      </div>
-      <div class="g2">
-        <div class="fld">
-          <label>WordPress username *</label>
-          <input class="inp" placeholder="admin" autocomplete="username" [ngModel]="username()" (ngModelChange)="username.set($event); connectionTested.set(false)" />
-        </div>
-        <div class="fld">
-          <label>{{ authTypeLabel() }} *</label>
-          <div class="wp-password-wrap">
-            <input class="inp" [type]="showPassword() ? 'text' : 'password'" placeholder="Enter password" autocomplete="new-password" [ngModel]="password()" (ngModelChange)="password.set($event); connectionTested.set(false)" />
-            <button type="button" class="wp-password-toggle" (click)="showPassword.set(!showPassword())">
-              <app-icon [name]="showPassword() ? 'eye' : 'lock'" [size]="15" color="var(--t3)" />
-            </button>
-          </div>
-        </div>
-      </div>
-      @if (authType() === 'application-password') {
-        <div style="background: var(--acs); border: 1px solid var(--acm); border-radius: 10px; padding: 12px 14px; font-size: 12.5px; color: var(--t2); line-height: 1.6; margin-bottom: 14px">
-          <strong style="color: var(--acc)">How to get an Application Password:</strong>
-          WordPress Admin → Users → Profile → Application Passwords → Add New.
-        </div>
-      }
-      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px">
-        <button type="button" class="btn bg" (click)="testConnection()" [disabled]="testingConnection() || !canContinueStep3()">
-          @if (testingConnection()) {
-            <app-icon name="loader" [size]="13" color="var(--acc)" /> Testing…
-          } @else {
-            <app-icon name="zap" [size]="13" /> Test connection
-          }
-        </button>
-        @if (connectionTested()) {
-          <span style="font-size: 13px; color: var(--ok); font-weight: 600; display: inline-flex; align-items: center; gap: 6px">
-            <app-icon name="check" [size]="14" color="var(--ok)" />
-            Connected · WordPress {{ wpVersion() }}
-          </span>
-        }
-      </div>
-      <div style="display: flex; flex-direction: column; gap: 4px">
-        <div class="wp-toggle-row">
-          <div>
-            <div style="font-size: 13.5px; font-weight: 500">Plugin health scanning</div>
-            <div style="font-size: 11.5px; color: var(--t3); margin-top: 2px">Monitor active plugins for vulnerabilities</div>
-          </div>
-          <app-toggle [checked]="enablePluginScan()" (toggled)="enablePluginScan.set($event)" />
-        </div>
-        <div class="wp-toggle-row">
-          <div>
-            <div style="font-size: 13.5px; font-weight: 500">Auto-update notifications</div>
-            <div style="font-size: 11.5px; color: var(--t3); margin-top: 2px">Alert when WordPress core or plugins need updates</div>
-          </div>
-          <app-toggle [checked]="enableAutoUpdates()" (toggled)="enableAutoUpdates.set($event)" />
-        </div>
-      </div>
-    }
-
-    @if (step() === 4) {
       <div style="font-weight: 700; font-size: 15px; margin-bottom: 16px">Subscription & review</div>
 
-      <div class="fld">
+      <div [class]="ui.fld">
         <label>Subscription plan *</label>
-        <select class="inp" [ngModel]="plan()" (ngModelChange)="plan.set($event)">
+        <select [class]="ui.input" [ngModel]="plan()" (ngModelChange)="plan.set($event)">
           @for (p of plans; track p.id) {
             <option [value]="p.id">{{ p.name }} — {{ p.priceLabel }}</option>
           }
@@ -175,44 +112,53 @@
         </div>
       }
 
-      <div class="wp-summary">
+      <div style="display: flex; flex-direction: column; gap: 4px; margin-bottom: 16px">
+        <div [class]="ui.wpToggleRow">
+          <div>
+            <div style="font-size: 13.5px; font-weight: 500">Plugin health scanning</div>
+            <div style="font-size: 11.5px; color: var(--t3); margin-top: 2px">Monitor active plugins for vulnerabilities</div>
+          </div>
+          <app-toggle [checked]="enablePluginScan()" (toggled)="enablePluginScan.set($event)" />
+        </div>
+        <div [class]="ui.wpToggleRow">
+          <div>
+            <div style="font-size: 13.5px; font-weight: 500">Auto-update notifications</div>
+            <div style="font-size: 11.5px; color: var(--t3); margin-top: 2px">Alert when WordPress core or plugins need updates</div>
+          </div>
+          <app-toggle [checked]="enableAutoUpdates()" (toggled)="enableAutoUpdates.set($event)" />
+        </div>
+      </div>
+
+      <div [class]="ui.wpSummary">
         <div style="font-weight: 600; font-size: 13px; color: var(--t1); margin-bottom: 12px">Onboarding summary</div>
-        <div class="wp-summary-grid">
-          <div class="wp-summary-item">
-            <span class="wp-summary-label">Customer</span>
-            <span class="wp-summary-value">{{ customerName() || '—' }}</span>
+        <div [class]="ui.wpSummaryGrid">
+          <div [class]="ui.wpSummaryItem">
+            <span [class]="ui.wpSummaryLabel">Customer</span>
+            <span [class]="ui.wpSummaryValue">{{ customerName() || '—' }}</span>
           </div>
-          <div class="wp-summary-item">
-            <span class="wp-summary-label">Email</span>
-            <span class="wp-summary-value">{{ email() || '—' }}</span>
+          <div [class]="ui.wpSummaryItem">
+            <span [class]="ui.wpSummaryLabel">Email</span>
+            <span [class]="ui.wpSummaryValue">{{ email() || '—' }}</span>
           </div>
-          <div class="wp-summary-item">
-            <span class="wp-summary-label">Company</span>
-            <span class="wp-summary-value">{{ company() || '—' }}</span>
+          <div [class]="ui.wpSummaryItem">
+            <span [class]="ui.wpSummaryLabel">Company</span>
+            <span [class]="ui.wpSummaryValue">{{ company() || '—' }}</span>
           </div>
-          <div class="wp-summary-item">
-            <span class="wp-summary-label">Site name</span>
-            <span class="wp-summary-value">{{ siteName() || '—' }}</span>
+          <div [class]="ui.wpSummaryItem">
+            <span [class]="ui.wpSummaryLabel">Site name</span>
+            <span [class]="ui.wpSummaryValue">{{ siteName() || '—' }}</span>
           </div>
-          <div class="wp-summary-item">
-            <span class="wp-summary-label">Site URL</span>
-            <span class="wp-summary-value wp-mono">{{ siteUrl() || '—' }}</span>
+          <div [class]="ui.wpSummaryItem">
+            <span [class]="ui.wpSummaryLabel">Site URL</span>
+            <span [class]="ui.wpSummaryValue + ' ' + ui.wpMono">{{ siteUrl() || '—' }}</span>
           </div>
-          <div class="wp-summary-item">
-            <span class="wp-summary-label">Login URL</span>
-            <span class="wp-summary-value wp-mono">{{ loginUrl() || '—' }}</span>
+          <div [class]="ui.wpSummaryItem">
+            <span [class]="ui.wpSummaryLabel">Subscription</span>
+            <span [class]="ui.wpSummaryValue">{{ planLabel(plan()) }} · ${{ planPrice(plan()) }}/mo</span>
           </div>
-          <div class="wp-summary-item">
-            <span class="wp-summary-label">Username</span>
-            <span class="wp-summary-value">{{ username() || '—' }}</span>
-          </div>
-          <div class="wp-summary-item">
-            <span class="wp-summary-label">Subscription</span>
-            <span class="wp-summary-value">{{ planLabel(plan()) }} · ${{ planPrice(plan()) }}/mo</span>
-          </div>
-          <div class="wp-summary-item">
-            <span class="wp-summary-label">Approval</span>
-            <span class="wp-summary-value">{{ requireApproval() ? 'Required' : 'Auto-activate' }}</span>
+          <div [class]="ui.wpSummaryItem">
+            <span [class]="ui.wpSummaryLabel">Approval</span>
+            <span [class]="ui.wpSummaryValue">{{ requireApproval() ? 'Required' : 'Auto-activate' }}</span>
           </div>
         </div>
       </div>
@@ -220,24 +166,24 @@
 
     <div style="display: flex; gap: 10px; margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--b2)">
       @if (step() > 1) {
-        <button type="button" class="btn bg" (click)="back()">
+        <button type="button" [class]="ui.btn + ' ' + ui.btnGhost" (click)="back()">
           <app-icon name="chevL" [size]="13" /> Back
         </button>
       }
       <div style="flex: 1"></div>
-      @if (step() < 4) {
+      @if (step() < 3) {
         <button
           type="button"
-          class="btn bp"
-          [disabled]="step() === 1 ? !canContinueStep1() : step() === 2 ? !canContinueStep2() : !canContinueStep3()"
+          [class]="ui.btn + ' ' + ui.btnPrimary"
+          [disabled]="step() === 1 ? !canContinueStep1() : !canContinueStep2()"
           (click)="next()"
         >
           Continue <app-icon name="chevR" [size]="13" color="#fff" />
         </button>
       } @else {
-        <button type="button" class="btn bp" (click)="submit()">
+        <button type="button" [class]="ui.btn + ' ' + ui.btnPrimary" (click)="submit()" [disabled]="submitting()">
           <app-icon name="users" [size]="13" color="#fff" />
-          {{ requireApproval() ? 'Submit for Approval' : 'Onboard Customer' }}
+          {{ submitting() ? 'Onboarding…' : requireApproval() ? 'Submit for Approval' : 'Onboard Customer' }}
         </button>
       }
     </div>

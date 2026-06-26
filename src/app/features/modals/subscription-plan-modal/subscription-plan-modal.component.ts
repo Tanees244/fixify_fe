@@ -14,6 +14,7 @@ import {
 } from '../../../core/models/fixify.models';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { ModalHeaderComponent } from '../../../shared/components/modal-header/modal-header.component';
+import { tw } from '../../../shared/ui/tw';
 
 const PLAN_COLORS = ['#6b88ad', '#1d6fe0', '#059669', '#7c3aed', '#d97706', '#dc2626'];
 
@@ -28,21 +29,21 @@ const PLAN_COLORS = ['#6b88ad', '#1d6fe0', '#059669', '#7c3aed', '#d97706', '#dc
       icon="layers"
       (closed)="closed.emit()"
     />
-    <div class="mdl-b">
-      <div class="g2">
-        <div class="fld">
-          <label>Plan name *</label>
+    <div [class]="ui.modalBody">
+      <div [class]="ui.grid2">
+        <div [class]="ui.field">
+          <label [class]="ui.label">Plan name *</label>
           <input
-            class="inp"
+            [class]="ui.input"
             placeholder="e.g. Business"
             [ngModel]="name()"
             (ngModelChange)="name.set($event)"
           />
         </div>
-        <div class="fld">
-          <label>Price (USD/month) *</label>
+        <div [class]="ui.field">
+          <label [class]="ui.label">Price (USD/month) *</label>
           <input
-            class="inp"
+            [class]="ui.input"
             type="number"
             min="0"
             step="1"
@@ -52,46 +53,61 @@ const PLAN_COLORS = ['#6b88ad', '#1d6fe0', '#059669', '#7c3aed', '#d97706', '#dc
           />
         </div>
       </div>
-      <div class="fld">
-        <label>Color</label>
-        <div style="display: flex; gap: 8px; flex-wrap: wrap">
+      <div [class]="ui.field">
+        <label [class]="ui.label">Color</label>
+        <div class="flex flex-wrap gap-2">
           @for (c of colors; track c) {
             <button
               type="button"
               (click)="color.set(c)"
               [style.background]="c"
-              [style.outline]="color() === c ? '2px solid var(--t1)' : '2px solid transparent'"
-              style="width: 28px; height: 28px; border-radius: 8px; cursor: pointer"
+              [style.outline]="color() === c ? '2px solid #0d1e3d' : '2px solid transparent'"
+              class="h-7 w-7 cursor-pointer rounded-lg"
             ></button>
           }
         </div>
       </div>
-      <div class="fld">
-        <label>Features <span style="font-weight: 400; color: var(--t3)">(one per line)</span></label>
+      <div [class]="ui.field">
+        <label [class]="ui.label">
+          Features <span class="font-normal text-fixify-text-3">(one per line)</span>
+        </label>
         <textarea
-          class="inp"
+          [class]="ui.input + ' resize-y'"
           rows="5"
           placeholder="1 website&#10;Weekly health scan&#10;Email alerts"
-          style="resize: vertical"
           [ngModel]="featuresText()"
           (ngModelChange)="featuresText.set($event)"
         ></textarea>
       </div>
     </div>
-    <div class="mdl-f">
-      <button type="button" class="btn bg" (click)="closed.emit()">Cancel</button>
-      <button type="button" class="btn bp" [disabled]="!name().trim()" (click)="submit()">
-        <app-icon name="check" [size]="13" color="#fff" />
-        {{ plan ? 'Save Plan' : 'Create Plan' }}
+    <div [class]="ui.modalFooter">
+      <button type="button" [class]="ui.btn + ' ' + ui.btnGhost" (click)="closed.emit()" [disabled]="submitting">
+        Cancel
+      </button>
+      <button
+        type="button"
+        [class]="ui.btn + ' ' + ui.btnPrimary"
+        [disabled]="!name().trim() || submitting"
+        (click)="submit()"
+      >
+        @if (submitting) {
+          <app-icon name="loader" [size]="13" color="#fff" />
+          {{ plan ? 'Saving…' : 'Creating…' }}
+        } @else {
+          <app-icon name="check" [size]="13" color="#fff" />
+          {{ plan ? 'Save Plan' : 'Create Plan' }}
+        }
       </button>
     </div>
   `,
 })
 export class SubscriptionPlanModalComponent implements OnChanges {
   @Input() plan: SubscriptionPlan | null = null;
+  @Input() submitting = false;
   @Output() closed = new EventEmitter<void>();
   @Output() submitted = new EventEmitter<SubscriptionPlanPayload>();
 
+  readonly ui = tw;
   readonly colors = PLAN_COLORS;
   readonly name = signal('');
   readonly price = signal(0);

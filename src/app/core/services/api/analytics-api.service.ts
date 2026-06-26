@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import {
+  ApiEnvelope,
   PageSpeedRequest,
   PageSpeedResponse,
   PHPVersionResponse,
@@ -10,6 +11,7 @@ import {
   WordPressPluginsResponse,
   WordPressUpdatesResponse,
 } from '../../models/api.models';
+import { UptimeDashboard } from '../../models/site-screens.models';
 import { ApiBaseService } from './api-base.service';
 
 @Injectable({ providedIn: 'root' })
@@ -20,6 +22,12 @@ export class AnalyticsApiService extends ApiBaseService {
 
   checkUptime(url: string): Observable<UptimeResponse> {
     return this.http.post<UptimeResponse>(this.url('/analytics/uptime'), { url });
+  }
+
+  getUptimeDashboard(websiteId: string): Observable<ApiEnvelope<UptimeDashboard>> {
+    return this.http.post<ApiEnvelope<UptimeDashboard>>(this.url('/api/analytics/uptime'), {
+      websiteId,
+    });
   }
 
   checkSsl(url: string): Observable<SSLResponse> {

@@ -9,13 +9,14 @@ import { Router } from '@angular/router';
 import { FixifyDataService } from '../../../core/services/fixify-data.service';
 import { AppContextService } from '../../../core/services/app-context.service';
 import { NotificationService } from '../../../core/services/notification.service';
-import { Customer, Site, SiteStatus } from '../../../core/models/fixify.models';
+import { Site, SiteStatus } from '../../../core/models/fixify.models';
 import { scoreColor } from '../../../core/utils/fixify.utils';
 import { BadgeComponent, BadgeVariant } from '../../../shared/components/badge/badge.component';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { ProgressBarComponent } from '../../../shared/components/progress-bar/progress-bar.component';
 import { SiteAvatarComponent } from '../../../shared/components/site-avatar/site-avatar.component';
 import { TableSkeletonComponent } from '../../../shared/components/table-skeleton/table-skeleton.component';
+import { tw } from '../../../shared/ui/tw';
 
 type StatusFilter = 'all' | SiteStatus;
 
@@ -27,15 +28,20 @@ type StatusFilter = 'all' | SiteStatus;
   templateUrl: './sites.component.html',
 })
 export class SitesComponent {
+  protected readonly ui = tw;
+
   private readonly data = inject(FixifyDataService);
   private readonly ctx = inject(AppContextService);
   private readonly toast = inject(NotificationService);
   private readonly router = inject(Router);
 
+  readonly Math = Math;
   readonly sites = this.data.sites;
-  readonly customers = this.data.customers;
   readonly scanning = this.ctx.scanning;
   readonly loading = this.data.loading;
+  readonly sitesPage = this.data.sitesPage;
+  readonly sitesLimit = this.data.sitesLimit;
+  readonly sitesTotal = this.data.sitesTotal;
 
   readonly search = signal('');
   readonly statusFilter = signal<StatusFilter>('all');
@@ -53,16 +59,26 @@ export class SitesComponent {
     );
   });
 
+  readonly totalPages = computed(() => {
+    this.sitesTotal();
+    this.data.dataRevision();
+    const total = this.sitesTotal() || this.sites.length;
+    return Math.max(1, Math.ceil(total / this.sitesLimit()));
+  });
+
+  readonly showPagination = computed(() => {
+    this.sitesTotal();
+    this.data.dataRevision();
+    if (this.loading()) return false;
+    return this.sitesTotal() > 0 || this.sites.length > 0;
+  });
+
   readonly statusChips: { id: StatusFilter; label: string }[] = [
     { id: 'all', label: 'All Sites' },
     { id: 'ok', label: 'Healthy' },
     { id: 'warn', label: 'Warning' },
     { id: 'bad', label: 'Critical' },
   ];
-
-  customerFor(custId: number): Customer | undefined {
-    return this.customers.find((c) => c.id === custId);
-  }
 
   issuesBadge(issues: number): BadgeVariant {
     return issues > 5 ? 'ber' : issues > 0 ? 'bwn' : 'bok';
@@ -80,6 +96,10 @@ export class SitesComponent {
     this.toast.info('Bulk scan initiated for all sites');
   }
 
+  addSite(): void {
+    this.ctx.openModal({ type: 'addSite' });
+  }
+
   scanSite(site: Site): void {
     this.data.scanSite(site);
   }
@@ -91,5 +111,11 @@ export class SitesComponent {
       return;
     }
     this.router.navigate(['/admin/customers', site.custId]);
+  }
+
+  goToPage(page: number): void {
+    const next = Math.min(Math.max(1, page), this.totalPages());
+    if (next === this.sitesPage()) return;
+    this.data.fetchWebsites({ page: next, limit: this.sitesLimit() });
   }
 }

@@ -16,6 +16,7 @@ import {
 import { BadgeComponent, BadgeVariant } from '../../../shared/components/badge/badge.component';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { ModalHeaderComponent } from '../../../shared/components/modal-header/modal-header.component';
+import { tw } from '../../../shared/ui/tw';
 
 @Component({
   selector: 'app-view-ticket-modal',
@@ -28,11 +29,9 @@ import { ModalHeaderComponent } from '../../../shared/components/modal-header/mo
       icon="clip"
       (closed)="closed.emit()"
     />
-    <div class="mdl-b">
+    <div [class]="ui.modalBody">
       <div style="margin-bottom: 16px">
-        <div
-          style="font-weight: 700; font-size: 16px; color: var(--t1); margin-bottom: 8px"
-        >
+        <div class="mb-2 text-base font-bold text-fixify-text-1">
           {{ ticket.title }}
         </div>
         <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px">
@@ -47,20 +46,20 @@ import { ModalHeaderComponent } from '../../../shared/components/modal-header/mo
           <app-badge variant="bgr">
             <app-icon name="clock" [size]="10" />{{ ticket.ago }}
           </app-badge>
-          <span style="margin-left: auto; font-size: 12px; color: var(--t3)">{{
+          <span class="ml-auto text-xs text-fixify-text-3">{{
             ticket.site
           }}</span>
         </div>
         <div
-          style="background: var(--s2); border-radius: 10px; padding: 14px; font-size: 13.5px; color: var(--t2); line-height: 1.65; border: 1px solid var(--bd)"
+          class="rounded-[10px] border border-fixify-border bg-fixify-surface-2 p-3.5 text-[13.5px] leading-relaxed text-fixify-text-2"
         >
           {{ ticket.desc || 'No description provided.' }}
         </div>
       </div>
-      <div class="g2">
-        <div class="fld">
-          <label>Status</label>
-          <select class="inp" [ngModel]="status()" (ngModelChange)="status.set($event)">
+      <div [class]="ui.grid2">
+        <div [class]="ui.field">
+          <label [class]="ui.label">Status</label>
+          <select [class]="ui.input" [ngModel]="status()" (ngModelChange)="status.set($event)">
             <option value="open">Open</option>
             <option value="inprogress">In Progress</option>
             <option value="resolved">Resolved</option>
@@ -69,9 +68,9 @@ import { ModalHeaderComponent } from '../../../shared/components/modal-header/mo
         </div>
       </div>
     </div>
-    <div class="mdl-f">
-      <button type="button" class="btn bg" (click)="closed.emit()">Cancel</button>
-      <button type="button" class="btn bp" (click)="submit()">
+    <div [class]="ui.modalFooter">
+      <button type="button" [class]="ui.btn + ' ' + ui.btnGhost" (click)="closed.emit()">Cancel</button>
+      <button type="button" [class]="ui.btn + ' ' + ui.btnPrimary" (click)="submit()">
         <app-icon name="check" [size]="13" color="#fff" /> Save Changes
       </button>
     </div>
@@ -86,6 +85,7 @@ export class ViewTicketModalComponent implements OnChanges {
     who: string;
   }>();
 
+  readonly ui = tw;
   readonly status = signal<TicketStatus>('open');
   readonly who = signal('');
 

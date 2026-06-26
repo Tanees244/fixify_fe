@@ -14,6 +14,7 @@ import { FixifyDataService } from '../../../core/services/fixify-data.service';
 import { scoreColor } from '../../../core/utils/fixify.utils';
 import { IconComponent } from '../icon/icon.component';
 import { SiteAvatarComponent } from '../site-avatar/site-avatar.component';
+import { tw } from '../../ui/tw';
 
 @Component({
   selector: 'app-wordpress-management',
@@ -23,6 +24,7 @@ import { SiteAvatarComponent } from '../site-avatar/site-avatar.component';
   templateUrl: './wordpress-management.component.html',
 })
 export class WordpressManagementComponent implements OnInit, OnChanges {
+  readonly ui = tw;
   @Input({ required: true }) customerId!: number;
   @Input() initialSiteId: number | null = null;
 

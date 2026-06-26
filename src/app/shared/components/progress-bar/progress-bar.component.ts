@@ -1,14 +1,15 @@
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { scoreColor } from '../../../core/utils/fixify.utils';
+import { tw } from '../../ui/tw';
 
 @Component({
   selector: 'app-progress-bar',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="prog">
+    <div [class]="ui.prog">
       <div
-        class="progb"
+        [class]="ui.progb"
         [style.width.%]="clampedValue"
         [style.background]="barColor"
       ></div>
@@ -16,6 +17,8 @@ import { scoreColor } from '../../../core/utils/fixify.utils';
   `,
 })
 export class ProgressBarComponent {
+  protected readonly ui = tw;
+
   @Input() value = 0;
   @Input() color?: string;
 

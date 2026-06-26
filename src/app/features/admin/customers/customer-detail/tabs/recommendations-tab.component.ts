@@ -12,6 +12,7 @@ import { TicketPriority } from '../../../../../core/models/fixify.models';
 import { priorityBadge } from '../../../../../core/utils/fixify.utils';
 import { IconComponent } from '../../../../../shared/components/icon/icon.component';
 import { BadgeComponent, BadgeVariant } from '../../../../../shared/components/badge/badge.component';
+import { tw } from '../../../../../shared/ui/tw';
 
 @Component({
   selector: 'app-customer-recommendations-tab',
@@ -21,6 +22,8 @@ import { BadgeComponent, BadgeVariant } from '../../../../../shared/components/b
   templateUrl: './recommendations-tab.component.html',
 })
 export class CustomerRecommendationsTabComponent {
+  protected readonly ui = tw;
+
   @Input({ required: true }) customerId!: number;
 
   private readonly data = inject(FixifyDataService);

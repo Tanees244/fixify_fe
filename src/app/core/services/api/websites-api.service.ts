@@ -1,14 +1,23 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { ApiEnvelope, CreateWebsiteRequest, GetWebsitesParams } from '../../models/api.models';
+import {
+  ApiEnvelope,
+  CreateWebsiteRequest,
+  CreateWebsiteResponseData,
+  GetWebsitesParams,
+} from '../../models/api.models';
 import { ApiBaseService } from './api-base.service';
 
 @Injectable({ providedIn: 'root' })
 export class WebsitesApiService extends ApiBaseService {
   getWebsites(
     params: GetWebsitesParams = {}
-  ): Observable<ApiEnvelope<{ websites: unknown[]; pagination: unknown }>> {
-    return this.http.get<ApiEnvelope<{ websites: unknown[]; pagination: unknown }>>(
+  ): Observable<
+    ApiEnvelope<{ items: unknown[]; websites: unknown[]; total: number; page: number; limit: number }>
+  > {
+    return this.http.get<
+      ApiEnvelope<{ items: unknown[]; websites: unknown[]; total: number; page: number; limit: number }>
+    >(
       this.url('/websites'),
       {
         params: this.buildParams({
@@ -22,8 +31,8 @@ export class WebsitesApiService extends ApiBaseService {
     );
   }
 
-  createWebsite(body: CreateWebsiteRequest): Observable<ApiEnvelope<unknown>> {
-    return this.http.post<ApiEnvelope<unknown>>(this.url('/websites'), body);
+  createWebsite(body: CreateWebsiteRequest): Observable<ApiEnvelope<CreateWebsiteResponseData>> {
+    return this.http.post<ApiEnvelope<CreateWebsiteResponseData>>(this.url('/websites'), body);
   }
 
   activateWebsite(websiteId: string): Observable<ApiEnvelope<unknown>> {

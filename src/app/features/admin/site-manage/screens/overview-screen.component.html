@@ -1,69 +1,69 @@
-@if (facade.wpState(); as state) {
-  <div class="site-manage-page u">
-    <div class="site-manage-page-hd">
+@if (!facade.loading() && facade.wpState(); as state) {
+  <div [class]="ui.smPage + ' ' + ui.u">
+    <div [class]="ui.smPageHd">
       <div>
-        <div class="st">Site Management</div>
-        <div class="ps">Choose an area to manage {{ facade.site()?.name }}</div>
+        <div [class]="ui.sectionTitle">Site Management</div>
+        <div [class]="ui.pageSub">Choose an area to manage {{ facade.site()?.name }}</div>
       </div>
     </div>
 
-    <div class="g4 u" style="margin-bottom: 22px">
-      <div class="stat-card">
-        <div class="slbl">
+    <div [class]="ui.grid4 + ' ' + ui.u" style="margin-bottom: 22px">
+      <div [class]="ui.statCard">
+        <div [class]="ui.statLbl">
           <app-icon name="refresh" [size]="13" color="var(--acc)" />
           WordPress
         </div>
-        <div class="sval" [style.color]="facade.wpCoreOutdated() ? 'var(--wn)' : 'var(--ok)'">{{ state.wpVersion }}</div>
-        <div class="ssub">{{ facade.wpCoreOutdated() ? 'Update available' : 'Up to date' }}</div>
+        <div [class]="ui.statVal" [style.color]="facade.wpCoreOutdated() ? 'var(--wn)' : 'var(--ok)'">{{ state.wpVersion || '—' }}</div>
+        <div [class]="ui.statSub">{{ facade.wpCoreOutdated() ? 'Update available' : 'Up to date' }}</div>
       </div>
-      <div class="stat-card">
-        <div class="slbl">
+      <div [class]="ui.statCard">
+        <div [class]="ui.statLbl">
           <app-icon name="layers" [size]="13" color="var(--acc)" />
           Plugins
         </div>
-        <div class="sval" [style.color]="facade.pendingPluginCount() ? 'var(--wn)' : 'var(--ok)'">
+        <div [class]="ui.statVal" [style.color]="facade.pendingPluginCount() ? 'var(--wn)' : 'var(--ok)'">
           {{ facade.pendingPluginCount() }}
         </div>
-        <div class="ssub">Updates pending</div>
+        <div [class]="ui.statSub">Updates pending</div>
       </div>
-      <div class="stat-card">
-        <div class="slbl">
+      <div [class]="ui.statCard">
+        <div [class]="ui.statLbl">
           <app-icon name="activity" [size]="13" color="var(--acc)" />
           PHP
         </div>
-        <div class="sval" style="color: var(--t1)">{{ state.phpVersion }}</div>
-        <div class="ssub">Runtime version</div>
+        <div [class]="ui.statVal" style="color: var(--t1)">{{ state.phpVersion || '—' }}</div>
+        <div [class]="ui.statSub">Runtime version</div>
       </div>
-      <div class="stat-card">
-        <div class="slbl">
+      <div [class]="ui.statCard">
+        <div [class]="ui.statLbl">
           <app-icon name="file" [size]="13" color="var(--acc)" />
           Theme
         </div>
-        <div class="sval" [style.color]="facade.themeOutdated() ? 'var(--wn)' : 'var(--t1)'">{{ state.activeTheme }}</div>
-        <div class="ssub">v{{ state.themeVersion }}</div>
+        <div [class]="ui.statVal" [style.color]="facade.themeOutdated() ? 'var(--wn)' : 'var(--t1)'">{{ state.activeTheme || '—' }}</div>
+        <div [class]="ui.statSub">{{ state.themeVersion ? 'v' + state.themeVersion : '—' }}</div>
       </div>
     </div>
 
-    <div class="sh u">
-      <div class="st">Management Screens</div>
+    <div [class]="ui.sectionHead + ' ' + ui.u">
+      <div [class]="ui.sectionTitle">Management Screens</div>
     </div>
 
-    <div class="site-manage-card-grid u">
+    <div [class]="ui.smCardGrid + ' ' + ui.u">
       @for (section of sections; track section.path) {
-        <a [routerLink]="[facade.manageBasePath(), section.path]" class="site-manage-card card cp">
-          <div class="site-manage-card-top">
-            <div class="site-manage-card-icon">
+        <a [routerLink]="[facade.manageBasePath(), section.path]" [class]="ui.smCard + ' ' + ui.card + ' ' + ui.cardPad">
+          <div [class]="ui.smCardTop">
+            <div [class]="ui.smCardIcon">
               <app-icon [name]="section.icon" [size]="18" color="var(--acc)" />
             </div>
             @if (section.badge?.(); as count) {
               @if (count > 0) {
-                <span class="nct w">{{ count }}</span>
+                <span [class]="ui.navCount + ' ' + ui.navCountWarn">{{ count }}</span>
               }
             }
           </div>
-          <div class="site-manage-card-title">{{ section.title }}</div>
-          <div class="site-manage-card-desc">{{ section.desc }}</div>
-          <div class="site-manage-card-link">
+          <div [class]="ui.smCardTitle">{{ section.title }}</div>
+          <div [class]="ui.smCardDesc">{{ section.desc }}</div>
+          <div [class]="ui.smCardLink">
             Open
             <app-icon name="chevR" [size]="13" />
           </div>
@@ -71,4 +71,6 @@
       }
     </div>
   </div>
+} @else {
+  <app-manage-skeleton />
 }

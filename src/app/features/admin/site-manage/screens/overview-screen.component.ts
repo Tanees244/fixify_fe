@@ -2,55 +2,58 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { SiteManageFacade } from '../site-manage.facade';
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
+import { ManageSkeletonComponent } from './manage-skeleton.component';
+import { tw } from '../../../../shared/ui/tw';
 
 @Component({
   selector: 'app-site-manage-overview',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, IconComponent],
+  imports: [RouterLink, IconComponent, ManageSkeletonComponent],
   templateUrl: './overview-screen.component.html',
 })
 export class OverviewScreenComponent {
+  protected readonly ui = tw;
   protected readonly facade = inject(SiteManageFacade);
 
   readonly sections = [
     {
       path: 'plugins',
       title: 'Plugins',
-      desc: 'View installed plugins, update individually or in bulk',
+      desc: 'View installed plugins and their update status',
       icon: 'layers',
       badge: () => this.facade.pendingPluginCount(),
     },
     {
       path: 'core',
       title: 'WordPress Core',
-      desc: 'Check version, review changelog, and update WordPress',
+      desc: 'View the installed WordPress version and status',
       icon: 'refresh',
       badge: () => (this.facade.wpCoreOutdated() ? 1 : 0),
     },
     {
       path: 'theme',
       title: 'Theme',
-      desc: 'Update active theme to the latest version',
+      desc: 'View the active theme and its version',
       icon: 'file',
       badge: () => (this.facade.themeOutdated() ? 1 : 0),
     },
     {
       path: 'cache',
       title: 'Cache',
-      desc: 'Clear page cache and object cache',
+      desc: 'View caching configuration',
       icon: 'zap',
     },
     {
       path: 'security',
       title: 'Security',
-      desc: 'Run malware and vulnerability scans',
+      desc: 'View security posture and scan coverage',
       icon: 'shield',
     },
     {
       path: 'maintenance',
       title: 'Maintenance',
-      desc: 'Database optimization, permalinks, and thumbnails',
+      desc: 'View maintenance task history',
       icon: 'cog',
     },
   ];

@@ -1,0 +1,99 @@
+<div>
+  <div [class]="ui.pageHeader">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap">
+      <div>
+        <div [class]="ui.pageTitle">My Websites</div>
+        <div [class]="ui.pageSub">Overview and manage each of your websites</div>
+      </div>
+      <button type="button" [class]="ui.btn + ' ' + ui.btnPrimary" (click)="addSite()">
+        <app-icon name="plus" [size]="13" color="#fff" />
+        Add Website
+      </button>
+    </div>
+  </div>
+
+  <div style="display: flex; gap: 10px; margin-bottom: 16px">
+    <div [class]="ui.search">
+      <app-icon name="search" [size]="14" color="var(--t3)" />
+      <input
+        [class]="ui.searchInput"
+        placeholder="Search websites…"
+        [value]="search()"
+        (input)="search.set($any($event.target).value)"
+      />
+    </div>
+  </div>
+
+  @if (loading() && !sites().length) {
+    <div [class]="ui.grid3 + ' ' + ui.u">
+      @for (i of skeletonCards; track i) {
+        <div [class]="ui.card + ' ' + ui.cardPad">
+          <div [class]="ui.skelCell" style="height: 18px; width: 60%; margin-bottom: 14px"></div>
+          <div [class]="ui.skelCell" style="height: 12px; width: 40%; margin-bottom: 18px"></div>
+          <div [class]="ui.skelCell" style="height: 40px; width: 100%; margin-bottom: 14px"></div>
+          <div [class]="ui.skelCell" style="height: 34px; width: 100%"></div>
+        </div>
+      }
+    </div>
+  } @else if (sites().length === 0) {
+    <div [class]="ui.card + ' ' + ui.u" style="padding: 40px; text-align: center">
+      <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px">No websites yet</div>
+      <div style="font-size: 13px; color: var(--t3); margin-bottom: 16px">
+        Add your first website to start monitoring its health.
+      </div>
+      <button type="button" [class]="ui.btn + ' ' + ui.btnPrimary + ' ' + ui.btnSm" (click)="addSite()">
+        <app-icon name="plus" [size]="13" color="#fff" />
+        Add Website
+      </button>
+    </div>
+  } @else {
+    <div [class]="ui.grid3 + ' ' + ui.u">
+      @for (s of sites(); track s.id) {
+        <div [class]="ui.card + ' ' + ui.cardPad + ' ' + ui.cardHover" style="display: flex; flex-direction: column; gap: 14px">
+          <div style="display: flex; align-items: center; gap: 12px">
+            <app-site-avatar [fa]="s.fa" [size]="40" />
+            <div style="flex: 1; min-width: 0">
+              <div style="font-weight: 700; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{ s.name }}</div>
+              <div style="font-size: 11.5px; color: var(--t3)">Last scan {{ s.scan }}</div>
+            </div>
+            <app-badge [variant]="siteStatusBadge(s.st)">{{ siteStatusLabel(s.st) }}</app-badge>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 10px">
+            <app-progress-bar [value]="s.health" />
+            <span style="font-size: 14px; font-weight: 700; min-width: 28px" [style.color]="scoreColor(s.health)">{{ s.health }}</span>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; gap: 8px">
+            <div style="text-align: center; flex: 1">
+              <div style="font-size: 11px; color: var(--t3); margin-bottom: 2px">Perf</div>
+              <div style="font-size: 13.5px; font-weight: 700" [style.color]="scoreColor(s.perf)">{{ s.perf }}</div>
+            </div>
+            <div style="text-align: center; flex: 1">
+              <div style="font-size: 11px; color: var(--t3); margin-bottom: 2px">Security</div>
+              <div style="font-size: 13.5px; font-weight: 700" [style.color]="scoreColor(s.sec)">{{ s.sec }}</div>
+            </div>
+            <div style="text-align: center; flex: 1">
+              <div style="font-size: 11px; color: var(--t3); margin-bottom: 2px">SEO</div>
+              <div style="font-size: 13.5px; font-weight: 700" [style.color]="scoreColor(s.seo)">{{ s.seo }}</div>
+            </div>
+            <div style="text-align: center; flex: 1">
+              <div style="font-size: 11px; color: var(--t3); margin-bottom: 2px">Uptime</div>
+              <div style="font-size: 13.5px; font-weight: 700" [style.color]="s.up >= 99.9 ? 'var(--ok)' : 'var(--wn)'">{{ s.up }}%</div>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-top: 4px; border-top: 1px solid var(--b2)">
+            <span style="font-size: 12px; color: var(--t3)">
+              <app-badge [variant]="s.issues ? 'bwn' : 'bok'">{{ s.issues }} issue{{ s.issues === 1 ? '' : 's' }}</app-badge>
+            </span>
+            <button type="button" [class]="ui.btn + ' ' + ui.btnPrimary + ' ' + ui.btnSm" (click)="openOverview(s)">
+              <app-icon name="cog" [size]="12" color="#fff" />
+              Open Overview
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

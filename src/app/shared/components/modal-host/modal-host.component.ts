@@ -27,6 +27,7 @@ import { CreateTicketModalComponent } from '../../../features/modals/create-tick
 import { ViewTicketModalComponent } from '../../../features/modals/view-ticket-modal/view-ticket-modal.component';
 import { ConfirmModalComponent } from '../../../features/modals/confirm-modal/confirm-modal.component';
 import { CreateProcessModalComponent } from '../../../features/modals/create-process-modal/create-process-modal.component';
+import { tw } from '../../ui/tw';
 
 @Component({
   selector: 'app-modal-host',
@@ -45,17 +46,8 @@ import { CreateProcessModalComponent } from '../../../features/modals/create-pro
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (modal(); as m) {
-      <div
-        class="overlay"
-        role="presentation"
-        (click)="close()"
-      >
-        <div
-          [class]="modalClass(m)"
-          role="dialog"
-          aria-modal="true"
-          (click)="$event.stopPropagation()"
-        >
+      <div [class]="ui.overlay" role="presentation" (click)="close()">
+        <div [class]="modalClass(m)" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
           @switch (m.type) {
             @case ('addSite') {
               <app-add-site-modal (closed)="close()" (submitted)="onAddSite($event)" />
@@ -112,6 +104,7 @@ import { CreateProcessModalComponent } from '../../../features/modals/create-pro
             @case ('subscriptionPlan') {
               <app-subscription-plan-modal
                 [plan]="asPlan(m.data)"
+                [submitting]="data.planSaving()"
                 (closed)="close()"
                 (submitted)="onSubscriptionPlan($event, m)"
               />
@@ -125,6 +118,7 @@ import { CreateProcessModalComponent } from '../../../features/modals/create-pro
 export class ModalHostComponent {
   protected readonly ctx = inject(AppContextService);
   protected readonly data = inject(FixifyDataService);
+  protected readonly ui = tw;
 
   readonly modal = this.ctx.modal;
 
@@ -143,7 +137,7 @@ export class ModalHostComponent {
 
   modalClass(m: ModalState): string {
     const large = m.type === 'viewCustomer' || m.type === 'viewTicket';
-    return large ? 'mdl mdl-lg' : 'mdl';
+    return large ? `${tw.modal} ${tw.modalLg}` : tw.modal;
   }
 
   close(): void {
@@ -167,7 +161,11 @@ export class ModalHostComponent {
   }
 
   onAddSite(payload: AddSitePayload): void {
-    this.data.addSite(payload);
+    if (payload.custId) {
+      this.data.addSiteForCustomer(payload.custId, payload, { closeModal: true });
+    } else {
+      this.data.addSite(payload);
+    }
   }
 
   onAddCustomer(payload: AddCustomerPayload): void {

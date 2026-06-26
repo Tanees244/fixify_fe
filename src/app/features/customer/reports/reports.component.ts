@@ -1,31 +1,36 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { AppContextService } from '../../../core/services/app-context.service';
 import { FixifyDataService } from '../../../core/services/fixify-data.service';
-import { NotificationService } from '../../../core/services/notification.service';
 import { MonthlyReport } from '../../../core/models/fixify.models';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
+import { StatCardsSkeletonComponent } from '../../../shared/components/stat-cards-skeleton/stat-cards-skeleton.component';
+import { ListItemsSkeletonComponent } from '../../../shared/components/list-items-skeleton/list-items-skeleton.component';
 import { scoreColor, priorityBadge } from '../../../core/utils/fixify.utils';
+import { tw } from '../../../shared/ui/tw';
 
 @Component({
   selector: 'app-customer-reports',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent, BadgeComponent],
+  imports: [IconComponent, BadgeComponent, StatCardsSkeletonComponent, ListItemsSkeletonComponent],
   templateUrl: './reports.component.html',
 })
 export class ReportsComponent {
+  protected readonly ui = tw;
+
   readonly ctx = inject(AppContextService);
   private readonly data = inject(FixifyDataService);
-  private readonly toast = inject(NotificationService);
 
   readonly scoreColor = scoreColor;
   readonly priorityBadge = priorityBadge;
   readonly expandedReportId = signal<number | null>(null);
+  readonly loading = this.data.loading;
 
   readonly site = computed(() => this.ctx.selectedSite());
 
   readonly reports = computed(() => {
+    this.data.dataRevision();
     const s = this.site();
     return s ? this.data.reportsForSite(s.id) : [];
   });
@@ -56,6 +61,6 @@ export class ReportsComponent {
   }
 
   downloadReport(report: MonthlyReport): void {
-    this.toast.success(`${report.month} report downloaded`);
+    this.data.openReportDownload(report);
   }
 }

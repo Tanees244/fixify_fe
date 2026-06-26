@@ -6,6 +6,7 @@ import {
   Output,
 } from '@angular/core';
 import { IconComponent } from '../icon/icon.component';
+import { tw } from '../../ui/tw';
 
 @Component({
   selector: 'app-modal-header',
@@ -13,20 +14,18 @@ import { IconComponent } from '../icon/icon.component';
   imports: [IconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mdl-h">
-      <div style="display: flex; align-items: center; gap: 10px">
+    <div [class]="ui.modalHeader">
+      <div class="flex items-center gap-2.5">
         @if (icon) {
-          <div
-            style="width: 34px; height: 34px; border-radius: 9px; background: var(--acl); display: flex; align-items: center; justify-content: center"
-          >
-            <app-icon [name]="icon" [size]="16" color="var(--acc)" />
+          <div [class]="ui.iconBadge">
+            <app-icon [name]="icon" [size]="16" color="#1d6fe0" />
           </div>
         }
-        <span class="mdl-title">{{ title }}</span>
+        <span [class]="ui.modalTitle">{{ title }}</span>
       </div>
-      <div class="close-btn" (click)="closed.emit()">
+      <button type="button" [class]="ui.closeBtn" (click)="closed.emit()">
         <app-icon name="x" [size]="16" />
-      </div>
+      </button>
     </div>
   `,
 })
@@ -34,4 +33,6 @@ export class ModalHeaderComponent {
   @Input() title = '';
   @Input() icon?: string;
   @Output() closed = new EventEmitter<void>();
+
+  readonly ui = tw;
 }

@@ -1,63 +1,45 @@
-@if (facade.wpState(); as state) {
-  <div class="site-manage-page u">
-    <div class="site-manage-page-hd">
+@if (!facade.loading() && facade.wpState(); as state) {
+  <div [class]="ui.smPage + ' ' + ui.u">
+    <div [class]="ui.smPageHd">
       <div>
-        <div class="st">Theme Update</div>
-        <div class="ps">Active theme: {{ state.activeTheme }}</div>
+        <div [class]="ui.sectionTitle">Theme</div>
+        <div [class]="ui.pageSub">Active theme: {{ state.activeTheme || '—' }}</div>
       </div>
-      @if (facade.themeOutdated()) {
-        <button type="button" class="btn bp bs" [disabled]="facade.busy()" (click)="updateTheme()">
-          <app-icon name="refresh" [size]="13" color="#fff" />
-          Update to v{{ state.latestThemeVersion }}
-        </button>
-      }
     </div>
 
-    <div class="card cp site-manage-panel u" style="margin-bottom: 18px">
-      <div class="sm-upgrade-flow">
-        <div class="sm-version-col">
-          <span class="wp-summary-label">Installed</span>
-          <span class="sm-version-num">v{{ state.themeVersion }}</span>
+    <div [class]="ui.card + ' ' + ui.cardPad + ' ' + ui.smPanel + ' ' + ui.u" style="margin-bottom: 18px">
+      <div [class]="ui.smUpgradeFlow">
+        <div [class]="ui.smVersionCol">
+          <span [class]="ui.wpSummaryLabel">Installed</span>
+          <span [class]="ui.smVersionNum">v{{ state.themeVersion || '—' }}</span>
           <app-badge [variant]="facade.themeOutdated() ? 'bwn' : 'bok'">
             {{ facade.themeOutdated() ? 'Update available' : 'Current' }}
           </app-badge>
         </div>
-        <div class="sm-version-bridge" aria-hidden="true">
-          <div class="sm-version-bridge-line"></div>
-          <div class="sm-version-bridge-icon">
+        <div [class]="ui.smVersionBridge" aria-hidden="true">
+          <div [class]="ui.smVersionBridgeLine"></div>
+          <div [class]="ui.smVersionBridgeIcon">
             <app-icon name="chevR" [size]="16" color="var(--acc)" />
           </div>
         </div>
-        <div class="sm-version-col sm-version-target">
-          <span class="wp-summary-label">Latest</span>
-          <span class="sm-version-num sm-version-num-acc">v{{ state.latestThemeVersion }}</span>
+        <div [class]="ui.smVersionCol + ' ' + ui.smVersionTarget">
+          <span [class]="ui.wpSummaryLabel">Latest</span>
+          <span [class]="ui.smVersionNum + ' ' + ui.smVersionNumAcc">v{{ state.latestThemeVersion || '—' }}</span>
           <app-badge variant="bok">Recommended</app-badge>
         </div>
       </div>
     </div>
 
-    @if (facade.themeOutdated()) {
-      <div class="wp-summary u" style="margin-bottom: 18px">
-        <div style="font-weight: 600; font-size: 13px; margin-bottom: 8px; color: var(--t1)">Update notes</div>
-        <p style="font-size: 13px; color: var(--t2); line-height: 1.6; margin: 0">
-          Theme updates may include layout fixes, WooCommerce compatibility patches, and performance improvements.
-          A backup is recommended before updating.
-        </p>
-      </div>
-      <div class="sm-action-bar">
-        <button type="button" class="btn bp" [disabled]="facade.busy()" (click)="updateTheme()">
-          <app-icon name="file" [size]="13" color="#fff" />
-          Update {{ state.activeTheme }}
-        </button>
-      </div>
-    } @else {
-      <div class="card cp site-manage-panel sm-success-state u">
-        <div class="sm-success-icon">
+    @if (!facade.themeOutdated()) {
+      <div [class]="ui.card + ' ' + ui.cardPad + ' ' + ui.smPanel + ' ' + ui.smSuccessState + ' ' + ui.u">
+        <div [class]="ui.smSuccessIcon">
           <app-icon name="check" [size]="24" color="var(--ok)" />
         </div>
-        <div class="sm-success-title">{{ state.activeTheme }} is up to date</div>
-        <div class="sm-success-sub">Running v{{ state.themeVersion }}</div>
+        <div [class]="ui.smSuccessTitle">{{ state.activeTheme || 'Theme' }} is up to date</div>
+        <div [class]="ui.smSuccessSub">Running v{{ state.themeVersion || '—' }}</div>
       </div>
     }
   </div>
+} @else {
+  <app-manage-skeleton [stats]="false" />
 }

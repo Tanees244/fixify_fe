@@ -1,6 +1,9 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { CreateTicketPayload, Ticket } from '../../models/fixify.models';
-import { cloneMockData, MOCK_TICKETS } from '../../data/mock-data';
+import {
+  extractApiItems,
+  extractApiListMeta,
+} from '../../utils/api-response.util';
 import {
   fixifyPriorityToApi,
   fixifyStatusToApi,
@@ -14,6 +17,16 @@ import { TicketsApiService } from '../api/tickets-api.service';
 import { DataSessionService } from './data-session.service';
 import { SitesDataService } from './sites-data.service';
 
+export interface FetchTicketsParams {
+  role?: string;
+  clientId?: string;
+  page?: number;
+  limit?: number;
+  status?: string;
+  priority?: string;
+  search?: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class TicketsDataService {
   private readonly toast = inject(NotificationService);
@@ -24,25 +37,34 @@ export class TicketsDataService {
   private readonly sitesData = inject(SitesDataService);
 
   readonly tickets: Ticket[] = [];
+  readonly ticketsPage = signal(1);
+  readonly ticketsLimit = signal(10);
+  readonly ticketsTotal = signal(0);
 
-  loadMockTickets(): void {
-    this.tickets.splice(0, this.tickets.length, ...cloneMockData(MOCK_TICKETS));
-  }
-
-  fetchTickets(params?: { role?: string; clientId?: string }, done?: () => void): void {
+  fetchTickets(params: FetchTicketsParams = {}, done?: () => void): void {
     if (!this.session.useApi()) {
-      this.loadMockTickets();
-      this.session.bump();
+      this.tickets.splice(0, this.tickets.length);
+      this.ticketsTotal.set(0);
       done?.();
       return;
     }
+
+    const page = params.page ?? 1;
+    const limit = params.limit ?? 200;
+
     this.session.beginLoad();
-    this.ticketsApi.getTickets({ limit: 200, ...params }).subscribe({
+    this.ticketsApi.getTickets({ page, limit, ...params }).subscribe({
       next: (res) => {
+        const items = extractApiItems(res.data);
+        const meta = extractApiListMeta(res.data, items.length);
+        this.ticketsPage.set(meta.page || page);
+        this.ticketsLimit.set(meta.limit || limit);
+        this.ticketsTotal.set(meta.total);
+
         this.tickets.splice(
           0,
           this.tickets.length,
-          ...(res.data?.tickets ?? []).map((t) => mapApiTicketToFixify(t, this.ids))
+          ...items.map((t) => mapApiTicketToFixify(t, this.ids))
         );
         this.session.endLoad();
         done?.();
@@ -60,55 +82,37 @@ export class TicketsDataService {
   }
 
   createTicket(data: CreateTicketPayload): void {
-    if (this.session.useApi()) {
-      const siteRow = this.sitesData.sites.find(
-        (s) => s.name === data.site || s.id === Number(data.site)
-      );
-      const websiteId = siteRow?.apiId ?? this.sitesData.websiteApiId(Number(data.site));
-      if (!websiteId) {
-        this.toast.error('Website not found for this ticket.');
-        return;
-      }
-      this.ticketsApi
-        .createTicket({
-          websiteId,
-          title: data.title,
-          description: data.desc,
-          priority: fixifyPriorityToApi(data.pri),
-        })
-        .subscribe({
-          next: (res) => {
-            const ticket = mapApiTicketToFixify(res.data?.ticket ?? res.data, this.ids);
-            if (data.who) ticket.who = data.who;
-            this.tickets.unshift(ticket);
-            this.session.bump();
-            this.toast.success(`Ticket ${ticket.id} created`);
-            this.ctx.closeModal();
-          },
-          error: (err) => this.toast.error(err?.error?.message || 'Failed to create ticket'),
-        });
+    if (!this.session.useApi()) {
+      this.toast.error('Sign in to create tickets');
       return;
     }
-
-    this.createTicketLocal(data);
-  }
-
-  private createTicketLocal(data: CreateTicketPayload): void {
-    const ticket: Ticket = {
-      id: `FX-${Math.floor(Math.random() * 900 + 100)}`,
-      title: data.title,
-      desc: data.desc,
-      site: data.site,
-      custId: this.ctx.currentCustomerId(),
-      type: data.type,
-      pri: data.pri,
-      status: data.status || 'open',
-      who: data.who || 'Unassigned',
-      ago: 'just now',
-    };
-    this.tickets.unshift(ticket);
-    this.toast.success(`Ticket ${ticket.id} created`);
-    this.ctx.closeModal();
+    const siteRow = this.sitesData.sites.find(
+      (s) => s.name === data.site || s.id === Number(data.site)
+    );
+    const websiteId = siteRow?.apiId ?? this.sitesData.websiteApiId(Number(data.site));
+    if (!websiteId) {
+      this.toast.error('Website not found for this ticket.');
+      return;
+    }
+    this.ticketsApi
+      .createTicket({
+        websiteId,
+        title: data.title,
+        description: data.desc,
+        priority: fixifyPriorityToApi(data.pri),
+      })
+      .subscribe({
+        next: (res) => {
+          const ticket = mapApiTicketToFixify(res.data?.ticket ?? res.data, this.ids);
+          if (data.who) ticket.who = data.who;
+          this.tickets.unshift(ticket);
+          this.ticketsTotal.update((n) => n + 1);
+          this.session.bump();
+          this.toast.success(`Ticket ${ticket.id} created`);
+          this.ctx.closeModal();
+        },
+        error: (err) => this.toast.error(err?.error?.message || 'Failed to create ticket'),
+      });
   }
 
   updateTicket(id: string, changes: Partial<Ticket>): void {

@@ -1,15 +1,18 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { SiteManageFacade } from '../site-manage.facade';
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
+import { ManageSkeletonComponent } from './manage-skeleton.component';
+import { tw } from '../../../../shared/ui/tw';
 
 @Component({
   selector: 'app-site-manage-security',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent],
+  imports: [IconComponent, ManageSkeletonComponent],
   templateUrl: './security-screen.component.html',
 })
 export class SecurityScreenComponent {
+  protected readonly ui = tw;
   protected readonly facade = inject(SiteManageFacade);
 
   readonly scanAreas = [
@@ -25,8 +28,4 @@ export class SecurityScreenComponent {
   );
 
   readonly hasVulnerablePlugins = computed(() => this.vulnerableCount() > 0);
-
-  async runScan(): Promise<void> {
-    await this.facade.runAction('run_security_scan');
-  }
 }

@@ -3,13 +3,18 @@ import {
   Component,
   EventEmitter,
   Output,
+  computed,
+  inject,
   signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { PLATFORMS } from '../../../core/constants/fixify.constants';
 import { AddSitePayload, Platform } from '../../../core/models/fixify.models';
+import { AuthService } from '../../../core/services/auth.service';
+import { FixifyDataService } from '../../../core/services/fixify-data.service';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { ModalHeaderComponent } from '../../../shared/components/modal-header/modal-header.component';
+import { tw } from '../../../shared/ui/tw';
 
 @Component({
   selector: 'app-add-site-modal',
@@ -22,11 +27,9 @@ import { ModalHeaderComponent } from '../../../shared/components/modal-header/mo
       icon="globe"
       (closed)="closed.emit()"
     />
-    <div class="mdl-b">
+    <div [class]="ui.modalBody">
       @if (step() === 1) {
-        <p
-          style="font-size: 13.5px; color: var(--t2); margin-bottom: 18px; line-height: 1.6"
-        >
+        <p class="mb-[18px] text-[13.5px] leading-relaxed text-fixify-text-2">
           What kind of website are you adding? This determines which monitoring
           modules we activate.
         </p>
@@ -55,12 +58,10 @@ import { ModalHeaderComponent } from '../../../shared/components/modal-header/mo
                   [color]="siteType() === t.id ? '#fff' : t.color"
                 />
               </div>
-              <div
-                style="font-weight: 700; font-size: 15px; color: var(--t1); margin-bottom: 7px"
-              >
+              <div class="mb-[7px] text-[15px] font-bold text-fixify-text-1">
                 {{ t.label }}
               </div>
-              <div style="font-size: 12.5px; color: var(--t3); line-height: 1.55">
+              <div class="text-[12.5px] leading-snug text-fixify-text-3">
                 {{ t.desc }}
               </div>
               @if (siteType() === t.id) {
@@ -78,9 +79,7 @@ import { ModalHeaderComponent } from '../../../shared/components/modal-header/mo
       }
 
       @if (step() === 2) {
-        <p
-          style="font-size: 13.5px; color: var(--t2); margin-bottom: 16px; line-height: 1.6"
-        >
+        <p class="mb-4 text-[13.5px] leading-relaxed text-fixify-text-2">
           Select your platform to unlock tailored monitoring, plugin health
           checks, and automation templates.
         </p>
@@ -103,12 +102,10 @@ import { ModalHeaderComponent } from '../../../shared/components/modal-header/mo
                 }}</span>
               </div>
               <div style="flex: 1; min-width: 0">
-                <div style="font-weight: 700; font-size: 13.5px; color: var(--t1)">
+                <div class="text-[13.5px] font-bold text-fixify-text-1">
                   {{ p.label }}
                 </div>
-                <div
-                  style="font-size: 11px; color: var(--t3); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap"
-                >
+                <div class="mt-0.5 truncate text-[11px] text-fixify-text-3">
                   {{ p.desc }}
                 </div>
               </div>
@@ -121,6 +118,17 @@ import { ModalHeaderComponent } from '../../../shared/components/modal-header/mo
       }
 
       @if (step() === 3) {
+        @if (isAdmin()) {
+          <div [class]="ui.field">
+            <label [class]="ui.label">Customer *</label>
+            <select [class]="ui.input" [ngModel]="customerId()" (ngModelChange)="customerId.set($event)">
+              <option value="">Select a customer…</option>
+              @for (c of customers(); track c.id) {
+                <option [value]="c.id">{{ c.company || c.name }} — {{ c.email }}</option>
+              }
+            </select>
+          </div>
+        }
         @if (selectedPlatform(); as pl) {
           @if (pl.id !== 'custom') {
             <div
@@ -137,37 +145,37 @@ import { ModalHeaderComponent } from '../../../shared/components/modal-header/mo
                 }}</span>
               </div>
               <div>
-                <div style="font-weight: 600; font-size: 13px; color: var(--t1)">
+                <div class="text-[13px] font-semibold text-fixify-text-1">
                   {{ pl.label }} Site
                 </div>
-                <div style="font-size: 11.5px; color: var(--t3); margin-top: 1px">
+                <div class="mt-px text-[11.5px] text-fixify-text-3">
                   {{ pl.desc }}
                 </div>
               </div>
             </div>
           }
         }
-        <div class="fld">
-          <label>Website URL *</label>
+        <div [class]="ui.field">
+          <label [class]="ui.label">Website URL *</label>
           <input
-            class="inp"
+            [class]="ui.input"
             placeholder="https://yourwebsite.com"
             [ngModel]="url()"
             (ngModelChange)="url.set($event)"
           />
         </div>
-        <div class="fld">
-          <label>Display Name</label>
+        <div [class]="ui.field">
+          <label [class]="ui.label">Display Name</label>
           <input
-            class="inp"
+            [class]="ui.input"
             placeholder="e.g. My Online Store"
             [ngModel]="siteName()"
             (ngModelChange)="siteName.set($event)"
           />
         </div>
-        <div class="fld">
-          <label>Plan</label>
-          <select class="inp" [ngModel]="plan()" (ngModelChange)="plan.set($event)">
+        <div [class]="ui.field">
+          <label [class]="ui.label">Plan</label>
+          <select [class]="ui.input" [ngModel]="plan()" (ngModelChange)="plan.set($event)">
             <option>Starter</option>
             <option>Pro</option>
             <option>Business</option>
@@ -175,9 +183,9 @@ import { ModalHeaderComponent } from '../../../shared/components/modal-header/mo
           </select>
         </div>
         <div
-          style="background: var(--acs); border: 1px solid var(--acm); border-radius: 10px; padding: 12px 14px; font-size: 13px; color: var(--t2); line-height: 1.65"
+          class="rounded-[10px] border border-fixify-accent-mid bg-fixify-accent-soft p-3 text-[13px] leading-relaxed text-fixify-text-2"
         >
-          <strong style="color: var(--acc)">Monitoring activated:</strong>
+          <strong class="text-fixify-accent">Monitoring activated:</strong>
           Performance · Security · SEO · Uptime
           @if (siteType() === 'cms' && selectedPlatform(); as pl) {
             <span [style.color]="pl.color">
@@ -187,12 +195,12 @@ import { ModalHeaderComponent } from '../../../shared/components/modal-header/mo
         </div>
       }
     </div>
-    <div class="mdl-f">
-      <button type="button" class="btn bg" (click)="closed.emit()">Cancel</button>
+    <div [class]="ui.modalFooter">
+      <button type="button" [class]="ui.btn + ' ' + ui.btnGhost" (click)="closed.emit()">Cancel</button>
       @if (step() > 1) {
         <button
           type="button"
-          class="btn bg"
+          [class]="ui.btn + ' ' + ui.btnGhost"
           style="margin-right: auto"
           (click)="step.set(step() - 1)"
         >
@@ -202,7 +210,7 @@ import { ModalHeaderComponent } from '../../../shared/components/modal-header/mo
       @if (step() === 1) {
         <button
           type="button"
-          class="btn bp"
+          [class]="ui.btn + ' ' + ui.btnPrimary"
           [disabled]="!siteType()"
           (click)="onStep1Continue()"
         >
@@ -212,7 +220,7 @@ import { ModalHeaderComponent } from '../../../shared/components/modal-header/mo
       @if (step() === 2) {
         <button
           type="button"
-          class="btn bp"
+          [class]="ui.btn + ' ' + ui.btnPrimary"
           [disabled]="!platform()"
           (click)="step.set(3)"
         >
@@ -222,8 +230,8 @@ import { ModalHeaderComponent } from '../../../shared/components/modal-header/mo
       @if (step() === 3) {
         <button
           type="button"
-          class="btn bp"
-          [disabled]="!url()"
+          [class]="ui.btn + ' ' + ui.btnPrimary"
+          [disabled]="!canSubmit()"
           (click)="submit()"
         >
           <app-icon name="plus" [size]="13" color="#fff" /> Add Website
@@ -236,14 +244,31 @@ export class AddSiteModalComponent {
   @Output() closed = new EventEmitter<void>();
   @Output() submitted = new EventEmitter<AddSitePayload>();
 
+  private readonly auth = inject(AuthService);
+  private readonly data = inject(FixifyDataService);
+
+  readonly ui = tw;
   readonly step = signal(1);
   readonly siteType = signal('');
   readonly platform = signal('');
   readonly url = signal('');
   readonly siteName = signal('');
   readonly plan = signal('Pro');
+  readonly customerId = signal<number | ''>('');
 
   readonly cmsPlatforms = PLATFORMS.filter((p) => p.id !== 'custom');
+
+  readonly isAdmin = computed(() => this.auth.user()?.role === 'admin');
+  readonly customers = computed(() => {
+    this.data.dataRevision();
+    return this.data.customers;
+  });
+
+  constructor() {
+    if (this.isAdmin() && this.data.customers.length === 0) {
+      this.data.fetchClients();
+    }
+  }
 
   readonly siteTypes = [
     {
@@ -279,14 +304,21 @@ export class AddSiteModalComponent {
     this.step.set(this.siteType() === 'cms' ? 2 : 3);
   }
 
+  canSubmit(): boolean {
+    if (!this.url().trim()) return false;
+    if (this.isAdmin() && !this.customerId()) return false;
+    return true;
+  }
+
   submit(): void {
+    if (!this.canSubmit()) return;
     this.submitted.emit({
       url: this.url(),
       name: this.siteName() || undefined,
       plan: this.plan(),
       type: this.siteType(),
-      platform:
-        this.siteType() === 'cms' ? this.platform() : 'custom',
+      platform: this.siteType() === 'cms' ? this.platform() : 'custom',
+      custId: this.isAdmin() && this.customerId() ? Number(this.customerId()) : undefined,
     });
   }
 }

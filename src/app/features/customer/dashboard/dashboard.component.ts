@@ -1,9 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  computed,
   inject,
-  signal,
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FixifyDataService } from '../../../core/services/fixify-data.service';
@@ -15,6 +13,8 @@ import { ProgressRingComponent } from '../../../shared/components/progress-ring/
 import { ProgressBarComponent } from '../../../shared/components/progress-bar/progress-bar.component';
 import { SiteAvatarComponent } from '../../../shared/components/site-avatar/site-avatar.component';
 import { TableSkeletonComponent } from '../../../shared/components/table-skeleton/table-skeleton.component';
+import { StatCardsSkeletonComponent } from '../../../shared/components/stat-cards-skeleton/stat-cards-skeleton.component';
+import { ListItemsSkeletonComponent } from '../../../shared/components/list-items-skeleton/list-items-skeleton.component';
 import {
   formatDateLong,
   priorityBadge,
@@ -25,6 +25,7 @@ import {
   ticketStatusBadge,
   ticketStatusLabel,
 } from '../../../core/utils/fixify.utils';
+import { tw } from '../../../shared/ui/tw';
 
 @Component({
   selector: 'app-customer-dashboard',
@@ -38,16 +39,24 @@ import {
     SiteAvatarComponent,
     RouterLink,
     TableSkeletonComponent,
+    StatCardsSkeletonComponent,
+    ListItemsSkeletonComponent,
   ],
   templateUrl: './dashboard.component.html',
 })
 export class DashboardComponent {
+  protected readonly ui = tw;
+
   private readonly data = inject(FixifyDataService);
   private readonly ctx = inject(AppContextService);
   private readonly router = inject(Router);
 
-  readonly insights = signal(this.data.getInsights().slice(0, 3));
   readonly loading = this.data.loading;
+  readonly summary = this.data.customerDashboardSummary;
+  readonly teamUpdates = this.data.customerDashboardTeamUpdates;
+  readonly recommendations = this.data.customerDashboardRecommendations;
+  readonly insights = this.data.customerDashboardInsights;
+  readonly recentTickets = this.data.customerDashboardRecentTickets;
   readonly scoreColor = scoreColor;
   readonly severityBadge = severityBadge;
   readonly severityBg = severityBg;
@@ -58,50 +67,12 @@ export class DashboardComponent {
   readonly formatDateLong = formatDateLong;
 
   get sites(): Site[] {
+    this.data.dataRevision();
     return this.data.mySites();
   }
 
   get customerName(): string {
-    const customer = this.data.customers.find(
-      (c) => c.id === this.ctx.currentCustomerId()
-    );
-    return customer?.name.split(' ')[0] ?? 'there';
-  }
-
-  get okCount(): number {
-    return this.sites.filter((s) => s.st === 'ok').length;
-  }
-
-  get warnCount(): number {
-    return this.sites.filter((s) => s.st === 'warn').length;
-  }
-
-  get badCount(): number {
-    return this.sites.filter((s) => s.st === 'bad').length;
-  }
-
-  get totalIssues(): number {
-    return this.sites.reduce((a, s) => a + s.issues, 0);
-  }
-
-  readonly recentTickets = computed(() => {
-    this.data.dataRevision();
-    return this.data.tickets
-      .filter((t) => t.custId === this.ctx.currentCustomerId())
-      .slice(0, 3);
-  });
-
-  get adminUpdates() {
-    return this.data
-      .adminActionsForCustomer(this.ctx.currentCustomerId(), true)
-      .slice(0, 4);
-  }
-
-  get openRecommendations() {
-    return this.data
-      .recommendationsForCustomer(this.ctx.currentCustomerId())
-      .filter((r) => r.status === 'open')
-      .slice(0, 3);
+    return this.data.customerDashboardGreeting() || 'there';
   }
 
   ticketTypeBadge(type: string): 'bac' | 'bwn' | 'bbl' {

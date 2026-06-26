@@ -10,6 +10,21 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface VerifyResetPasswordRequest {
+  email: string;
+  password: string;
+  otp: string;
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
 export interface LoginResponseData {
   token: string;
   user: Record<string, unknown>;
@@ -17,17 +32,25 @@ export interface LoginResponseData {
 }
 
 export interface CurrentUserResponseData {
-  user: Record<string, unknown>;
-  clientProfile: {
+  id?: string;
+  email?: string;
+  name?: string;
+  role?: string;
+  avatar?: string;
+  subtitle?: string;
+  customerId?: number | null;
+  account?: Record<string, unknown>;
+  user?: Record<string, unknown>;
+  clientProfile?: {
     _id?: string;
     id?: string | number;
     userId?: string | number;
-    companyName: string;
-    phone: string;
+    companyName?: string;
+    phone?: string;
     address?: string;
-    status: string;
-    createdAt: string;
-    updatedAt: string;
+    status?: string;
+    createdAt?: string;
+    updatedAt?: string;
   } | null;
 }
 
@@ -70,12 +93,36 @@ export interface GetWebsitesParams {
 }
 
 export interface CreateWebsiteRequest {
-  clientProfileId: string;
+  /** Optional — admin only. Customers are resolved from the auth token. */
+  clientProfileId?: string;
   name: string;
-  logoUrl: string;
-  wpLoginUrl: string;
-  wpUsername: string;
-  wpPassword: string;
+  type?: string;
+  url: string;
+  logoUrl?: string | null;
+  /** Optional legacy field — use url OR wpLoginUrl. */
+  wpLoginUrl?: string;
+  /** Optional for wordpress. */
+  wpUsername?: string;
+  /** Optional for wordpress. */
+  wpPassword?: string;
+}
+
+export interface WordPressConnectInfo {
+  connectPageUrl: string;
+  connected: boolean;
+}
+
+export interface CreateWebsiteResponseData {
+  _id?: string;
+  id?: string;
+  name?: string;
+  domain?: string;
+  platform?: string;
+  type?: string;
+  wordpressConnected?: boolean;
+  wordpressConnectRequired?: boolean;
+  wordpressConnect?: WordPressConnectInfo;
+  [key: string]: unknown;
 }
 
 export interface CreateTicketRequest {
@@ -187,6 +234,23 @@ export interface AdminWebsiteDashboardData {
   performanceInsights: Record<string, unknown>;
 }
 
+export interface CustomerDashboardSummary {
+  healthy: number;
+  warnings: number;
+  critical: number;
+  openIssues: number;
+}
+
+export interface CustomerDashboardData {
+  greeting: { name: string };
+  summary: CustomerDashboardSummary;
+  sites: unknown[];
+  teamUpdates: unknown[];
+  recommendations: unknown[];
+  latestInsights: unknown[];
+  recentTickets: unknown[];
+}
+
 export interface AdminMonthlyReportItem {
   _id: string;
   websiteId: string;
@@ -199,4 +263,41 @@ export interface AdminMonthlyReportItem {
   fileSizeKb?: number;
   createdAt: string;
   sentAt?: string | null;
+}
+
+export interface SubscriptionPlanRequest {
+  name: string;
+  price: number;
+  color: string;
+  features: string[];
+}
+
+export interface OnboardSiteWordPressRequest {
+  siteName: string;
+  siteUrl: string;
+  loginUrl?: string;
+  username?: string;
+  password?: string;
+  authType?: string;
+  wpVersion?: string;
+  enablePluginScan: boolean;
+  enableAutoUpdates: boolean;
+}
+
+export interface OnboardSiteRequest {
+  url: string;
+  name: string;
+  plan: string;
+  type: string;
+  platform: string;
+  wordpress?: OnboardSiteWordPressRequest;
+}
+
+export interface OnboardCustomerRequest {
+  name: string;
+  email: string;
+  company: string;
+  phone: string;
+  plan: string;
+  site: OnboardSiteRequest;
 }

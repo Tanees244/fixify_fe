@@ -7,6 +7,7 @@ import {
 } from '@angular/core';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { ModalHeaderComponent } from '../../../shared/components/modal-header/modal-header.component';
+import { tw } from '../../../shared/ui/tw';
 
 @Component({
   selector: 'app-confirm-modal',
@@ -15,18 +16,18 @@ import { ModalHeaderComponent } from '../../../shared/components/modal-header/mo
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-modal-header [title]="title" (closed)="closed.emit()" />
-    <div class="mdl-b">
-      <p style="font-size: 14px; color: var(--t2); line-height: 1.65">{{ body }}</p>
+    <div [class]="ui.modalBody">
+      <p class="text-sm leading-relaxed text-fixify-text-2">{{ body }}</p>
     </div>
-    <div class="mdl-f">
-      <button type="button" class="btn bg" (click)="closed.emit()">Cancel</button>
+    <div [class]="ui.modalFooter">
+      <button type="button" [class]="ui.btn + ' ' + ui.btnGhost" (click)="closed.emit()">Cancel</button>
       <button
         type="button"
-        [class]="danger ? 'btn bd2' : 'btn bp'"
+        [class]="ui.btn + ' ' + (danger ? ui.btnDanger : ui.btnPrimary)"
         (click)="confirmed.emit()"
       >
         @if (danger) {
-          <app-icon name="trash" [size]="13" color="var(--er)" />
+          <app-icon name="trash" [size]="13" color="#dc2626" />
           Delete
         } @else {
           <app-icon name="check" [size]="13" color="#fff" />
@@ -42,4 +43,6 @@ export class ConfirmModalComponent {
   @Input() danger = false;
   @Output() closed = new EventEmitter<void>();
   @Output() confirmed = new EventEmitter<void>();
+
+  readonly ui = tw;
 }

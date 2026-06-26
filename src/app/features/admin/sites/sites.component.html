@@ -1,21 +1,28 @@
 <div>
-  <div class="ph">
+  <div [class]="ui.pageHeader">
     <div style="display: flex; justify-content: space-between; align-items: flex-start">
       <div>
-        <div class="pt">All Websites</div>
-        <div class="ps">{{ sites.length }} sites across {{ customers.length }} customers</div>
+        <div [class]="ui.pageTitle">All Websites</div>
+        <div [class]="ui.pageSub">{{ sitesTotal() || sites.length }} websites</div>
       </div>
-      <button class="btn bp" type="button" (click)="scanAll()">
-        <app-icon name="refresh" [size]="13" color="#fff" />
-        Scan All
-      </button>
+      <div style="display: flex; gap: 8px">
+        <button [class]="ui.btn + ' ' + ui.btnGhost" type="button" (click)="scanAll()">
+          <app-icon name="refresh" [size]="13" />
+          Scan All
+        </button>
+        <button [class]="ui.btn + ' ' + ui.btnPrimary" type="button" (click)="addSite()">
+          <app-icon name="plus" [size]="13" color="#fff" />
+          Add Website
+        </button>
+      </div>
     </div>
   </div>
 
   <div style="display: flex; gap: 10px; margin-bottom: 16px">
-    <div class="srch">
+    <div [class]="ui.search">
       <app-icon name="search" [size]="14" color="var(--t3)" />
       <input
+        [class]="ui.searchInput"
         placeholder="Search sites…"
         [value]="search()"
         (input)="onSearch($any($event.target).value)"
@@ -23,8 +30,7 @@
     </div>
     @for (chip of statusChips; track chip.id) {
       <span
-        class="flt-chip"
-        [class.on]="statusFilter() === chip.id"
+        [class]="ui.fltChip + (statusFilter() === chip.id ? ' ' + ui.fltChipActive : '')"
         (click)="setStatusFilter(chip.id)"
       >
         {{ chip.label }}
@@ -32,95 +38,134 @@
     }
   </div>
 
-  <div class="card" style="overflow: hidden">
-    <table>
+  <div [class]="ui.card" style="overflow: hidden">
+    <table [class]="ui.table">
       <thead>
         <tr>
-          <th>Site</th>
-          <th>Customer</th>
-          <th>Health</th>
-          <th>Perf</th>
-          <th>Sec</th>
-          <th>SEO</th>
-          <th>Uptime</th>
-          <th>Issues</th>
-          <th>Actions</th>
+          <th [class]="ui.th">Site</th>
+          <th [class]="ui.th">Health</th>
+          <th [class]="ui.th">Perf</th>
+          <th [class]="ui.th">Sec</th>
+          <th [class]="ui.th">SEO</th>
+          <th [class]="ui.th">Uptime</th>
+          <th [class]="ui.th">Issues</th>
+          <th [class]="ui.th">Actions</th>
         </tr>
       </thead>
       @if (loading()) {
-        <app-table-skeleton [rows]="6" [cols]="9" />
+        <app-table-skeleton [rows]="6" [cols]="8" />
       } @else {
         <tbody>
           @for (s of filteredSites(); track s.id) {
-          <tr>
-            <td>
-              <div style="display: flex; align-items: center; gap: 8px">
-                <app-site-avatar [fa]="s.fa" [size]="28" />
-                <div>
-                  <div style="font-weight: 600; font-size: 13px">{{ s.name }}</div>
-                  <div style="font-size: 11px; color: var(--t3)">{{ s.scan }}</div>
+            <tr [class]="ui.trHover">
+              <td [class]="ui.td">
+                <div style="display: flex; align-items: center; gap: 8px">
+                  <app-site-avatar [fa]="s.fa" [size]="28" />
+                  <div>
+                    <div style="font-weight: 600; font-size: 13px">{{ s.name }}</div>
+                    <div style="font-size: 11px; color: var(--t3)">{{ s.scan }}</div>
+                  </div>
                 </div>
-              </div>
-            </td>
-            <td style="font-size: 12.5px; color: var(--t2)">
-              {{ customerFor(s.custId)?.name || '—' }}
-            </td>
-            <td>
-              <div style="display: flex; align-items: center; gap: 8px">
-                <app-progress-bar [value]="s.health" />
+              </td>
+              <td [class]="ui.td">
+                <div style="display: flex; align-items: center; gap: 8px">
+                  <app-progress-bar [value]="s.health" />
+                  <span
+                    style="font-size: 12px; font-weight: 700; min-width: 24px"
+                    [style.color]="scoreColor(s.health)"
+                    >{{ s.health }}</span
+                  >
+                </div>
+              </td>
+              <td [class]="ui.td">
+                <span style="font-size: 13px; font-weight: 700" [style.color]="scoreColor(s.perf)">{{
+                  s.perf
+                }}</span>
+              </td>
+              <td [class]="ui.td">
+                <span style="font-size: 13px; font-weight: 700" [style.color]="scoreColor(s.sec)">{{
+                  s.sec
+                }}</span>
+              </td>
+              <td [class]="ui.td">
+                <span style="font-size: 13px; font-weight: 700" [style.color]="scoreColor(s.seo)">{{
+                  s.seo
+                }}</span>
+              </td>
+              <td [class]="ui.td">
                 <span
-                  style="font-size: 12px; font-weight: 700; min-width: 24px"
-                  [style.color]="scoreColor(s.health)"
-                  >{{ s.health }}</span
+                  style="font-size: 12.5px"
+                  [style.color]="s.up >= 99.9 ? 'var(--ok)' : 'var(--wn)'"
+                  >{{ s.up }}%</span
                 >
-              </div>
-            </td>
-            <td>
-              <span style="font-size: 13px; font-weight: 700" [style.color]="scoreColor(s.perf)">{{
-                s.perf
-              }}</span>
-            </td>
-            <td>
-              <span style="font-size: 13px; font-weight: 700" [style.color]="scoreColor(s.sec)">{{
-                s.sec
-              }}</span>
-            </td>
-            <td>
-              <span style="font-size: 13px; font-weight: 700" [style.color]="scoreColor(s.seo)">{{
-                s.seo
-              }}</span>
-            </td>
-            <td>
-              <span
-                style="font-size: 12.5px"
-                [style.color]="s.up >= 99.9 ? 'var(--ok)' : 'var(--wn)'"
-                >{{ s.up }}%</span
-              >
-            </td>
-            <td>
-              <app-badge [variant]="issuesBadge(s.issues)">{{ s.issues }}</app-badge>
-            </td>
-            <td>
-              <div style="display: flex; gap: 6px">
-                <button
-                  class="btn bg bs"
-                  type="button"
-                  (click)="scanSite(s)"
-                  [disabled]="scanning()"
-                >
-                  <app-icon name="refresh" [size]="12" />
-                  Scan
-                </button>
-                <button class="btn bp bs" type="button" (click)="manageSite(s)">
-                  <app-icon name="cog" [size]="12" color="#fff" />
-                  Manage
-                </button>
-              </div>
-            </td>
-          </tr>
-        }
+              </td>
+              <td [class]="ui.td">
+                <app-badge [variant]="issuesBadge(s.issues)">{{ s.issues }}</app-badge>
+              </td>
+              <td [class]="ui.td">
+                <div style="display: flex; gap: 6px">
+                  <button
+                    [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm"
+                    type="button"
+                    (click)="scanSite(s)"
+                    [disabled]="scanning()"
+                  >
+                    <app-icon name="refresh" [size]="12" />
+                    Scan
+                  </button>
+                  <button [class]="ui.btn + ' ' + ui.btnPrimary + ' ' + ui.btnSm" type="button" (click)="manageSite(s)">
+                    <app-icon name="cog" [size]="12" color="#fff" />
+                    Manage
+                  </button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td [class]="ui.td" colspan="8" style="text-align: center; padding: 32px; color: var(--t3)">
+                No websites found
+              </td>
+            </tr>
+          }
         </tbody>
       }
     </table>
   </div>
+
+  @if (showPagination()) {
+    <div
+      style="display: flex; align-items: center; justify-content: space-between; margin-top: 14px; flex-wrap: wrap; gap: 10px"
+    >
+      <div style="font-size: 13px; color: var(--t3)">
+        Showing
+        {{ (sitesPage() - 1) * sitesLimit() + 1 }}–{{
+          Math.min(sitesPage() * sitesLimit(), sitesTotal() || sites.length)
+        }}
+        of {{ sitesTotal() || sites.length }}
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px">
+        <button
+          type="button"
+          [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm"
+          [disabled]="sitesPage() <= 1 || loading()"
+          (click)="goToPage(sitesPage() - 1)"
+        >
+          <app-icon name="chevL" [size]="13" />
+          Previous
+        </button>
+        <span style="font-size: 13px; color: var(--t2); min-width: 88px; text-align: center">
+          Page {{ sitesPage() }} of {{ totalPages() }}
+        </span>
+        <button
+          type="button"
+          [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm"
+          [disabled]="sitesPage() >= totalPages() || loading()"
+          (click)="goToPage(sitesPage() + 1)"
+        >
+          Next
+          <app-icon name="chevR" [size]="13" />
+        </button>
+      </div>
+    </div>
+  }
 </div>

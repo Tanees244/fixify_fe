@@ -7,7 +7,6 @@ import {
 import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ToastContainerComponent } from '../toast-container/toast-container.component';
 import { ModalHostComponent } from '../modal-host/modal-host.component';
 import { FixifySidebarComponent } from './fixify-sidebar.component';
 import { FixifyTopbarComponent } from './fixify-topbar.component';
@@ -15,6 +14,7 @@ import { FixifyDataService } from '../../../core/services/fixify-data.service';
 import { AppContextService } from '../../../core/services/app-context.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { RouteDataLoaderService } from '../../../core/services/route-data-loader.service';
+import { tw } from '../../ui/tw';
 
 @Component({
   selector: 'app-fixify-layout',
@@ -23,25 +23,25 @@ import { RouteDataLoaderService } from '../../../core/services/route-data-loader
     RouterOutlet,
     FixifySidebarComponent,
     FixifyTopbarComponent,
-    ToastContainerComponent,
     ModalHostComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="app">
+    <div [class]="ui.app">
       <app-fixify-sidebar />
-      <div class="mn">
+      <div [class]="ui.mainCol">
         <app-fixify-topbar />
-        <main class="ct">
+        <main [class]="ui.content">
           <router-outlet />
         </main>
       </div>
     </div>
-    <app-toast-container />
     <app-modal-host />
   `,
 })
 export class FixifyLayoutComponent implements OnInit {
+  protected readonly ui = tw;
+
   private readonly data = inject(FixifyDataService);
   private readonly routeLoader = inject(RouteDataLoaderService);
   private readonly ctx = inject(AppContextService);

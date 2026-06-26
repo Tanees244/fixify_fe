@@ -9,11 +9,12 @@ import { Router } from '@angular/router';
 import { FixifyDataService } from '../../../core/services/fixify-data.service';
 import { AppContextService } from '../../../core/services/app-context.service';
 import { Customer, SubscriptionPlan } from '../../../core/models/fixify.models';
-import { BadgeComponent, BadgeVariant } from '../../../shared/components/badge/badge.component';
+import { BadgeComponent } from '../../../shared/components/badge/badge.component';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { TableSkeletonComponent } from '../../../shared/components/table-skeleton/table-skeleton.component';
+import { tw } from '../../../shared/ui/tw';
 
-type SubTab = 'plans' | 'assignments' | 'approvals';
+type SubTab = 'plans' | 'assignments';
 
 @Component({
   selector: 'app-admin-subscriptions',
@@ -23,27 +24,42 @@ type SubTab = 'plans' | 'assignments' | 'approvals';
   templateUrl: './subscriptions.component.html',
 })
 export class SubscriptionsComponent {
+  protected readonly ui = tw;
+
   private readonly data = inject(FixifyDataService);
   private readonly ctx = inject(AppContextService);
   private readonly router = inject(Router);
 
   readonly customers = this.data.customers;
   readonly loading = this.data.loading;
+  readonly planSaving = this.data.planSaving;
 
   readonly tab = signal<SubTab>('plans');
   readonly search = signal('');
 
-  readonly pending = computed(() => this.data.pendingApprovals());
+  readonly skeletonCards = [0, 1, 2];
 
-  readonly mrr = computed(() =>
-    this.customers
+  readonly plans = computed(() => {
+    this.data.dataRevision();
+    return this.data.subscriptionPlans;
+  });
+
+  readonly pending = computed(() => {
+    this.data.dataRevision();
+    return this.data.pendingApprovals();
+  });
+
+  readonly mrr = computed(() => {
+    this.data.dataRevision();
+    return this.customers
       .filter((c) => c.approvalStatus === 'approved')
-      .reduce((sum, c) => sum + this.data.planPrice(c.plan), 0)
-  );
+      .reduce((sum, c) => sum + this.data.planPrice(c.plan), 0);
+  });
 
-  readonly approvedCustomers = computed(() =>
-    this.customers.filter((c) => c.approvalStatus === 'approved')
-  );
+  readonly approvedCustomers = computed(() => {
+    this.data.dataRevision();
+    return this.customers.filter((c) => c.approvalStatus === 'approved');
+  });
 
   readonly filteredAssignments = computed(() => {
     this.data.dataRevision();
@@ -55,10 +71,6 @@ export class SubscriptionsComponent {
         c.company.toLowerCase().includes(q)
     );
   });
-
-  plans(): SubscriptionPlan[] {
-    return this.data.subscriptionPlans;
-  }
 
   planLabel(id: string): string {
     return this.data.planLabel(id);
@@ -90,10 +102,6 @@ export class SubscriptionsComponent {
     this.search.set(value);
   }
 
-  onboardCustomer(): void {
-    this.router.navigate(['/admin/onboard']);
-  }
-
   createPlan(): void {
     this.ctx.openModal({ type: 'subscriptionPlan' });
   }
@@ -117,14 +125,6 @@ export class SubscriptionsComponent {
 
   assignPlan(customer: Customer, planId: string): void {
     this.data.assignSubscription(customer.id, planId);
-  }
-
-  approve(id: number): void {
-    this.data.approveCustomer(id);
-  }
-
-  reject(id: number): void {
-    this.data.rejectCustomer(id);
   }
 
   viewCustomer(id: number): void {

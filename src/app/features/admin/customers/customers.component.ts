@@ -9,10 +9,9 @@ import { Router } from '@angular/router';
 import { FixifyDataService } from '../../../core/services/fixify-data.service';
 import { AppContextService } from '../../../core/services/app-context.service';
 import { Customer } from '../../../core/models/fixify.models';
-import { scoreColor } from '../../../core/utils/fixify.utils';
-import { BadgeComponent, BadgeVariant } from '../../../shared/components/badge/badge.component';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { TableSkeletonComponent } from '../../../shared/components/table-skeleton/table-skeleton.component';
+import { tw } from '../../../shared/ui/tw';
 
 type CustomerTab = 'all' | 'pending' | 'active';
 
@@ -20,10 +19,12 @@ type CustomerTab = 'all' | 'pending' | 'active';
   selector: 'app-admin-customers',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent, BadgeComponent, TableSkeletonComponent],
+  imports: [IconComponent, TableSkeletonComponent],
   templateUrl: './customers.component.html',
 })
 export class CustomersComponent {
+  protected readonly ui = tw;
+
   private readonly data = inject(FixifyDataService);
   private readonly ctx = inject(AppContextService);
   private readonly router = inject(Router);
@@ -34,7 +35,6 @@ export class CustomersComponent {
 
   readonly search = signal('');
   readonly tab = signal<CustomerTab>('all');
-  readonly scoreColor = scoreColor;
 
   plans() {
     return this.data.subscriptionPlans;
@@ -87,26 +87,6 @@ export class CustomersComponent {
 
   customerSites(custId: number) {
     return this.sites.filter((s) => s.custId === custId);
-  }
-
-  avgHealth(custId: number): number | null {
-    const custSites = this.customerSites(custId);
-    return custSites.length
-      ? Math.round(custSites.reduce((a, s) => a + s.health, 0) / custSites.length)
-      : null;
-  }
-
-  statusBadge(status: string): BadgeVariant {
-    if (status === 'active') return 'bok';
-    if (status === 'pending') return 'bwn';
-    if (status === 'warning') return 'bwn';
-    return 'ber';
-  }
-
-  approvalBadge(status: string): BadgeVariant {
-    if (status === 'approved') return 'bok';
-    if (status === 'pending') return 'bwn';
-    return 'ber';
   }
 
   setTab(tab: CustomerTab): void {

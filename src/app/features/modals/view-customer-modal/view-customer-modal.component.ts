@@ -17,6 +17,7 @@ import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { ModalHeaderComponent } from '../../../shared/components/modal-header/modal-header.component';
 import { ProgressRingComponent } from '../../../shared/components/progress-ring/progress-ring.component';
 import { SiteAvatarComponent } from '../../../shared/components/site-avatar/site-avatar.component';
+import { tw } from '../../../shared/ui/tw';
 
 @Component({
   selector: 'app-view-customer-modal',
@@ -35,18 +36,18 @@ import { SiteAvatarComponent } from '../../../shared/components/site-avatar/site
       icon="eye"
       (closed)="closed.emit()"
     />
-    <div class="mdl-b">
+    <div [class]="ui.modalBody">
       <div
         style="display: flex; align-items: center; gap: 14px; padding: 14px 16px; background: var(--acs); border-radius: 12px; margin-bottom: 20px"
       >
-        <div class="av" style="width: 48px; height: 48px; font-size: 16px">
+        <div [class]="ui.avatar + ' h-12 w-12 text-base'">
           {{ customer.avatar }}
         </div>
         <div style="flex: 1">
-          <div style="font-weight: 700; font-size: 16px; color: var(--t1)">
+          <div class="text-base font-bold text-fixify-text-1">
             {{ customer.name }}
           </div>
-          <div style="font-size: 13px; color: var(--t3); margin-top: 2px">
+          <div class="mt-0.5 text-[13px] text-fixify-text-3">
             {{ customer.company }}
           </div>
           <div style="display: flex; gap: 8px; margin-top: 6px">
@@ -58,25 +59,21 @@ import { SiteAvatarComponent } from '../../../shared/components/site-avatar/site
           </div>
         </div>
         <div style="display: flex; flex-direction: column; gap: 6px">
-          <div
-            style="display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--t3)"
-          >
+          <div class="flex items-center gap-1.5 text-[12.5px] text-fixify-text-3">
             <app-icon name="mail" [size]="13" /> {{ customer.email }}
           </div>
           @if (customer.phone) {
-            <div
-              style="display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--t3)"
-            >
+            <div class="flex items-center gap-1.5 text-[12.5px] text-fixify-text-3">
               <app-icon name="phone" [size]="13" /> {{ customer.phone }}
             </div>
           }
-          <div style="font-size: 12px; color: var(--t3)">
+          <div class="text-xs text-fixify-text-3">
             Member since {{ customer.joined }}
           </div>
         </div>
       </div>
 
-      <div class="g3" style="margin-bottom: 20px">
+      <div [class]="ui.grid3 + ' mb-5'">
         @for (stat of stats; track stat.label) {
           <div
             style="background: var(--s2); border: 1px solid var(--bd); border-radius: 10px; padding: 14px 16px; text-align: center"
@@ -84,7 +81,7 @@ import { SiteAvatarComponent } from '../../../shared/components/site-avatar/site
             <div [style.color]="stat.color" style="font-size: 24px; font-weight: 700">
               {{ stat.value }}
             </div>
-            <div style="font-size: 12px; color: var(--t3); margin-top: 2px">
+            <div class="mt-0.5 text-xs text-fixify-text-3">
               {{ stat.label }}
             </div>
           </div>
@@ -92,7 +89,7 @@ import { SiteAvatarComponent } from '../../../shared/components/site-avatar/site
       </div>
 
       @if (custSites.length) {
-        <div style="font-weight: 700; font-size: 14px; margin-bottom: 10px; color: var(--t1)">
+        <div class="mb-2.5 text-sm font-bold text-fixify-text-1">
           Monitored Sites
         </div>
         <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px">
@@ -101,10 +98,10 @@ import { SiteAvatarComponent } from '../../../shared/components/site-avatar/site
               style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: var(--s2); border-radius: 10px; border: 1px solid var(--bd)"
             >
               <app-site-avatar [fa]="s.fa" [size]="32" />
-              <span style="flex: 1; font-weight: 600; font-size: 13px; color: var(--t1)">{{
+              <span class="flex-1 text-[13px] font-semibold text-fixify-text-1">{{
                 s.name
               }}</span>
-              <span style="font-size: 12px; color: var(--t3)">{{ s.issues }} issues</span>
+              <span class="text-xs text-fixify-text-3">{{ s.issues }} issues</span>
               <app-progress-ring [score]="s.health" [size]="40" [strokeWidth]="4" />
               <app-badge [variant]="siteVariant(s)">{{ siteLabel(s) }}</app-badge>
             </div>
@@ -113,7 +110,7 @@ import { SiteAvatarComponent } from '../../../shared/components/site-avatar/site
       }
 
       @if (custTickets.length) {
-        <div style="font-weight: 700; font-size: 14px; margin-bottom: 10px; color: var(--t1)">
+        <div class="mb-2.5 text-sm font-bold text-fixify-text-1">
           Recent Tickets
         </div>
         @for (t of recentTickets; track t.id) {
@@ -125,7 +122,7 @@ import { SiteAvatarComponent } from '../../../shared/components/site-avatar/site
               >{{ t.id }}</span
             >
             <span
-              style="flex: 1; font-size: 13px; color: var(--t2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap"
+              class="flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-[13px] text-fixify-text-2"
               >{{ t.title }}</span
             >
             <app-badge [variant]="ticketBadge(t.status)">{{
@@ -135,9 +132,9 @@ import { SiteAvatarComponent } from '../../../shared/components/site-avatar/site
         }
       }
     </div>
-    <div class="mdl-f">
-      <button type="button" class="btn bg" (click)="closed.emit()">Close</button>
-      <button type="button" class="btn bp" (click)="manage.emit(customer)">
+    <div [class]="ui.modalFooter">
+      <button type="button" [class]="ui.btn + ' ' + ui.btnGhost" (click)="closed.emit()">Close</button>
+      <button type="button" [class]="ui.btn + ' ' + ui.btnPrimary" (click)="manage.emit(customer)">
         <app-icon name="edit" [size]="13" color="#fff" /> Manage Customer
       </button>
     </div>
@@ -151,6 +148,8 @@ export class ViewCustomerModalComponent {
   @Output() manage = new EventEmitter<Customer>();
 
   private readonly data = inject(FixifyDataService);
+
+  readonly ui = tw;
 
   planLabel(id: string): string {
     return this.data.planLabel(id);

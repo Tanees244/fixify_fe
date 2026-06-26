@@ -10,9 +10,11 @@ import { FixifyDataService } from '../../../core/services/fixify-data.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { RouteDataLoaderService } from '../../../core/services/route-data-loader.service';
 import { IconComponent } from '../icon/icon.component';
+import { tw } from '../../ui/tw';
 
 const CUSTOMER_ROUTES: Record<string, string> = {
   dashboard: '/customer/dashboard',
+  sites: '/customer/sites',
   performance: '/customer/performance',
   security: '/customer/security',
   seo: '/customer/seo',
@@ -40,20 +42,20 @@ const ADMIN_ROUTES: Record<string, string> = {
   imports: [RouterLink, RouterLinkActive, IconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <aside class="sb">
-      <div class="sb-top">
-        <div class="logo">
-          <div class="logo-ic">
-            <app-icon name="zap" [size]="16" color="#fff" />
+    <aside [class]="ui.sidebar">
+      <div [class]="ui.sidebarTop">
+        <div [class]="ui.logo">
+          <div [class]="ui.logoIcon">
+            <img src="/favicon.png" alt="Fixify" width="32" height="32" />
           </div>
-          <span class="logo-t">Fix<span>ify</span></span>
+          <span [class]="ui.logoText">Fix<span class="text-fixify-accent">ify</span></span>
         </div>
 
         @if (auth.user()?.role === 'customer') {
-          <div style="padding: 2px 10px 8px">
-            <div class="sb-lbl">Website</div>
+          <div class="px-2.5 pb-2 pt-0.5">
+            <div [class]="ui.sidebarLbl">Website</div>
             <select
-              class="sb-select"
+              [class]="ui.sidebarSelect"
               [value]="ctx.selectedSite()?.id ?? ''"
               (change)="onSiteChange($event)"
             >
@@ -65,44 +67,47 @@ const ADMIN_ROUTES: Record<string, string> = {
         }
       </div>
 
-      <div class="sb-nav">
+      <div [class]="ui.sidebarNav">
         @if (auth.user()?.role === 'customer') {
-          <div class="sb-sec">
-            <div class="sb-lbl">Navigation</div>
+          <div [class]="ui.sidebarSec">
+            <div [class]="ui.sidebarLbl">Navigation</div>
             @for (item of customerNav; track item.id) {
               <a
                 [routerLink]="customerRoute(item.id)"
-                routerLinkActive="on"
-                class="nav"
+                routerLinkActive
+                #rla="routerLinkActive"
+                [class]="ui.nav + (rla.isActive ? ' ' + ui.navActive : '')"
               >
                 <app-icon [name]="item.icon" [size]="15" />
-                <span style="flex: 1">{{ item.label }}</span>
-                @if (item.count) {
-                  <span class="nct" [class]="item.countClass || ''">{{
-                    item.count
-                  }}</span>
-                }
+                <span class="min-w-0 flex-1">{{ item.label }}</span>
               </a>
             }
             <a
               routerLink="/customer/add-wordpress"
-              routerLinkActive="on"
-              class="nav nav-wp"
+              routerLinkActive
+              #wpRla="routerLinkActive"
+              [class]="
+                ui.nav +
+                ' ' +
+                ui.navWp +
+                (wpRla.isActive ? ' ' + ui.navWpActive : '')
+              "
             >
               <app-icon name="plus" [size]="15" />
-              <span style="flex: 1">Add WordPress</span>
+              <span class="min-w-0 flex-1">Add WordPress</span>
             </a>
           </div>
         }
 
         @if (auth.user()?.role === 'admin') {
-          <div class="sb-sec">
-            <div class="sb-lbl">Admin Console</div>
+          <div [class]="ui.sidebarSec">
+            <div [class]="ui.sidebarLbl">Admin Console</div>
             @for (item of adminNav; track item.id) {
               <a
                 [routerLink]="adminRoute(item.id)"
-                routerLinkActive="on"
-                class="nav"
+                routerLinkActive
+                #adminRla="routerLinkActive"
+                [class]="ui.nav + (adminRla.isActive ? ' ' + ui.navActive : '')"
               >
                 <app-icon [name]="item.icon" [size]="15" />
                 <span>{{ item.label }}</span>
@@ -112,15 +117,19 @@ const ADMIN_ROUTES: Record<string, string> = {
         }
       </div>
 
-      <div class="sf">
-        <div class="su">
-          <div class="av">{{ auth.user()?.avatar ?? '?' }}</div>
-          <div style="flex: 1; min-width: 0">
-            <div class="sb-user-name">{{ auth.user()?.name ?? 'User' }}</div>
-            <div class="sb-user-sub">{{ auth.user()?.subtitle ?? '' }}</div>
+      <div [class]="ui.sidebarFooter">
+        <div [class]="ui.sidebarUser">
+          <div [class]="ui.avatar">{{ auth.user()?.avatar ?? '?' }}</div>
+          <div class="min-w-0 flex-1">
+            <div [class]="ui.sidebarUserName">{{ auth.user()?.name ?? 'User' }}</div>
+            <div [class]="ui.sidebarUserSub">{{ auth.user()?.subtitle ?? '' }}</div>
           </div>
         </div>
-        <button type="button" class="btn bg sb-logout" (click)="logout()">
+        <button
+          type="button"
+          [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.sidebarLogout"
+          (click)="logout()"
+        >
           <app-icon name="lock" [size]="13" />
           Sign out
         </button>
@@ -129,6 +138,7 @@ const ADMIN_ROUTES: Record<string, string> = {
   `,
 })
 export class FixifySidebarComponent {
+  protected readonly ui = tw;
   protected readonly ctx = inject(AppContextService);
   protected readonly data = inject(FixifyDataService);
   protected readonly auth = inject(AuthService);
