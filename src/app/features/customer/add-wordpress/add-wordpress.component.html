@@ -1,6 +1,10 @@
 <div [class]="ui.u + ' ' + ui.wpPage">
   <div [class]="ui.pageHeader">
-    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 4px">
+    <a routerLink="/customer/sites" [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm + ' ' + ui.adminBackBtn" style="text-decoration: none; display: inline-flex">
+      <app-icon name="chevL" [size]="13" />
+      Back to Websites
+    </a>
+    <div style="display: flex; align-items: center; gap: 12px; margin-top: 10px; margin-bottom: 4px">
       <div
         [style.background]="wp.color"
         style="width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0"

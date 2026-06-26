@@ -7,7 +7,7 @@ import {
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
-import { FixifyDataService } from '../../core/services/fixify-data.service';
+import { DataSessionService, SitesDataService } from '../../core/services/data';
 import { AppContextService } from '../../core/services/app-context.service';
 import { IconComponent } from '../../shared/components/icon/icon.component';
 import { tw } from '../../shared/ui/tw';
@@ -75,7 +75,8 @@ export class WordpressConnectComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly auth = inject(AuthService);
-  private readonly data = inject(FixifyDataService);
+  private readonly session = inject(DataSessionService);
+  private readonly sitesData = inject(SitesDataService);
   private readonly ctx = inject(AppContextService);
 
   readonly phase = signal<ConnectPhase>('connecting');
@@ -98,28 +99,28 @@ export class WordpressConnectComponent implements OnInit {
     }
 
     this.phase.set('success');
-    this.data.initSession();
+    this.session.init();
     this.loadAndRedirect();
   }
 
   private loadAndRedirect(): void {
     const isAdmin = this.auth.getCurrentUser()?.role === 'admin';
     const onLoaded = () => {
-      const site = this.data.sites.find((s) => s.apiId === this.apiId);
+      const site = this.sitesData.sites.find((s) => s.apiId === this.apiId);
       if (site) this.siteName.set(site.name);
       setTimeout(() => this.redirectNow(), 1800);
     };
 
     if (isAdmin) {
-      this.data.fetchWebsites({ page: 1, limit: 100 }, onLoaded);
+      this.sitesData.fetchWebsites({ page: 1, limit: 100 }, onLoaded);
     } else {
-      this.data.fetchCustomerWebsites(onLoaded);
+      this.sitesData.fetchCustomerWebsites(onLoaded);
     }
   }
 
   redirectNow(): void {
     const role = this.auth.getCurrentUser()?.role === 'admin' ? 'admin' : 'customer';
-    const site = this.data.sites.find((s) => s.apiId === this.apiId);
+    const site = this.sitesData.sites.find((s) => s.apiId === this.apiId);
     if (site) {
       this.ctx.selectedSite.set(site);
       this.router.navigate([`/${role}/sites`, site.id, 'manage', 'overview']);

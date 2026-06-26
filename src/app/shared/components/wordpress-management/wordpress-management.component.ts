@@ -10,7 +10,7 @@ import {
   signal,
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { FixifyDataService } from '../../../core/services/fixify-data.service';
+import { SitesDataService } from '../../../core/services/data';
 import { scoreColor } from '../../../core/utils/fixify.utils';
 import { IconComponent } from '../icon/icon.component';
 import { SiteAvatarComponent } from '../site-avatar/site-avatar.component';
@@ -28,22 +28,22 @@ export class WordpressManagementComponent implements OnInit, OnChanges {
   @Input({ required: true }) customerId!: number;
   @Input() initialSiteId: number | null = null;
 
-  private readonly data = inject(FixifyDataService);
+  private readonly sitesData = inject(SitesDataService);
   private readonly router = inject(Router);
 
   readonly selectedSiteId = signal<number | null>(null);
   readonly scoreColor = scoreColor;
 
-  readonly wpSites = computed(() => this.data.wordPressSitesForCustomer(this.customerId));
+  readonly wpSites = computed(() => this.sitesData.wordPressSitesForCustomer(this.customerId));
 
   readonly selectedSite = computed(() => {
     const id = this.selectedSiteId();
-    return id ? this.data.sites.find((s) => s.id === id) : undefined;
+    return id ? this.sitesData.sites.find((s) => s.id === id) : undefined;
   });
 
   readonly wpState = computed(() => {
     const id = this.selectedSiteId();
-    return id ? this.data.getWordPressState(id) : undefined;
+    return id ? this.sitesData.getWordPressState(id) : undefined;
   });
 
   readonly pendingPluginCount = computed(() => {
@@ -99,13 +99,13 @@ export class WordpressManagementComponent implements OnInit, OnChanges {
     const id =
       preferred && sites.some((s) => s.id === preferred) ? preferred : sites[0].id;
     this.selectedSiteId.set(id);
-    this.data.initWordPressState(id);
+    this.sitesData.initWordPressState(id);
   }
 
   onSiteChange(event: Event): void {
     const id = Number((event.target as HTMLSelectElement).value);
     this.selectedSiteId.set(id);
-    this.data.initWordPressState(id);
+    this.sitesData.initWordPressState(id);
   }
 
   openFullManage(): void {

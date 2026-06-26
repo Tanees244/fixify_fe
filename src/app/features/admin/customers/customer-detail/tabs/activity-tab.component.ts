@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, Input, computed, inject } from '@angular/core';
-import { FixifyDataService } from '../../../../../core/services/fixify-data.service';
+import { ReportsDataService } from '../../../../../core/services/data';
 import { IconComponent } from '../../../../../shared/components/icon/icon.component';
 import { tw } from '../../../../../shared/ui/tw';
 
@@ -15,9 +15,9 @@ export class CustomerActivityTabComponent {
 
   @Input({ required: true }) customerId!: number;
 
-  private readonly data = inject(FixifyDataService);
+  private readonly reportsData = inject(ReportsDataService);
 
-  readonly actions = computed(() => this.data.adminActionsForCustomer(this.customerId));
+  readonly actions = computed(() => this.reportsData.adminActionsForCustomer(this.customerId));
 
   actionIcon(type: string): string {
     const map: Record<string, string> = {

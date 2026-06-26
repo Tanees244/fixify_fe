@@ -6,7 +6,7 @@ import {
   signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { FixifyDataService } from '../../../core/services/fixify-data.service';
+import { InsightsDataService, SitesDataService } from '../../../core/services/data';
 import { AppContextService } from '../../../core/services/app-context.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { CreateProcessPayload, Insight, Process } from '../../../core/models/fixify.models';
@@ -30,7 +30,8 @@ type InsightFilter = 'All' | 'Critical' | 'High' | 'Medium' | 'Info';
 export class AiInsightsComponent {
   protected readonly ui = tw;
 
-  private readonly data = inject(FixifyDataService);
+  private readonly insightsData = inject(InsightsDataService);
+  private readonly sitesData = inject(SitesDataService);
   private readonly ctx = inject(AppContextService);
   private readonly toast = inject(NotificationService);
 
@@ -44,10 +45,10 @@ export class AiInsightsComponent {
   readonly answer = signal('');
   readonly loading = signal(false);
   readonly filter = signal<InsightFilter>('All');
-  readonly insights = signal<Insight[]>(this.data.getInsights());
+  readonly insights = signal<Insight[]>(this.insightsData.getInsights());
 
   readonly processes = computed(() =>
-    this.data.processes.filter((p) => p.custId === this.ctx.currentCustomerId())
+    this.insightsData.processes.filter((p) => p.custId === this.ctx.currentCustomerId())
   );
 
   readonly filteredInsights = computed(() => {
@@ -92,7 +93,7 @@ export class AiInsightsComponent {
     this.answer.set('');
 
     try {
-      const resp = await this.data.askAi(q);
+      const resp = await this.insightsData.askAi(q);
       this.answer.set(resp);
     } finally {
       this.loading.set(false);
@@ -117,17 +118,17 @@ export class AiInsightsComponent {
   openCreateProcess(): void {
     this.ctx.openModal({
       type: 'createProcess',
-      sites: this.data.mySites(),
+      sites: this.sitesData.mySites(),
       onSubmit: (payload) => this.addProcess(payload as CreateProcessPayload),
     });
   }
 
   addProcess(payload: CreateProcessPayload): void {
-    this.data.createProcess(payload);
+    this.insightsData.createProcess(payload);
   }
 
   toggleProcess(id: number): void {
-    this.data.toggleProcess(id);
+    this.insightsData.toggleProcess(id);
   }
 
   runProcess(proc: Process): void {

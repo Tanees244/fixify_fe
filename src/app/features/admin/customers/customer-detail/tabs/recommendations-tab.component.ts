@@ -7,7 +7,7 @@ import {
   signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { FixifyDataService } from '../../../../../core/services/fixify-data.service';
+import { ReportsDataService, SitesDataService } from '../../../../../core/services/data';
 import { TicketPriority } from '../../../../../core/models/fixify.models';
 import { priorityBadge } from '../../../../../core/utils/fixify.utils';
 import { IconComponent } from '../../../../../shared/components/icon/icon.component';
@@ -26,7 +26,8 @@ export class CustomerRecommendationsTabComponent {
 
   @Input({ required: true }) customerId!: number;
 
-  private readonly data = inject(FixifyDataService);
+  private readonly sitesData = inject(SitesDataService);
+  private readonly reportsData = inject(ReportsDataService);
 
   readonly priorityBadge = priorityBadge;
   readonly showForm = signal(false);
@@ -37,10 +38,10 @@ export class CustomerRecommendationsTabComponent {
   readonly priority = signal<TicketPriority>('medium');
   readonly siteId = signal<number | ''>('');
 
-  readonly sites = computed(() => this.data.sitesForCustomer(this.customerId));
+  readonly sites = computed(() => this.sitesData.sitesForCustomer(this.customerId));
 
   readonly recommendations = computed(() =>
-    this.data.recommendationsForCustomer(this.customerId)
+    this.reportsData.recommendationsForCustomer(this.customerId)
   );
 
   recBadge(status: string): BadgeVariant {
@@ -56,7 +57,7 @@ export class CustomerRecommendationsTabComponent {
   submit(): void {
     const sid = Number(this.siteId());
     if (!sid || !this.title().trim() || !this.body().trim()) return;
-    this.data.addRecommendation({
+    this.reportsData.addRecommendation({
       siteId: sid,
       title: this.title().trim(),
       body: this.body().trim(),
@@ -69,10 +70,10 @@ export class CustomerRecommendationsTabComponent {
   }
 
   apply(id: number): void {
-    this.data.applyRecommendation(id);
+    this.reportsData.applyRecommendation(id);
   }
 
   dismiss(id: number): void {
-    this.data.dismissRecommendation(id);
+    this.reportsData.dismissRecommendation(id);
   }
 }

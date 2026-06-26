@@ -6,7 +6,10 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { FixifyDataService } from '../../../core/services/fixify-data.service';
+import {
+  CustomersDataService,
+  SubscriptionsDataService,
+} from '../../../core/services/data';
 import { OnboardCustomerPayload } from '../../../core/models/fixify.models';
 import { PLATFORMS } from '../../../core/constants/fixify.constants';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
@@ -23,11 +26,12 @@ import { tw } from '../../../shared/ui/tw';
 export class AdminOnboardCustomerComponent {
   protected readonly ui = tw;
 
-  private readonly data = inject(FixifyDataService);
+  private readonly customersData = inject(CustomersDataService);
+  private readonly subscriptionsData = inject(SubscriptionsDataService);
   private readonly router = inject(Router);
 
   readonly wp = PLATFORMS.find((p) => p.id === 'wordpress')!;
-  readonly plans = this.data.subscriptionPlans;
+  readonly plans = this.subscriptionsData.subscriptionPlans;
   readonly step = signal(1);
   readonly submitting = signal(false);
 
@@ -52,11 +56,11 @@ export class AdminOnboardCustomerComponent {
   ];
 
   planLabel(id: string): string {
-    return this.data.planLabel(id);
+    return this.subscriptionsData.planLabel(id);
   }
 
   planPrice(id: string): number {
-    return this.data.planPrice(id);
+    return this.subscriptionsData.planPrice(id);
   }
 
   canContinueStep1(): boolean {
@@ -89,7 +93,7 @@ export class AdminOnboardCustomerComponent {
   }
 
   selectedPlanFeatures(): string[] {
-    return this.data.getPlan(this.plan())?.features ?? [];
+    return this.subscriptionsData.getPlan(this.plan())?.features ?? [];
   }
 
   submit(): void {
@@ -119,7 +123,7 @@ export class AdminOnboardCustomerComponent {
 
     this.submitting.set(true);
     this.emailError.set('');
-    this.data.onboardCustomer(payload, {
+    this.customersData.onboardCustomer(payload, {
       onSuccess: () => {
         this.submitting.set(false);
         this.router.navigate(['/admin/customers']);

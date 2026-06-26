@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 
-import { FixifyDataService } from '../../../core/services/fixify-data.service';
+import { DataSessionService, SitesDataService } from '../../../core/services/data';
 
 import { AppContextService } from '../../../core/services/app-context.service';
 
@@ -48,7 +48,9 @@ export class PerformanceComponent {
 
 
 
-  private readonly data = inject(FixifyDataService);
+  private readonly session = inject(DataSessionService);
+
+  private readonly sitesData = inject(SitesDataService);
 
   readonly ctx = inject(AppContextService);
 
@@ -58,13 +60,13 @@ export class PerformanceComponent {
 
   readonly scoreBadge = scoreBadge;
 
-  readonly loading = this.data.loading;
+  readonly loading = this.session.loading;
 
 
 
   readonly site = computed(() => {
 
-    this.data.dataRevision();
+    this.session.dataRevision();
 
     return this.ctx.selectedSite();
 
@@ -74,9 +76,9 @@ export class PerformanceComponent {
 
   readonly screen = computed(() => {
 
-    this.data.dataRevision();
+    this.session.dataRevision();
 
-    return this.data.performanceScreen();
+    return this.sitesData.performanceScreen();
 
   });
 
@@ -238,7 +240,7 @@ export class PerformanceComponent {
 
     if (!site) return;
 
-    await this.data.scanSitePerformance(site);
+    await this.sitesData.scanSitePerformance(site);
 
   }
 
@@ -250,7 +252,7 @@ export class PerformanceComponent {
 
     if (!site) return;
 
-    this.data.exportPerformancePdf(site);
+    this.sitesData.exportPerformancePdf(site);
 
   }
 

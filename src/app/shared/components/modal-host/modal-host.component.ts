@@ -5,8 +5,16 @@ import {
   HostListener,
   inject,
 } from '@angular/core';
+import { Router } from '@angular/router';
 import { AppContextService } from '../../../core/services/app-context.service';
-import { FixifyDataService } from '../../../core/services/fixify-data.service';
+import { AuthService } from '../../../core/services/auth.service';
+import {
+  CustomersDataService,
+  InsightsDataService,
+  SitesDataService,
+  SubscriptionsDataService,
+  TicketsDataService,
+} from '../../../core/services/data';
 import { SubscriptionPlanModalComponent } from '../../../features/modals/subscription-plan-modal/subscription-plan-modal.component';
 import {
   AddCustomerPayload,
@@ -17,14 +25,12 @@ import {
   ModalState,
   SubscriptionPlan,
   SubscriptionPlanPayload,
-  Ticket,
 } from '../../../core/models/fixify.models';
 import { AddSiteModalComponent } from '../../../features/modals/add-site-modal/add-site-modal.component';
 import { AddCustomerModalComponent } from '../../../features/modals/add-customer-modal/add-customer-modal.component';
 import { EditCustomerModalComponent } from '../../../features/modals/edit-customer-modal/edit-customer-modal.component';
 import { ViewCustomerModalComponent } from '../../../features/modals/view-customer-modal/view-customer-modal.component';
 import { CreateTicketModalComponent } from '../../../features/modals/create-ticket-modal/create-ticket-modal.component';
-import { ViewTicketModalComponent } from '../../../features/modals/view-ticket-modal/view-ticket-modal.component';
 import { ConfirmModalComponent } from '../../../features/modals/confirm-modal/confirm-modal.component';
 import { CreateProcessModalComponent } from '../../../features/modals/create-process-modal/create-process-modal.component';
 import { tw } from '../../ui/tw';
@@ -38,7 +44,6 @@ import { tw } from '../../ui/tw';
     EditCustomerModalComponent,
     ViewCustomerModalComponent,
     CreateTicketModalComponent,
-    ViewTicketModalComponent,
     ConfirmModalComponent,
     CreateProcessModalComponent,
     SubscriptionPlanModalComponent,
@@ -65,8 +70,8 @@ import { tw } from '../../ui/tw';
             @case ('viewCustomer') {
               <app-view-customer-modal
                 [customer]="asCustomer(m.data)"
-                [sites]="data.sites"
-                [tickets]="data.tickets"
+                [sites]="sitesData.sites"
+                [tickets]="ticketsData.tickets"
                 (closed)="close()"
                 (manage)="onManageCustomer($event, m)"
               />
@@ -76,13 +81,6 @@ import { tw } from '../../ui/tw';
                 [sites]="ticketSites(m)"
                 (closed)="close()"
                 (submitted)="onCreateTicket($event)"
-              />
-            }
-            @case ('viewTicket') {
-              <app-view-ticket-modal
-                [ticket]="asTicket(m.data)"
-                (closed)="close()"
-                (submitted)="onUpdateTicket($event)"
               />
             }
             @case ('confirm') {
@@ -96,7 +94,7 @@ import { tw } from '../../ui/tw';
             }
             @case ('createProcess') {
               <app-create-process-modal
-                [sites]="m.sites ?? data.sites"
+                [sites]="m.sites ?? sitesData.sites"
                 (closed)="close()"
                 (submitted)="onCreateProcess($event, m)"
               />
@@ -104,7 +102,7 @@ import { tw } from '../../ui/tw';
             @case ('subscriptionPlan') {
               <app-subscription-plan-modal
                 [plan]="asPlan(m.data)"
-                [submitting]="data.planSaving()"
+                [submitting]="subscriptionsData.planSaving()"
                 (closed)="close()"
                 (submitted)="onSubscriptionPlan($event, m)"
               />
@@ -117,7 +115,13 @@ import { tw } from '../../ui/tw';
 })
 export class ModalHostComponent {
   protected readonly ctx = inject(AppContextService);
-  protected readonly data = inject(FixifyDataService);
+  protected readonly customersData = inject(CustomersDataService);
+  protected readonly sitesData = inject(SitesDataService);
+  protected readonly ticketsData = inject(TicketsDataService);
+  protected readonly subscriptionsData = inject(SubscriptionsDataService);
+  protected readonly insightsData = inject(InsightsDataService);
+  private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
   protected readonly ui = tw;
 
   readonly modal = this.ctx.modal;
@@ -136,7 +140,7 @@ export class ModalHostComponent {
   }
 
   modalClass(m: ModalState): string {
-    const large = m.type === 'viewCustomer' || m.type === 'viewTicket';
+    const large = m.type === 'viewCustomer';
     return large ? `${tw.modal} ${tw.modalLg}` : tw.modal;
   }
 
@@ -148,28 +152,24 @@ export class ModalHostComponent {
     return data as Customer;
   }
 
-  asTicket(data: unknown): Ticket {
-    return data as Ticket;
-  }
-
   asPlan(data: unknown): SubscriptionPlan | null {
     return (data as SubscriptionPlan) ?? null;
   }
 
   ticketSites(m: ModalState) {
-    return m.sites ?? this.data.sites;
+    return m.sites ?? this.sitesData.sites;
   }
 
   onAddSite(payload: AddSitePayload): void {
     if (payload.custId) {
-      this.data.addSiteForCustomer(payload.custId, payload, { closeModal: true });
+      this.sitesData.addSiteForCustomer(payload.custId, payload, { closeModal: true });
     } else {
-      this.data.addSite(payload);
+      this.sitesData.addSite(payload);
     }
   }
 
   onAddCustomer(payload: AddCustomerPayload): void {
-    this.data.addCustomer(payload);
+    this.customersData.addCustomer(payload);
   }
 
   onEditCustomer(updated: Customer, m: ModalState): void {
@@ -177,7 +177,7 @@ export class ModalHostComponent {
       m.onSubmit(updated);
       this.close();
     } else {
-      this.data.updateCustomer(updated);
+      this.customersData.updateCustomer(updated);
     }
   }
 
@@ -194,14 +194,9 @@ export class ModalHostComponent {
   }
 
   onCreateTicket(payload: CreateTicketPayload): void {
-    this.data.createTicket(payload);
-  }
-
-  onUpdateTicket(changes: { id: string; status: Ticket['status']; who: string }): void {
-    this.data.updateTicket(changes.id, {
-      status: changes.status,
-      who: changes.who,
-    });
+    const id = this.ticketsData.createTicket(payload);
+    const role = this.auth.getCurrentUser()?.role === 'admin' ? 'admin' : 'customer';
+    this.router.navigate([`/${role}/tickets`, id]);
   }
 
   onConfirm(m: ModalState): void {
@@ -214,7 +209,7 @@ export class ModalHostComponent {
       m.onSubmit(payload);
       this.close();
     } else {
-      this.data.createProcess(payload);
+      this.insightsData.createProcess(payload);
       this.close();
     }
   }
@@ -222,9 +217,9 @@ export class ModalHostComponent {
   onSubscriptionPlan(payload: SubscriptionPlanPayload, m: ModalState): void {
     const existing = m.data as SubscriptionPlan | undefined;
     if (existing?.id) {
-      this.data.updateSubscriptionPlan(existing.id, payload);
+      this.subscriptionsData.updateSubscriptionPlan(existing.id, payload);
     } else {
-      this.data.createSubscriptionPlan(payload);
+      this.subscriptionsData.createSubscriptionPlan(payload);
     }
   }
 }

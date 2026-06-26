@@ -6,7 +6,7 @@ import {
   Output,
   inject,
 } from '@angular/core';
-import { FixifyDataService } from '../../../core/services/fixify-data.service';
+import { SubscriptionsDataService } from '../../../core/services/data';
 import { Customer, Site, Ticket } from '../../../core/models/fixify.models';
 import {
   ticketStatusBadge,
@@ -147,12 +147,12 @@ export class ViewCustomerModalComponent {
   @Output() closed = new EventEmitter<void>();
   @Output() manage = new EventEmitter<Customer>();
 
-  private readonly data = inject(FixifyDataService);
+  private readonly subscriptionsData = inject(SubscriptionsDataService);
 
   readonly ui = tw;
 
   planLabel(id: string): string {
-    return this.data.planLabel(id);
+    return this.subscriptionsData.planLabel(id);
   }
 
   get custSites(): Site[] {

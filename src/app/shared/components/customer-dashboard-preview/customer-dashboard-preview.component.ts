@@ -5,8 +5,14 @@ import {
   computed,
   inject,
 } from '@angular/core';
-import { FixifyDataService } from '../../../core/services/fixify-data.service';
-import { Site, Ticket } from '../../../core/models/fixify.models';
+import {
+  CustomersDataService,
+  DataSessionService,
+  InsightsDataService,
+  SitesDataService,
+  TicketsDataService,
+} from '../../../core/services/data';
+import { Site } from '../../../core/models/fixify.models';
 import { IconComponent } from '../icon/icon.component';
 import { BadgeComponent } from '../badge/badge.component';
 import { ProgressRingComponent } from '../progress-ring/progress-ring.component';
@@ -43,9 +49,13 @@ export class CustomerDashboardPreviewComponent {
   readonly ui = tw;
   @Input({ required: true }) customerId!: number;
 
-  private readonly data = inject(FixifyDataService);
+  private readonly session = inject(DataSessionService);
+  private readonly customersData = inject(CustomersDataService);
+  private readonly sitesData = inject(SitesDataService);
+  private readonly ticketsData = inject(TicketsDataService);
+  private readonly insightsData = inject(InsightsDataService);
 
-  readonly loading = this.data.loading;
+  readonly loading = this.session.loading;
   readonly scoreColor = scoreColor;
   readonly severityBadge = severityBadge;
   readonly severityBg = severityBg;
@@ -55,7 +65,7 @@ export class CustomerDashboardPreviewComponent {
   readonly ticketStatusLabel = ticketStatusLabel;
   readonly formatDateLong = formatDateLong;
 
-  readonly customer = computed(() => this.data.getCustomer(this.customerId));
+  readonly customer = computed(() => this.customersData.getCustomer(this.customerId));
 
   readonly customerFirstName = computed(() => {
     const name = this.customer()?.name;
@@ -63,19 +73,19 @@ export class CustomerDashboardPreviewComponent {
   });
 
   readonly sites = computed(() => {
-    this.data.dataRevision();
-    return this.data.sitesForCustomer(this.customerId);
+    this.session.dataRevision();
+    return this.sitesData.sitesForCustomer(this.customerId);
   });
 
   readonly insights = computed(() => {
-    this.data.dataRevision();
+    this.session.dataRevision();
     const siteNames = new Set(this.sites().map((s) => s.name));
-    return this.data.getInsights().filter((i) => siteNames.has(i.site)).slice(0, 3);
+    return this.insightsData.getInsights().filter((i) => siteNames.has(i.site)).slice(0, 3);
   });
 
   readonly recentTickets = computed(() => {
-    this.data.dataRevision();
-    return this.data.ticketsForCustomer(this.customerId).slice(0, 3);
+    this.session.dataRevision();
+    return this.ticketsData.ticketsForCustomer(this.customerId).slice(0, 3);
   });
 
   readonly okCount = computed(() => this.sites().filter((s) => s.st === 'ok').length);

@@ -2,16 +2,22 @@ import { Injectable, computed, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { map } from 'rxjs';
-import { FixifyDataService } from '../../../core/services/fixify-data.service';
+import {
+  CustomersDataService,
+  DataSessionService,
+  SitesDataService,
+} from '../../../core/services/data';
 import { scoreColor } from '../../../core/utils/fixify.utils';
 
 @Injectable()
 export class SiteManageFacade {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-  private readonly data = inject(FixifyDataService);
+  private readonly session = inject(DataSessionService);
+  private readonly sitesData = inject(SitesDataService);
+  private readonly customersData = inject(CustomersDataService);
 
-  readonly loading = this.data.loading;
+  readonly loading = this.session.loading;
   readonly scoreColor = scoreColor;
 
   readonly siteId = toSignal(
@@ -21,18 +27,18 @@ export class SiteManageFacade {
 
   readonly site = computed(() => {
     const id = this.siteId();
-    return this.data.sites.find((s) => s.id === id);
+    return this.sitesData.sites.find((s) => s.id === id);
   });
 
   readonly customer = computed(() => {
     const s = this.site();
-    return s ? this.data.getCustomer(s.custId) : undefined;
+    return s ? this.customersData.getCustomer(s.custId) : undefined;
   });
 
   readonly wpState = computed(() => {
-    this.data.dataRevision();
+    this.session.dataRevision();
     const id = this.siteId();
-    return id ? this.data.getWordPressState(id) : undefined;
+    return id ? this.sitesData.getWordPressState(id) : undefined;
   });
 
   readonly pendingPluginCount = computed(() => {
@@ -53,7 +59,7 @@ export class SiteManageFacade {
   ensureState(): void {
     const id = this.siteId();
     if (id) {
-      this.data.initWordPressState(id);
+      this.sitesData.initWordPressState(id);
     }
   }
 

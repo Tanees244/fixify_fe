@@ -6,7 +6,12 @@ import {
   signal,
 } from '@angular/core';
 import { Router } from '@angular/router';
-import { FixifyDataService } from '../../../core/services/fixify-data.service';
+import {
+  DataSessionService,
+  CustomersDataService,
+  SitesDataService,
+  SubscriptionsDataService,
+} from '../../../core/services/data';
 import { AppContextService } from '../../../core/services/app-context.service';
 import { Customer } from '../../../core/models/fixify.models';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
@@ -25,45 +30,48 @@ type CustomerTab = 'all' | 'pending' | 'active';
 export class CustomersComponent {
   protected readonly ui = tw;
 
-  private readonly data = inject(FixifyDataService);
+  private readonly session = inject(DataSessionService);
+  private readonly customersData = inject(CustomersDataService);
+  private readonly sitesData = inject(SitesDataService);
+  private readonly subscriptionsData = inject(SubscriptionsDataService);
   private readonly ctx = inject(AppContextService);
   private readonly router = inject(Router);
 
-  readonly customers = this.data.customers;
-  readonly sites = this.data.sites;
-  readonly loading = this.data.loading;
+  readonly customers = this.customersData.customers;
+  readonly sites = this.sitesData.sites;
+  readonly loading = this.session.loading;
 
   readonly search = signal('');
   readonly tab = signal<CustomerTab>('all');
 
   plans() {
-    return this.data.subscriptionPlans;
+    return this.subscriptionsData.subscriptionPlans;
   }
 
   planLabel(id: string) {
-    return this.data.planLabel(id);
+    return this.subscriptionsData.planLabel(id);
   }
 
   planColor(id: string) {
-    return this.data.planColor(id);
+    return this.subscriptionsData.planColor(id);
   }
 
   planPrice(id: string) {
-    return this.data.planPrice(id);
+    return this.subscriptionsData.planPrice(id);
   }
 
   readonly pendingCount = computed(() => {
-    this.data.dataRevision();
+    this.session.dataRevision();
     return this.customers.filter((c) => c.approvalStatus === 'pending').length;
   });
 
   readonly activeCount = computed(() => {
-    this.data.dataRevision();
+    this.session.dataRevision();
     return this.customers.filter((c) => c.status === 'active' && c.approvalStatus === 'approved').length;
   });
 
   readonly filteredCustomers = computed(() => {
-    this.data.dataRevision();
+    this.session.dataRevision();
     const q = this.search().toLowerCase();
     const tab = this.tab();
     return this.customers.filter((c) => {
@@ -116,10 +124,10 @@ export class CustomersComponent {
   }
 
   approve(customer: Customer): void {
-    this.data.approveCustomer(customer.id);
+    this.customersData.approveCustomer(customer.id);
   }
 
   reject(customer: Customer): void {
-    this.data.rejectCustomer(customer.id);
+    this.customersData.rejectCustomer(customer.id);
   }
 }

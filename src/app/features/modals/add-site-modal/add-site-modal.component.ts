@@ -11,7 +11,10 @@ import { FormsModule } from '@angular/forms';
 import { PLATFORMS } from '../../../core/constants/fixify.constants';
 import { AddSitePayload, Platform } from '../../../core/models/fixify.models';
 import { AuthService } from '../../../core/services/auth.service';
-import { FixifyDataService } from '../../../core/services/fixify-data.service';
+import {
+  CustomersDataService,
+  DataSessionService,
+} from '../../../core/services/data';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { ModalHeaderComponent } from '../../../shared/components/modal-header/modal-header.component';
 import { tw } from '../../../shared/ui/tw';
@@ -245,7 +248,8 @@ export class AddSiteModalComponent {
   @Output() submitted = new EventEmitter<AddSitePayload>();
 
   private readonly auth = inject(AuthService);
-  private readonly data = inject(FixifyDataService);
+  private readonly session = inject(DataSessionService);
+  private readonly customersData = inject(CustomersDataService);
 
   readonly ui = tw;
   readonly step = signal(1);
@@ -260,13 +264,13 @@ export class AddSiteModalComponent {
 
   readonly isAdmin = computed(() => this.auth.user()?.role === 'admin');
   readonly customers = computed(() => {
-    this.data.dataRevision();
-    return this.data.customers;
+    this.session.dataRevision();
+    return this.customersData.customers;
   });
 
   constructor() {
-    if (this.isAdmin() && this.data.customers.length === 0) {
-      this.data.fetchClients();
+    if (this.isAdmin() && this.customersData.customers.length === 0) {
+      this.customersData.fetchClients();
     }
   }
 

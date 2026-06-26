@@ -6,7 +6,11 @@ import {
   signal,
 } from '@angular/core';
 import { Router } from '@angular/router';
-import { FixifyDataService } from '../../../core/services/fixify-data.service';
+import {
+  DataSessionService,
+  CustomersDataService,
+  SubscriptionsDataService,
+} from '../../../core/services/data';
 import { AppContextService } from '../../../core/services/app-context.service';
 import { Customer, SubscriptionPlan } from '../../../core/models/fixify.models';
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
@@ -26,13 +30,15 @@ type SubTab = 'plans' | 'assignments';
 export class SubscriptionsComponent {
   protected readonly ui = tw;
 
-  private readonly data = inject(FixifyDataService);
+  private readonly session = inject(DataSessionService);
+  private readonly customersData = inject(CustomersDataService);
+  private readonly subscriptionsData = inject(SubscriptionsDataService);
   private readonly ctx = inject(AppContextService);
   private readonly router = inject(Router);
 
-  readonly customers = this.data.customers;
-  readonly loading = this.data.loading;
-  readonly planSaving = this.data.planSaving;
+  readonly customers = this.customersData.customers;
+  readonly loading = this.session.loading;
+  readonly planSaving = this.subscriptionsData.planSaving;
 
   readonly tab = signal<SubTab>('plans');
   readonly search = signal('');
@@ -40,29 +46,29 @@ export class SubscriptionsComponent {
   readonly skeletonCards = [0, 1, 2];
 
   readonly plans = computed(() => {
-    this.data.dataRevision();
-    return this.data.subscriptionPlans;
+    this.session.dataRevision();
+    return this.subscriptionsData.subscriptionPlans;
   });
 
   readonly pending = computed(() => {
-    this.data.dataRevision();
-    return this.data.pendingApprovals();
+    this.session.dataRevision();
+    return this.customersData.pendingApprovals();
   });
 
   readonly mrr = computed(() => {
-    this.data.dataRevision();
+    this.session.dataRevision();
     return this.customers
       .filter((c) => c.approvalStatus === 'approved')
-      .reduce((sum, c) => sum + this.data.planPrice(c.plan), 0);
+      .reduce((sum, c) => sum + this.subscriptionsData.planPrice(c.plan), 0);
   });
 
   readonly approvedCustomers = computed(() => {
-    this.data.dataRevision();
+    this.session.dataRevision();
     return this.customers.filter((c) => c.approvalStatus === 'approved');
   });
 
   readonly filteredAssignments = computed(() => {
-    this.data.dataRevision();
+    this.session.dataRevision();
     const q = this.search().toLowerCase();
     return this.approvedCustomers().filter(
       (c) =>
@@ -73,15 +79,15 @@ export class SubscriptionsComponent {
   });
 
   planLabel(id: string): string {
-    return this.data.planLabel(id);
+    return this.subscriptionsData.planLabel(id);
   }
 
   planColor(id: string): string {
-    return this.data.planColor(id);
+    return this.subscriptionsData.planColor(id);
   }
 
   planPrice(id: string): number {
-    return this.data.planPrice(id);
+    return this.subscriptionsData.planPrice(id);
   }
 
   planCount(planId: string): number {
@@ -111,7 +117,7 @@ export class SubscriptionsComponent {
   }
 
   deletePlan(plan: SubscriptionPlan): void {
-    const count = this.data.customersOnPlan(plan.id);
+    const count = this.subscriptionsData.customersOnPlan(plan.id);
     this.ctx.openModal({
       type: 'confirm',
       title: 'Delete subscription plan?',
@@ -119,12 +125,12 @@ export class SubscriptionsComponent {
         ? `Cannot delete "${plan.name}" — ${count} customer(s) are on this plan. Reassign them first.`
         : `Permanently delete the "${plan.name}" plan (${plan.priceLabel})?`,
       danger: count === 0,
-      onConfirm: count === 0 ? () => this.data.deleteSubscriptionPlan(plan.id) : undefined,
+      onConfirm: count === 0 ? () => this.subscriptionsData.deleteSubscriptionPlan(plan.id) : undefined,
     });
   }
 
   assignPlan(customer: Customer, planId: string): void {
-    this.data.assignSubscription(customer.id, planId);
+    this.customersData.assignSubscription(customer.id, planId);
   }
 
   viewCustomer(id: number): void {

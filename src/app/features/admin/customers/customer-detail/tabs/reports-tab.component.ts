@@ -7,7 +7,7 @@ import {
   signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { FixifyDataService } from '../../../../../core/services/fixify-data.service';
+import { ReportsDataService, SitesDataService } from '../../../../../core/services/data';
 import { MonthlyReport } from '../../../../../core/models/fixify.models';
 import { scoreColor } from '../../../../../core/utils/fixify.utils';
 import { IconComponent } from '../../../../../shared/components/icon/icon.component';
@@ -38,7 +38,8 @@ export class CustomerReportsTabComponent {
 
   @Input({ required: true }) customerId!: number;
 
-  private readonly data = inject(FixifyDataService);
+  private readonly sitesData = inject(SitesDataService);
+  private readonly reportsData = inject(ReportsDataService);
 
   readonly scoreColor = scoreColor;
   readonly generating = signal(false);
@@ -46,9 +47,9 @@ export class CustomerReportsTabComponent {
   readonly selectedMonth = signal(buildMonthOptions()[0]?.key ?? '');
   readonly expandedReportId = signal<number | null>(null);
 
-  readonly sites = computed(() => this.data.sitesForCustomer(this.customerId));
+  readonly sites = computed(() => this.sitesData.sitesForCustomer(this.customerId));
 
-  readonly reports = computed(() => this.data.reportsForCustomer(this.customerId));
+  readonly reports = computed(() => this.reportsData.reportsForCustomer(this.customerId));
 
   readonly monthOptions = buildMonthOptions();
 
@@ -56,7 +57,7 @@ export class CustomerReportsTabComponent {
     const siteId = Number(this.selectedSiteId());
     if (!siteId || this.generating()) return;
     this.generating.set(true);
-    this.data.createMonthlyReport(siteId, this.selectedMonth(), undefined, () =>
+    this.reportsData.createMonthlyReport(siteId, this.selectedMonth(), undefined, () =>
       this.generating.set(false)
     );
   }

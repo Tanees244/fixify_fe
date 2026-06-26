@@ -1,6 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { FixifyDataService } from '../../../core/services/fixify-data.service';
+import {
+  DataSessionService,
+  CustomersDataService,
+  SitesDataService,
+  TicketsDataService,
+  SubscriptionsDataService,
+} from '../../../core/services/data';
 import {
   formatDateLong,
   priorityBadge,
@@ -24,13 +30,17 @@ import { tw } from '../../../shared/ui/tw';
 export class OverviewComponent {
   protected readonly ui = tw;
 
-  private readonly data = inject(FixifyDataService);
+  private readonly session = inject(DataSessionService);
+  private readonly customersData = inject(CustomersDataService);
+  private readonly sitesData = inject(SitesDataService);
+  private readonly ticketsData = inject(TicketsDataService);
+  private readonly subscriptionsData = inject(SubscriptionsDataService);
   private readonly router = inject(Router);
 
-  readonly customers = this.data.customers;
-  readonly sites = this.data.sites;
-  readonly tickets = this.data.tickets;
-  readonly loading = this.data.loading;
+  readonly customers = this.customersData.customers;
+  readonly sites = this.sitesData.sites;
+  readonly tickets = this.ticketsData.tickets;
+  readonly loading = this.session.loading;
 
   readonly dateLabel = formatDateLong();
   readonly scoreColor = scoreColor;
@@ -39,7 +49,7 @@ export class OverviewComponent {
   readonly ticketStatusLabel = ticketStatusLabel;
 
   readonly totalHealth = computed(() => {
-    this.data.dataRevision();
+    this.session.dataRevision();
     const sites = this.sites;
     return sites.length
       ? Math.round(sites.reduce((a, s) => a + s.health, 0) / sites.length)
@@ -47,22 +57,22 @@ export class OverviewComponent {
   });
 
   readonly openTickets = computed(() => {
-    this.data.dataRevision();
+    this.session.dataRevision();
     return this.tickets.filter((t) => t.status !== 'resolved').length;
   });
 
   readonly criticalTickets = computed(() => {
-    this.data.dataRevision();
+    this.session.dataRevision();
     return this.tickets.filter((t) => t.pri === 'critical' && t.status !== 'resolved').length;
   });
 
   readonly activeCustomers = computed(() => {
-    this.data.dataRevision();
+    this.session.dataRevision();
     return this.customers.filter((c) => c.status === 'active').length;
   });
 
   readonly healthDistribution = computed(() => {
-    this.data.dataRevision();
+    this.session.dataRevision();
     return [
     {
       label: 'Healthy (80–100)',
@@ -83,8 +93,8 @@ export class OverviewComponent {
   });
 
   readonly revenuePlans = computed(() => {
-    this.data.dataRevision();
-    return this.data.subscriptionPlans.map((p) => ({
+    this.session.dataRevision();
+    return this.subscriptionsData.subscriptionPlans.map((p) => ({
       plan: p.name,
       planId: p.id,
       revenue: `$${this.customers.filter((c) => c.plan === p.id && c.approvalStatus === 'approved').length * p.price}`,
@@ -94,12 +104,12 @@ export class OverviewComponent {
   });
 
   readonly recentTickets = computed(() => {
-    this.data.dataRevision();
+    this.session.dataRevision();
     return this.tickets.slice(0, 5);
   });
 
   readonly statCards = computed(() => {
-    this.data.dataRevision();
+    this.session.dataRevision();
     return [
     {
       label: 'Total Customers',

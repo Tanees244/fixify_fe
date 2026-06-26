@@ -4,7 +4,11 @@ import {
   inject,
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { FixifyDataService } from '../../../core/services/fixify-data.service';
+import {
+  CustomerDashboardDataService,
+  DataSessionService,
+  SitesDataService,
+} from '../../../core/services/data';
 import { AppContextService } from '../../../core/services/app-context.service';
 import { Site, Ticket } from '../../../core/models/fixify.models';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
@@ -47,16 +51,18 @@ import { tw } from '../../../shared/ui/tw';
 export class DashboardComponent {
   protected readonly ui = tw;
 
-  private readonly data = inject(FixifyDataService);
+  private readonly session = inject(DataSessionService);
+  private readonly dashboardData = inject(CustomerDashboardDataService);
+  private readonly sitesData = inject(SitesDataService);
   private readonly ctx = inject(AppContextService);
   private readonly router = inject(Router);
 
-  readonly loading = this.data.loading;
-  readonly summary = this.data.customerDashboardSummary;
-  readonly teamUpdates = this.data.customerDashboardTeamUpdates;
-  readonly recommendations = this.data.customerDashboardRecommendations;
-  readonly insights = this.data.customerDashboardInsights;
-  readonly recentTickets = this.data.customerDashboardRecentTickets;
+  readonly loading = this.session.loading;
+  readonly summary = this.dashboardData.summary;
+  readonly teamUpdates = this.dashboardData.teamUpdates;
+  readonly recommendations = this.dashboardData.recommendations;
+  readonly insights = this.dashboardData.latestInsights;
+  readonly recentTickets = this.dashboardData.recentTickets;
   readonly scoreColor = scoreColor;
   readonly severityBadge = severityBadge;
   readonly severityBg = severityBg;
@@ -67,12 +73,12 @@ export class DashboardComponent {
   readonly formatDateLong = formatDateLong;
 
   get sites(): Site[] {
-    this.data.dataRevision();
-    return this.data.mySites();
+    this.session.dataRevision();
+    return this.sitesData.mySites();
   }
 
   get customerName(): string {
-    return this.data.customerDashboardGreeting() || 'there';
+    return this.dashboardData.greetingName() || 'there';
   }
 
   ticketTypeBadge(type: string): 'bac' | 'bwn' | 'bbl' {
@@ -103,6 +109,6 @@ export class DashboardComponent {
   }
 
   viewTicket(ticket: Ticket): void {
-    this.ctx.openModal({ type: 'viewTicket', data: ticket });
+    this.router.navigate(['/customer/tickets', ticket.id]);
   }
 }

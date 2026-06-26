@@ -5,10 +5,15 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { FixifyDataService } from '../../../core/services/fixify-data.service';
+import { Router } from '@angular/router';
+import {
+  DataSessionService,
+  CustomersDataService,
+  TicketsDataService,
+} from '../../../core/services/data';
 import { AppContextService } from '../../../core/services/app-context.service';
-import { Customer, Ticket, TicketStatus } from '../../../core/models/fixify.models';
-import { priorityBadge, ticketStatusLabel } from '../../../core/utils/fixify.utils';
+import { Customer, Ticket } from '../../../core/models/fixify.models';
+import { priorityBadge, ticketStatusBadge, ticketStatusLabel } from '../../../core/utils/fixify.utils';
 import { BadgeComponent, BadgeVariant } from '../../../shared/components/badge/badge.component';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { TableSkeletonComponent } from '../../../shared/components/table-skeleton/table-skeleton.component';
@@ -24,17 +29,20 @@ import { tw } from '../../../shared/ui/tw';
 export class TicketsComponent {
   protected readonly ui = tw;
 
-  private readonly data = inject(FixifyDataService);
+  private readonly session = inject(DataSessionService);
+  private readonly customersData = inject(CustomersDataService);
+  private readonly ticketsData = inject(TicketsDataService);
   private readonly ctx = inject(AppContextService);
+  private readonly router = inject(Router);
 
   readonly Math = Math;
 
-  readonly tickets = this.data.tickets;
-  readonly customers = this.data.customers;
-  readonly loading = this.data.loading;
-  readonly ticketsPage = this.data.ticketsPage;
-  readonly ticketsLimit = this.data.ticketsLimit;
-  readonly ticketsTotal = this.data.ticketsTotal;
+  readonly tickets = this.ticketsData.tickets;
+  readonly customers = this.customersData.customers;
+  readonly loading = this.session.loading;
+  readonly ticketsPage = this.ticketsData.ticketsPage;
+  readonly ticketsLimit = this.ticketsData.ticketsLimit;
+  readonly ticketsTotal = this.ticketsData.ticketsTotal;
 
   readonly search = signal('');
   readonly statusFilter = signal('all');
@@ -42,29 +50,30 @@ export class TicketsComponent {
   readonly customerFilter = signal('all');
 
   readonly priorityBadge = priorityBadge;
+  readonly ticketStatusBadge = ticketStatusBadge;
   readonly ticketStatusLabel = ticketStatusLabel;
 
   readonly openCount = computed(() => {
-    this.data.dataRevision();
+    this.session.dataRevision();
     return this.tickets.filter((t) => t.status !== 'resolved' && t.status !== 'closed').length;
   });
 
   readonly totalPages = computed(() => {
     this.ticketsTotal();
-    this.data.dataRevision();
+    this.session.dataRevision();
     const total = this.ticketsTotal() || this.tickets.length;
     return Math.max(1, Math.ceil(total / this.ticketsLimit()));
   });
 
   readonly showPagination = computed(() => {
     this.ticketsTotal();
-    this.data.dataRevision();
+    this.session.dataRevision();
     if (this.loading()) return false;
     return this.ticketsTotal() > 0 || this.tickets.length > 0;
   });
 
   readonly filteredTickets = computed(() => {
-    this.data.dataRevision();
+    this.session.dataRevision();
     const q = this.search().toLowerCase();
     const status = this.statusFilter();
     const pri = this.priorityFilter();
@@ -114,17 +123,12 @@ export class TicketsComponent {
   }
 
   viewTicket(ticket: Ticket): void {
-    this.ctx.openModal({ type: 'viewTicket', data: ticket });
-  }
-
-  updateStatus(ticketId: string, status: TicketStatus, event: Event): void {
-    event.stopPropagation();
-    this.data.updateTicket(ticketId, { status });
+    this.router.navigate(['/admin/tickets', ticket.id]);
   }
 
   goToPage(page: number): void {
     const next = Math.min(Math.max(1, page), this.totalPages());
     if (next === this.ticketsPage()) return;
-    this.data.fetchTickets({ page: next, limit: this.ticketsLimit() });
+    this.ticketsData.fetchTickets({ page: next, limit: this.ticketsLimit() });
   }
 }

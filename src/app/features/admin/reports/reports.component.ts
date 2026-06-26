@@ -6,7 +6,12 @@ import {
   signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { FixifyDataService } from '../../../core/services/fixify-data.service';
+import {
+  DataSessionService,
+  CustomersDataService,
+  SitesDataService,
+  ReportsDataService,
+} from '../../../core/services/data';
 import { MonthlyReport } from '../../../core/models/fixify.models';
 import { scoreColor } from '../../../core/utils/fixify.utils';
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
@@ -45,12 +50,15 @@ function buildMonthOptions(count = 12): { key: string; label: string }[] {
 export class ReportsComponent {
   protected readonly ui = tw;
 
-  private readonly data = inject(FixifyDataService);
+  private readonly session = inject(DataSessionService);
+  private readonly customersData = inject(CustomersDataService);
+  private readonly sitesData = inject(SitesDataService);
+  private readonly reportsData = inject(ReportsDataService);
 
   readonly scoreColor = scoreColor;
-  readonly loading = this.data.loading;
-  readonly sites = this.data.sites;
-  readonly customers = this.data.customers;
+  readonly loading = this.session.loading;
+  readonly sites = this.sitesData.sites;
+  readonly customers = this.customersData.customers;
 
   readonly generating = signal(false);
   readonly sendingId = signal<number | null>(null);
@@ -67,17 +75,17 @@ export class ReportsComponent {
   readonly yearOptions = Array.from({ length: 4 }, (_, i) => new Date().getFullYear() - i);
 
   readonly reports = computed(() => {
-    this.data.dataRevision();
-    return [...this.data.monthlyReports].sort((a, b) => b.monthKey.localeCompare(a.monthKey));
+    this.session.dataRevision();
+    return [...this.reportsData.monthlyReports].sort((a, b) => b.monthKey.localeCompare(a.monthKey));
   });
 
   readonly stats = computed(() => {
-    this.data.dataRevision();
+    this.session.dataRevision();
     const reps = this.reports();
     const draft = reps.filter((r) => r.status === 'draft').length;
     const sites = new Set(reps.map((r) => r.siteId)).size;
     return {
-      total: this.data.reportsTotal() || reps.length,
+      total: this.reportsData.reportsTotal() || reps.length,
       draft,
       sites,
       latest: reps[0]?.month ?? '—',
@@ -89,7 +97,7 @@ export class ReportsComponent {
     if (!siteId || this.generating()) return;
 
     this.generating.set(true);
-    this.data.createMonthlyReport(
+    this.reportsData.createMonthlyReport(
       siteId,
       this.selectedMonth(),
       {
@@ -114,7 +122,7 @@ export class ReportsComponent {
       const apiId = customer?.apiId;
       if (apiId) params.custId = apiId;
     }
-    this.data.fetchReports(params);
+    this.reportsData.fetchReports(params);
   }
 
   toggleReport(report: MonthlyReport): void {
@@ -125,7 +133,7 @@ export class ReportsComponent {
     event?.stopPropagation();
     if (this.sendingId() !== null) return;
     this.sendingId.set(report.id);
-    this.data.sendReport(report, () => this.sendingId.set(null));
+    this.reportsData.sendReport(report, () => this.sendingId.set(null));
   }
 
   isDraft(status?: string): boolean {
@@ -134,7 +142,7 @@ export class ReportsComponent {
 
   downloadReport(report: MonthlyReport, event?: Event): void {
     event?.stopPropagation();
-    this.data.openReportDownload(report);
+    this.reportsData.openReportDownload(report);
   }
 
   reportStatusVariant(status?: string): 'bac' | 'bok' | 'bwn' {

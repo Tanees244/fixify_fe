@@ -8,7 +8,13 @@ import {
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { map } from 'rxjs';
-import { FixifyDataService } from '../../../../core/services/fixify-data.service';
+import {
+  CustomersDataService,
+  DataSessionService,
+  SitesDataService,
+  SubscriptionsDataService,
+  TicketsDataService,
+} from '../../../../core/services/data';
 import { AppContextService } from '../../../../core/services/app-context.service';
 import { scoreColor } from '../../../../core/utils/fixify.utils';
 import { BadgeComponent, BadgeVariant } from '../../../../shared/components/badge/badge.component';
@@ -54,21 +60,25 @@ export class CustomerDetailComponent {
 
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-  private readonly data = inject(FixifyDataService);
+  private readonly session = inject(DataSessionService);
+  private readonly customersData = inject(CustomersDataService);
+  private readonly sitesData = inject(SitesDataService);
+  private readonly ticketsData = inject(TicketsDataService);
+  private readonly subscriptionsData = inject(SubscriptionsDataService);
   private readonly ctx = inject(AppContextService);
 
-  readonly plans = this.data.subscriptionPlans;
+  readonly plans = this.subscriptionsData.subscriptionPlans;
 
   planLabel(id: string): string {
-    return this.data.planLabel(id);
+    return this.subscriptionsData.planLabel(id);
   }
 
   planPrice(id: string): number {
-    return this.data.planPrice(id);
+    return this.subscriptionsData.planPrice(id);
   }
 
   planColor(id: string): string {
-    return this.data.planColor(id);
+    return this.subscriptionsData.planColor(id);
   }
 
   readonly tabQuery = toSignal(
@@ -98,19 +108,19 @@ export class CustomerDetailComponent {
 
   readonly customerId = computed(() => Number(this.route.snapshot.paramMap.get('id')));
 
-  readonly customer = computed(() => this.data.getCustomer(this.customerId()));
+  readonly customer = computed(() => this.customersData.getCustomer(this.customerId()));
 
-  readonly loading = this.data.loading;
+  readonly loading = this.session.loading;
   readonly scoreColor = scoreColor;
 
   readonly sites = computed(() => {
-    this.data.dataRevision();
-    return this.data.sitesForCustomer(this.customerId());
+    this.session.dataRevision();
+    return this.sitesData.sitesForCustomer(this.customerId());
   });
 
   readonly tickets = computed(() => {
-    this.data.dataRevision();
-    return this.data.ticketsForCustomer(this.customerId());
+    this.session.dataRevision();
+    return this.ticketsData.ticketsForCustomer(this.customerId());
   });
 
   readonly avgHealth = computed(() => {
@@ -135,9 +145,9 @@ export class CustomerDetailComponent {
   }
 
   openSiteManagement(siteId: number): void {
-    const site = this.data.sites.find((s) => s.id === siteId);
+    const site = this.sitesData.sites.find((s) => s.id === siteId);
     if (site?.platform === 'wordpress') {
-      this.data.initWordPressState(siteId);
+      this.sitesData.initWordPressState(siteId);
       this.router.navigate(['/admin/sites', siteId, 'manage']);
       return;
     }
@@ -162,16 +172,16 @@ export class CustomerDetailComponent {
   }
 
   approve(): void {
-    this.data.approveCustomer(this.customerId());
+    this.customersData.approveCustomer(this.customerId());
   }
 
   reject(): void {
-    this.data.rejectCustomer(this.customerId());
+    this.customersData.rejectCustomer(this.customerId());
   }
 
   onPlanChange(event: Event): void {
     const plan = (event.target as HTMLSelectElement).value;
-    this.data.assignSubscription(this.customerId(), plan);
+    this.customersData.assignSubscription(this.customerId(), plan);
   }
 
   manageCustomer(): void {

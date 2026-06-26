@@ -9,11 +9,9 @@ import { TicketsDataService } from './data/tickets-data.service';
 import { ReportsDataService } from './data/reports-data.service';
 import { SubscriptionsDataService } from './data/subscriptions-data.service';
 import { CustomerDashboardDataService } from './data/customer-dashboard-data.service';
-import { FixifyDataService } from './fixify-data.service';
 
 @Injectable({ providedIn: 'root' })
 export class RouteDataLoaderService {
-  private readonly data = inject(FixifyDataService);
   private readonly session = inject(DataSessionService);
   private readonly customersData = inject(CustomersDataService);
   private readonly sitesData = inject(SitesDataService);
@@ -35,7 +33,7 @@ export class RouteDataLoaderService {
     }
     this.lastUrl = url;
 
-    this.data.initSession();
+    this.session.init();
     if (!this.auth.getToken()) {
       this.tick();
       return;
@@ -53,46 +51,51 @@ export class RouteDataLoaderService {
     if (customerManageMatch) {
       const siteId = Number(customerManageMatch[1]);
       const screen = customerManageMatch[2] ?? 'overview';
-      this.data.fetchCustomerWebsites(() => {
+      this.sitesData.fetchCustomerWebsites(() => {
         this.loadSiteManageScreen(siteId, screen);
         this.tick();
       });
       return;
     }
     if (path.startsWith('/customer/sites')) {
-      this.data.fetchCustomerWebsites(() => this.tick());
+      this.sitesData.fetchCustomerWebsites(() => this.tick());
       return;
     }
     if (path.startsWith('/customer/performance')) {
-      this.data.fetchCustomerWebsites(() => {
+      this.sitesData.fetchCustomerWebsites(() => {
         this.sitesData.fetchSitePerformance(this.ctx.selectedSite(), () => this.tick());
       });
       return;
     }
     if (path.startsWith('/customer/security')) {
-      this.data.fetchCustomerWebsites(() => {
+      this.sitesData.fetchCustomerWebsites(() => {
         this.sitesData.fetchSiteSecurity(this.ctx.selectedSite(), () => this.tick());
       });
       return;
     }
     if (path.startsWith('/customer/seo')) {
-      this.data.fetchCustomerWebsites(() => {
+      this.sitesData.fetchCustomerWebsites(() => {
         this.sitesData.fetchSiteSeo(this.ctx.selectedSite(), () => this.tick());
       });
       return;
     }
     if (path.startsWith('/customer/uptime')) {
-      this.data.fetchCustomerWebsites(() => {
+      this.sitesData.fetchCustomerWebsites(() => {
         this.sitesData.fetchSiteUptime(this.ctx.selectedSite(), () => this.tick());
       });
       return;
     }
     if (path.startsWith('/customer/tickets')) {
-      this.ticketsData.fetchTickets({ role: 'client', page: 1, limit: 10 }, () => this.tick());
+      let pending = 2;
+      const done = () => {
+        if (--pending === 0) this.tick();
+      };
+      this.sitesData.fetchCustomerWebsites(done);
+      this.ticketsData.fetchTickets({ role: 'client', page: 1, limit: 10 }, done);
       return;
     }
     if (path.startsWith('/customer/reports')) {
-      this.data.fetchCustomerWebsites(() => {
+      this.sitesData.fetchCustomerWebsites(() => {
         const site = this.ctx.selectedSite();
         if (site) {
           this.reportsData.loadWebsiteReports(site.id, new Date().getFullYear(), () => this.tick());
@@ -107,7 +110,7 @@ export class RouteDataLoaderService {
       const done = () => {
         if (--pending === 0) this.tick();
       };
-      this.data.fetchCustomerWebsites(done);
+      this.sitesData.fetchCustomerWebsites(done);
       this.subscriptionsData.fetchSubscriptions(done);
       return;
     }
@@ -136,8 +139,13 @@ export class RouteDataLoaderService {
       this.subscriptionsData.fetchSubscriptions(done);
       return;
     }
-    if (path === '/admin/tickets') {
-      this.ticketsData.fetchTickets({ page: 1, limit: 10 }, () => this.tick());
+    if (path.startsWith('/admin/tickets')) {
+      let pending = 2;
+      const done = () => {
+        if (--pending === 0) this.tick();
+      };
+      this.sitesData.fetchWebsites({ page: 1, limit: 100 }, done);
+      this.ticketsData.fetchTickets({ page: 1, limit: 50 }, done);
       return;
     }
     if (path === '/admin/subscriptions') {

@@ -6,7 +6,10 @@ import {
   signal,
 } from '@angular/core';
 import { Router } from '@angular/router';
-import { FixifyDataService } from '../../../core/services/fixify-data.service';
+import {
+  DataSessionService,
+  SitesDataService,
+} from '../../../core/services/data';
 import { AppContextService } from '../../../core/services/app-context.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { Site, SiteStatus } from '../../../core/models/fixify.models';
@@ -30,18 +33,19 @@ type StatusFilter = 'all' | SiteStatus;
 export class SitesComponent {
   protected readonly ui = tw;
 
-  private readonly data = inject(FixifyDataService);
+  private readonly session = inject(DataSessionService);
+  private readonly sitesData = inject(SitesDataService);
   private readonly ctx = inject(AppContextService);
   private readonly toast = inject(NotificationService);
   private readonly router = inject(Router);
 
   readonly Math = Math;
-  readonly sites = this.data.sites;
+  readonly sites = this.sitesData.sites;
   readonly scanning = this.ctx.scanning;
-  readonly loading = this.data.loading;
-  readonly sitesPage = this.data.sitesPage;
-  readonly sitesLimit = this.data.sitesLimit;
-  readonly sitesTotal = this.data.sitesTotal;
+  readonly loading = this.session.loading;
+  readonly sitesPage = this.sitesData.sitesPage;
+  readonly sitesLimit = this.sitesData.sitesLimit;
+  readonly sitesTotal = this.sitesData.sitesTotal;
 
   readonly search = signal('');
   readonly statusFilter = signal<StatusFilter>('all');
@@ -49,7 +53,7 @@ export class SitesComponent {
   readonly scoreColor = scoreColor;
 
   readonly filteredSites = computed(() => {
-    this.data.dataRevision();
+    this.session.dataRevision();
     const q = this.search().toLowerCase();
     const st = this.statusFilter();
     return this.sites.filter(
@@ -61,14 +65,14 @@ export class SitesComponent {
 
   readonly totalPages = computed(() => {
     this.sitesTotal();
-    this.data.dataRevision();
+    this.session.dataRevision();
     const total = this.sitesTotal() || this.sites.length;
     return Math.max(1, Math.ceil(total / this.sitesLimit()));
   });
 
   readonly showPagination = computed(() => {
     this.sitesTotal();
-    this.data.dataRevision();
+    this.session.dataRevision();
     if (this.loading()) return false;
     return this.sitesTotal() > 0 || this.sites.length > 0;
   });
@@ -101,12 +105,12 @@ export class SitesComponent {
   }
 
   scanSite(site: Site): void {
-    this.data.scanSite(site);
+    this.sitesData.scanSite(site);
   }
 
   manageSite(site: Site): void {
     if (site.platform === 'wordpress') {
-      this.data.initWordPressState(site.id);
+      this.sitesData.initWordPressState(site.id);
       this.router.navigate(['/admin/sites', site.id, 'manage']);
       return;
     }
@@ -116,6 +120,6 @@ export class SitesComponent {
   goToPage(page: number): void {
     const next = Math.min(Math.max(1, page), this.totalPages());
     if (next === this.sitesPage()) return;
-    this.data.fetchWebsites({ page: next, limit: this.sitesLimit() });
+    this.sitesData.fetchWebsites({ page: next, limit: this.sitesLimit() });
   }
 }

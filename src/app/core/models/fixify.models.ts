@@ -80,6 +80,33 @@ export interface Ticket {
   who: string;
   ago: string;
   desc: string;
+  /** Epoch ms the ticket was created (for sorting / display). */
+  createdAt?: number;
+}
+
+export type TicketMessageRole = 'customer' | 'agent' | 'system';
+
+export interface TicketAttachment {
+  id: string;
+  /** Image URL or data URI. */
+  url: string;
+  name: string;
+  kind: 'image' | 'file';
+}
+
+export interface TicketMessage {
+  id: string;
+  ticketId: string;
+  authorName: string;
+  authorRole: TicketMessageRole;
+  body: string;
+  /** Humanized relative time, e.g. "2h ago". */
+  ago: string;
+  /** Epoch ms for ordering. */
+  createdAt: number;
+  attachments: TicketAttachment[];
+  /** Admin-only internal note (hidden from customers). */
+  isInternal?: boolean;
 }
 
 export interface Insight {
@@ -266,6 +293,8 @@ export interface CreateTicketPayload {
   pri: TicketPriority;
   status?: TicketStatus;
   who?: string;
+  /** Images the requester attached when opening the ticket. */
+  attachments?: TicketAttachment[];
 }
 
 export interface CreateProcessPayload {
@@ -284,7 +313,6 @@ export type ModalType =
   | 'editCustomer'
   | 'viewCustomer'
   | 'createTicket'
-  | 'viewTicket'
   | 'confirm'
   | 'createProcess'
   | 'subscriptionPlan';

@@ -10,7 +10,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Customer } from '../../../core/models/fixify.models';
-import { FixifyDataService } from '../../../core/services/fixify-data.service';
+import { SubscriptionsDataService } from '../../../core/services/data';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { ModalHeaderComponent } from '../../../shared/components/modal-header/modal-header.component';
 import { tw } from '../../../shared/ui/tw';
@@ -46,7 +46,7 @@ import { tw } from '../../../shared/ui/tw';
       <div [class]="ui.field">
         <label [class]="ui.label">Subscription Plan</label>
         <select [class]="ui.input" [ngModel]="plan()" (ngModelChange)="plan.set($event)">
-          @for (p of data.subscriptionPlans; track p.id) {
+          @for (p of subscriptionsData.subscriptionPlans; track p.id) {
             <option [value]="p.id">{{ p.name }} — {{ p.priceLabel }}</option>
           }
         </select>
@@ -66,7 +66,7 @@ export class EditCustomerModalComponent implements OnChanges {
   @Output() closed = new EventEmitter<void>();
   @Output() submitted = new EventEmitter<Customer>();
 
-  protected readonly data = inject(FixifyDataService);
+  protected readonly subscriptionsData = inject(SubscriptionsDataService);
 
   readonly ui = tw;
   readonly name = signal('');

@@ -48,8 +48,14 @@ export const CUSTOMER_ROUTES: Routes = [
   },
   {
     path: 'tickets',
+    pathMatch: 'full',
     loadComponent: () =>
       import('./tickets/tickets.component').then((m) => m.TicketsComponent),
+  },
+  {
+    path: 'tickets/:id',
+    loadComponent: () =>
+      import('../tickets/ticket-detail.component').then((m) => m.TicketDetailComponent),
   },
   {
     path: 'reports',

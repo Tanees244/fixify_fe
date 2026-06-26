@@ -1,21 +1,17 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { CreateTicketPayload, Ticket } from '../../models/fixify.models';
 import {
-  extractApiItems,
-  extractApiListMeta,
-} from '../../utils/api-response.util';
-import {
-  fixifyPriorityToApi,
-  fixifyStatusToApi,
-  mapApiTicketToFixify,
-} from '../../utils/api-mappers.util';
-import { ticketStatusLabel } from '../../utils/fixify.utils';
+  CreateTicketPayload,
+  Ticket,
+  TicketAttachment,
+  TicketMessage,
+  TicketMessageRole,
+  TicketStatus,
+} from '../../models/fixify.models';
+import { relativeTime, ticketStatusLabel } from '../../utils/fixify.utils';
+import { MOCK_TICKETS, MOCK_TICKET_MESSAGES } from '../../constants/mock-tickets';
 import { NotificationService } from '../notification.service';
 import { AppContextService } from '../app-context.service';
-import { EntityIdRegistry } from '../entity-id-registry.service';
-import { TicketsApiService } from '../api/tickets-api.service';
 import { DataSessionService } from './data-session.service';
-import { SitesDataService } from './sites-data.service';
 
 export interface FetchTicketsParams {
   role?: string;
@@ -27,115 +23,213 @@ export interface FetchTicketsParams {
   search?: string;
 }
 
+interface AddMessageInput {
+  authorName: string;
+  authorRole: TicketMessageRole;
+  body: string;
+  attachments?: TicketAttachment[];
+  isInternal?: boolean;
+}
+
+/**
+ * Mock-first ticketing store. Tickets and their conversation threads are seeded
+ * from local mock data so the AWS-style support experience is fully demonstrable
+ * on both the admin and customer sides without a backend.
+ */
 @Injectable({ providedIn: 'root' })
 export class TicketsDataService {
   private readonly toast = inject(NotificationService);
   private readonly ctx = inject(AppContextService);
   private readonly session = inject(DataSessionService);
-  private readonly ticketsApi = inject(TicketsApiService);
-  private readonly ids = inject(EntityIdRegistry);
-  private readonly sitesData = inject(SitesDataService);
 
   readonly tickets: Ticket[] = [];
   readonly ticketsPage = signal(1);
-  readonly ticketsLimit = signal(10);
+  readonly ticketsLimit = signal(50);
   readonly ticketsTotal = signal(0);
 
+  /** ticketId -> conversation thread (chronological). */
+  private readonly messagesByTicket = new Map<string, TicketMessage[]>();
+  private masterSeeded = false;
+  private nextId = 2042;
+
   fetchTickets(params: FetchTicketsParams = {}, done?: () => void): void {
-    if (!this.session.useApi()) {
-      this.tickets.splice(0, this.tickets.length);
-      this.ticketsTotal.set(0);
-      done?.();
-      return;
-    }
+    this.seedMaster();
 
-    const page = params.page ?? 1;
-    const limit = params.limit ?? 200;
+    const all = MOCK_TICKETS.map((t) => ({ ...t }));
+    const isClient = params.role === 'client';
+    const custId = this.ctx.currentCustomerId();
+    const visible = isClient ? all.filter((t) => t.custId === custId) : all;
 
-    this.session.beginLoad();
-    this.ticketsApi.getTickets({ page, limit, ...params }).subscribe({
-      next: (res) => {
-        const items = extractApiItems(res.data);
-        const meta = extractApiListMeta(res.data, items.length);
-        this.ticketsPage.set(meta.page || page);
-        this.ticketsLimit.set(meta.limit || limit);
-        this.ticketsTotal.set(meta.total);
-
-        this.tickets.splice(
-          0,
-          this.tickets.length,
-          ...items.map((t) => mapApiTicketToFixify(t, this.ids))
-        );
-        this.session.endLoad();
-        done?.();
-      },
-      error: () => {
-        this.session.endLoad();
-        this.toast.error('Failed to load tickets');
-        done?.();
-      },
-    });
+    this.tickets.splice(0, this.tickets.length, ...visible);
+    this.ticketsPage.set(1);
+    this.ticketsTotal.set(visible.length);
+    this.session.bump();
+    done?.();
   }
 
   ticketsForCustomer(custId: number): Ticket[] {
-    return this.tickets.filter((t) => t.custId === custId);
+    this.seedMaster();
+    return MOCK_TICKETS.filter((t) => t.custId === custId).map((t) => ({ ...t }));
   }
 
-  createTicket(data: CreateTicketPayload): void {
-    if (!this.session.useApi()) {
-      this.toast.error('Sign in to create tickets');
-      return;
-    }
-    const siteRow = this.sitesData.sites.find(
-      (s) => s.name === data.site || s.id === Number(data.site)
+  getTicket(id: string): Ticket | undefined {
+    this.seedMaster();
+    return this.tickets.find((t) => t.id === id) ?? MOCK_TICKETS.find((t) => t.id === id);
+  }
+
+  getMessages(ticketId: string): TicketMessage[] {
+    this.ensureThread(ticketId);
+    return [...(this.messagesByTicket.get(ticketId) ?? [])].sort(
+      (a, b) => a.createdAt - b.createdAt
     );
-    const websiteId = siteRow?.apiId ?? this.sitesData.websiteApiId(Number(data.site));
-    if (!websiteId) {
-      this.toast.error('Website not found for this ticket.');
-      return;
+  }
+
+  addMessage(ticketId: string, input: AddMessageInput): TicketMessage {
+    this.ensureThread(ticketId);
+    const now = Date.now();
+    const message: TicketMessage = {
+      id: `m-${ticketId}-${now}`,
+      ticketId,
+      authorName: input.authorName,
+      authorRole: input.authorRole,
+      body: input.body.trim(),
+      ago: relativeTime(now),
+      createdAt: now,
+      attachments: input.attachments ?? [],
+      isInternal: input.isInternal,
+    };
+    this.messagesByTicket.get(ticketId)!.push(message);
+
+    // A customer or agent reply moves an untouched ticket into "in progress".
+    if (input.authorRole !== 'system') {
+      const ticket = this.findTicket(ticketId);
+      if (ticket && ticket.status === 'open' && input.authorRole === 'agent') {
+        this.applyStatus(ticket, 'inprogress');
+      }
     }
-    this.ticketsApi
-      .createTicket({
-        websiteId,
-        title: data.title,
-        description: data.desc,
-        priority: fixifyPriorityToApi(data.pri),
-      })
-      .subscribe({
-        next: (res) => {
-          const ticket = mapApiTicketToFixify(res.data?.ticket ?? res.data, this.ids);
-          if (data.who) ticket.who = data.who;
-          this.tickets.unshift(ticket);
-          this.ticketsTotal.update((n) => n + 1);
-          this.session.bump();
-          this.toast.success(`Ticket ${ticket.id} created`);
-          this.ctx.closeModal();
-        },
-        error: (err) => this.toast.error(err?.error?.message || 'Failed to create ticket'),
-      });
+    this.session.bump();
+    return message;
+  }
+
+  setTicketStatus(id: string, status: TicketStatus, actorName: string): void {
+    const ticket = this.findTicket(id);
+    if (!ticket || ticket.status === status) return;
+    this.ensureThread(id);
+    this.applyStatus(ticket, status);
+    const now = Date.now();
+    this.messagesByTicket.get(id)!.push({
+      id: `m-${id}-${now}`,
+      ticketId: id,
+      authorName: actorName,
+      authorRole: 'system',
+      body: `Status changed to ${ticketStatusLabel(status)} by ${actorName}.`,
+      ago: relativeTime(now),
+      createdAt: now,
+      attachments: [],
+    });
+    this.session.bump();
+    this.toast.success(`Ticket ${id} → ${ticketStatusLabel(status)}`);
+  }
+
+  /** Creates a ticket from the "open a case" form and returns its id. */
+  createTicket(data: CreateTicketPayload): string {
+    this.seedMaster();
+    const id = `TK-${this.nextId++}`;
+    const now = Date.now();
+    const customer = MOCK_TICKETS.find((t) => t.custId === this.ctx.currentCustomerId());
+    const ticket: Ticket = {
+      id,
+      title: data.title,
+      site: data.site || '—',
+      customerName: customer?.customerName,
+      custId: this.ctx.currentCustomerId(),
+      type: data.type || 'Bug',
+      pri: data.pri,
+      status: data.status ?? 'open',
+      who: data.who || 'Unassigned',
+      ago: 'just now',
+      createdAt: now,
+      desc: data.desc,
+    };
+    MOCK_TICKETS.unshift(ticket);
+    this.tickets.unshift({ ...ticket });
+    this.ticketsTotal.update((n) => n + 1);
+
+    this.messagesByTicket.set(id, [
+      {
+        id: `m-${id}-${now}`,
+        ticketId: id,
+        authorName: ticket.customerName || 'You',
+        authorRole: 'customer',
+        body: data.desc || data.title,
+        ago: 'just now',
+        createdAt: now,
+        attachments: data.attachments ?? [],
+      },
+    ]);
+
+    this.session.bump();
+    this.toast.success(`Ticket ${id} created`);
+    this.ctx.closeModal();
+    return id;
   }
 
   updateTicket(id: string, changes: Partial<Ticket>): void {
-    if (this.session.useApi() && changes.status) {
-      const apiId = this.tickets.find((t) => t.id === id)?.apiId ?? id;
-      this.ticketsApi.updateTicketStatus(apiId, { status: fixifyStatusToApi(changes.status) }).subscribe({
-        next: () => this.updateTicketLocal(id, changes),
-        error: (err) => this.toast.error(err?.error?.message || 'Failed to update ticket'),
-      });
-      return;
-    }
-    this.updateTicketLocal(id, changes);
-  }
-
-  private updateTicketLocal(id: string, changes: Partial<Ticket>): void {
-    const idx = this.tickets.findIndex((t) => t.id === id);
-    if (idx >= 0) {
-      this.tickets[idx] = { ...this.tickets[idx], ...changes };
+    const ticket = this.findTicket(id);
+    if (ticket) {
+      Object.assign(ticket, changes);
+      this.syncMaster(id, changes);
       this.session.bump();
       if (changes.status) {
         this.toast.success(`Ticket ${id} → ${ticketStatusLabel(changes.status)}`);
       }
     }
     this.ctx.closeModal();
+  }
+
+  private applyStatus(ticket: Ticket, status: TicketStatus): void {
+    ticket.status = status;
+    this.syncMaster(ticket.id, { status });
+  }
+
+  private findTicket(id: string): Ticket | undefined {
+    return this.tickets.find((t) => t.id === id) ?? MOCK_TICKETS.find((t) => t.id === id);
+  }
+
+  private syncMaster(id: string, changes: Partial<Ticket>): void {
+    const master = MOCK_TICKETS.find((t) => t.id === id);
+    if (master) Object.assign(master, changes);
+    const visible = this.tickets.find((t) => t.id === id);
+    if (visible) Object.assign(visible, changes);
+  }
+
+  private seedMaster(): void {
+    if (this.masterSeeded) return;
+    this.masterSeeded = true;
+    for (const [ticketId, msgs] of Object.entries(MOCK_TICKET_MESSAGES)) {
+      this.messagesByTicket.set(
+        ticketId,
+        msgs.map((m) => ({ ...m, attachments: [...m.attachments] }))
+      );
+    }
+  }
+
+  private ensureThread(ticketId: string): void {
+    this.seedMaster();
+    if (this.messagesByTicket.has(ticketId)) return;
+    const ticket = this.findTicket(ticketId);
+    const created = ticket?.createdAt ?? Date.now();
+    this.messagesByTicket.set(ticketId, [
+      {
+        id: `m-${ticketId}-seed`,
+        ticketId,
+        authorName: ticket?.customerName || 'Customer',
+        authorRole: 'customer',
+        body: ticket?.desc || 'No description provided.',
+        ago: ticket?.ago || relativeTime(created),
+        createdAt: created,
+        attachments: [],
+      },
+    ]);
   }
 }

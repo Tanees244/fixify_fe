@@ -10,7 +10,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ModalHostComponent } from '../modal-host/modal-host.component';
 import { FixifySidebarComponent } from './fixify-sidebar.component';
 import { FixifyTopbarComponent } from './fixify-topbar.component';
-import { FixifyDataService } from '../../../core/services/fixify-data.service';
+import { SitesDataService } from '../../../core/services/data';
 import { AppContextService } from '../../../core/services/app-context.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { RouteDataLoaderService } from '../../../core/services/route-data-loader.service';
@@ -42,7 +42,7 @@ import { tw } from '../../ui/tw';
 export class FixifyLayoutComponent implements OnInit {
   protected readonly ui = tw;
 
-  private readonly data = inject(FixifyDataService);
+  private readonly sitesData = inject(SitesDataService);
   private readonly routeLoader = inject(RouteDataLoaderService);
   private readonly ctx = inject(AppContextService);
   private readonly auth = inject(AuthService);
@@ -75,7 +75,7 @@ export class FixifyLayoutComponent implements OnInit {
     }
     if (user?.customerId) {
       this.ctx.currentCustomerId.set(user.customerId);
-      const mySites = this.data.sites.filter((s) => s.custId === user.customerId);
+      const mySites = this.sitesData.sites.filter((s) => s.custId === user.customerId);
       if (mySites.length && !this.ctx.selectedSite()) {
         this.ctx.selectedSite.set(mySites[0]);
       }

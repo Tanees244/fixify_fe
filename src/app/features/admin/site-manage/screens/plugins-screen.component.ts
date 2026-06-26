@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { SiteManageFacade } from '../site-manage.facade';
-import { FixifyDataService } from '../../../../core/services/fixify-data.service';
+import { DataSessionService } from '../../../../core/services/data';
 import { BadgeComponent } from '../../../../shared/components/badge/badge.component';
 import { TableSkeletonComponent } from '../../../../shared/components/table-skeleton/table-skeleton.component';
 import { tw } from '../../../../shared/ui/tw';
@@ -17,14 +17,14 @@ type PluginFilter = 'all' | 'updates' | 'vulnerable' | 'active';
 export class PluginsScreenComponent {
   protected readonly ui = tw;
   protected readonly facade = inject(SiteManageFacade);
-  private readonly data = inject(FixifyDataService);
+  private readonly session = inject(DataSessionService);
 
-  readonly loading = this.data.loading;
+  readonly loading = this.session.loading;
 
   readonly filter = signal<PluginFilter>('all');
 
   readonly plugins = computed(() => {
-    this.data.dataRevision();
+    this.session.dataRevision();
     return this.facade.wpState()?.plugins ?? [];
   });
 

@@ -36,6 +36,18 @@
       <option value="medium">Medium</option>
       <option value="low">Low</option>
     </select>
+    <select
+      [class]="ui.input"
+      style="width: auto; padding: 7px 12px"
+      [ngModel]="statusFilter()"
+      (ngModelChange)="statusFilter.set($event)"
+    >
+      <option value="all">All Status</option>
+      <option value="open">Open</option>
+      <option value="inprogress">In Progress</option>
+      <option value="resolved">Resolved</option>
+      <option value="closed">Closed</option>
+    </select>
   </div>
 
   <div [class]="ui.card" style="overflow: hidden">
@@ -46,16 +58,17 @@
           <th [class]="ui.th">Site</th>
           <th [class]="ui.th">Type</th>
           <th [class]="ui.th">Priority</th>
+          <th [class]="ui.th">Status</th>
           <th [class]="ui.th">Age</th>
         </tr>
       </thead>
       @if (loading()) {
-        <app-table-skeleton [rows]="5" [cols]="5" />
+        <app-table-skeleton [rows]="5" [cols]="6" />
       } @else {
         <tbody>
           @if (filteredTickets().length === 0) {
             <tr>
-              <td [class]="ui.td" colspan="5" style="text-align: center; padding: 32px; color: var(--t3)">
+              <td [class]="ui.td" colspan="6" style="text-align: center; padding: 32px; color: var(--t3)">
                 No tickets match your filters
               </td>
             </tr>
@@ -83,6 +96,9 @@
                   ></span>
                   {{ t.pri }}
                 </app-badge>
+              </td>
+              <td [class]="ui.td">
+                <app-badge [variant]="ticketStatusBadge(t.status)">{{ ticketStatusLabel(t.status) }}</app-badge>
               </td>
               <td [class]="ui.td" style="font-size: 12px; color: var(--t3)">{{ t.ago }}</td>
             </tr>

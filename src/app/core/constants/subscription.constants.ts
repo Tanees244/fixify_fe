@@ -20,15 +20,5 @@ export function planColorFrom(plans: SubscriptionPlan[], id: string): string {
   return planById(plans, id)?.color ?? '#6b88ad';
 }
 
-/** @deprecated Use FixifyDataService.planLabel instead */
-export function planLabel(id: string): string {
-  return id;
-}
-
-/** @deprecated Use FixifyDataService.planPrice instead */
-export function planPrice(id: string): number {
-  return 0;
-}
-
-/** @deprecated Use FixifyDataService.subscriptionPlans */
+/** @deprecated Prefer SubscriptionsDataService.subscriptionPlans (live data). */
 export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [];

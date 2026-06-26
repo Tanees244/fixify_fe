@@ -6,8 +6,8 @@ import {
   signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
-import { FixifyDataService } from '../../../core/services/fixify-data.service';
+import { Router, RouterLink } from '@angular/router';
+import { DataSessionService, SitesDataService, SubscriptionsDataService } from '../../../core/services/data';
 import { WordPressSiteDetails } from '../../../core/models/fixify.models';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { ToggleComponent } from '../../../shared/components/toggle/toggle.component';
@@ -18,13 +18,15 @@ import { tw } from '../../../shared/ui/tw';
   selector: 'app-add-wordpress',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, IconComponent, ToggleComponent],
+  imports: [FormsModule, IconComponent, ToggleComponent, RouterLink],
   templateUrl: './add-wordpress.component.html',
 })
 export class AddWordpressComponent {
   protected readonly ui = tw;
 
-  private readonly data = inject(FixifyDataService);
+  private readonly session = inject(DataSessionService);
+  private readonly sitesData = inject(SitesDataService);
+  private readonly subscriptionsData = inject(SubscriptionsDataService);
   private readonly router = inject(Router);
 
   readonly wp = PLATFORMS.find((p) => p.id === 'wordpress')!;
@@ -44,12 +46,12 @@ export class AddWordpressComponent {
   ];
 
   readonly plans = computed(() => {
-    this.data.dataRevision();
-    return this.data.subscriptionPlans;
+    this.session.dataRevision();
+    return this.subscriptionsData.subscriptionPlans;
   });
 
   planLabel(id: string): string {
-    return this.data.planLabel(id);
+    return this.subscriptionsData.planLabel(id);
   }
 
   canContinueStep1(): boolean {
@@ -83,7 +85,7 @@ export class AddWordpressComponent {
     if (!url || !this.canContinueStep1() || this.submitting()) return;
 
     this.submitting.set(true);
-    const site = await this.data.addSite({
+    const site = await this.sitesData.addSite({
       url,
       name: this.siteName().trim(),
       plan: this.plan(),

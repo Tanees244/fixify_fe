@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 
-import { FixifyDataService } from '../../../core/services/fixify-data.service';
+import { DataSessionService, SitesDataService } from '../../../core/services/data';
 
 import { AppContextService } from '../../../core/services/app-context.service';
 
@@ -42,7 +42,9 @@ export class SecurityComponent {
 
 
 
-  private readonly data = inject(FixifyDataService);
+  private readonly session = inject(DataSessionService);
+
+  private readonly sitesData = inject(SitesDataService);
 
   readonly ctx = inject(AppContextService);
 
@@ -56,11 +58,11 @@ export class SecurityComponent {
 
   readonly severityIcon = severityIcon;
 
-  readonly loading = this.data.loading;
+  readonly loading = this.session.loading;
 
   readonly site = computed(() => {
 
-    this.data.dataRevision();
+    this.session.dataRevision();
 
     return this.ctx.selectedSite();
 
@@ -70,9 +72,9 @@ export class SecurityComponent {
 
   readonly screen = computed(() => {
 
-    this.data.dataRevision();
+    this.session.dataRevision();
 
-    return this.data.securityScreen();
+    return this.sitesData.securityScreen();
 
   });
 
@@ -148,7 +150,7 @@ export class SecurityComponent {
 
     if (!site) return;
 
-    await this.data.scanSiteSecurity(site);
+    await this.sitesData.scanSiteSecurity(site);
 
   }
 

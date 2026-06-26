@@ -1,0 +1,255 @@
+@if (ticket(); as t) {
+  <div style="max-width: 920px; margin: 0 auto">
+    <button
+      type="button"
+      [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm"
+      style="margin-bottom: 14px"
+      (click)="back()"
+    >
+      <app-icon name="chevL" [size]="13" />
+      Back to Tickets
+    </button>
+
+    <!-- Header -->
+    <div [class]="ui.card + ' ' + ui.cardPad" style="margin-bottom: 14px">
+      <div style="display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap">
+        <div style="flex: 1; min-width: 240px">
+          <div style="font-size: 17px; font-weight: 700; color: var(--t1); line-height: 1.35">
+            {{ t.title }}
+          </div>
+          <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; align-items: center">
+            <app-badge [variant]="ticketStatusBadge(t.status)">{{ ticketStatusLabel(t.status) }}</app-badge>
+            <app-badge [variant]="priorityBadge(t.pri)">
+              <span
+                style="width: 6px; height: 6px; border-radius: 50%; display: inline-block"
+                [style.background]="priorityColor(t.pri)"
+              ></span>
+              {{ t.pri }}
+            </app-badge>
+            <app-badge [variant]="typeBadge(t.type)">{{ t.type }}</app-badge>
+          </div>
+          <div style="font-size: 12.5px; color: var(--t3); margin-top: 10px">
+            <span style="font-weight: 600; color: var(--t2)">{{ t.id }}</span>
+            · {{ t.site }}
+            @if (isAdmin && t.customerName) {
+              · {{ t.customerName }}
+            }
+            · opened {{ t.ago }}
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-end">
+          @if (isAdmin) {
+            <select
+              [class]="ui.input"
+              style="width: auto; padding: 7px 12px"
+              [ngModel]="t.status"
+              (ngModelChange)="setStatus($event)"
+            >
+              @for (opt of statusOptions; track opt.value) {
+                <option [value]="opt.value">{{ opt.label }}</option>
+              }
+            </select>
+            @if (!resolved()) {
+              <button type="button" [class]="ui.btn + ' ' + ui.btnPrimary + ' ' + ui.btnSm" (click)="resolve()">
+                <app-icon name="check" [size]="13" color="#fff" /> Mark Resolved
+              </button>
+            } @else {
+              <button type="button" [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm" (click)="reopen()">
+                <app-icon name="refresh" [size]="13" /> Reopen
+              </button>
+            }
+          } @else if (resolved()) {
+            <button type="button" [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm" (click)="reopen()">
+              <app-icon name="refresh" [size]="13" /> Reopen ticket
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+
+    @if (resolved()) {
+      <div
+        style="display: flex; align-items: center; gap: 8px; background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; border-radius: 10px; padding: 10px 14px; font-size: 13px; margin-bottom: 14px"
+      >
+        <app-icon name="check" [size]="15" color="#15803d" />
+        This ticket is marked {{ ticketStatusLabel(t.status) }}. You can still reply to continue the conversation.
+      </div>
+    }
+
+    <!-- Conversation -->
+    <div [class]="ui.card" style="padding: 18px 18px 8px; margin-bottom: 14px">
+      <div style="font-size: 13px; font-weight: 700; color: var(--t1); margin-bottom: 16px">
+        Conversation
+        <span style="font-weight: 500; color: var(--t3)">· {{ messages().length }} messages</span>
+      </div>
+
+      @for (msg of messages(); track msg.id) {
+        @if (msg.authorRole === 'system') {
+          <div style="text-align: center; margin: 6px 0 16px">
+            <span
+              style="font-size: 11.5px; color: var(--t3); background: var(--s2); padding: 4px 12px; border-radius: 999px; border: 1px solid var(--bd)"
+            >
+              {{ msg.body }} · {{ msg.ago }}
+            </span>
+          </div>
+        } @else {
+          <div
+            style="display: flex; gap: 10px; margin-bottom: 18px"
+            [style.flex-direction]="isMine(msg) ? 'row-reverse' : 'row'"
+          >
+            <div
+              style="width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 12px; font-weight: 700"
+              [style.background]="avatarColor(msg)"
+            >
+              {{ initials(msg.authorName) }}
+            </div>
+            <div style="max-width: 74%; min-width: 0">
+              <div
+                style="display: flex; gap: 8px; align-items: baseline; margin-bottom: 5px"
+                [style.justify-content]="isMine(msg) ? 'flex-end' : 'flex-start'"
+              >
+                <span style="font-size: 12.5px; font-weight: 600; color: var(--t1)">{{ authorLabel(msg) }}</span>
+                @if (msg.authorRole === 'agent') {
+                  <span
+                    style="font-size: 10px; font-weight: 600; color: #2563eb; background: #eff6ff; padding: 1px 6px; border-radius: 5px"
+                    >SUPPORT</span
+                  >
+                }
+                @if (msg.isInternal) {
+                  <span
+                    style="font-size: 10px; font-weight: 600; color: #b45309; background: #fff7ed; padding: 1px 6px; border-radius: 5px"
+                    >INTERNAL</span
+                  >
+                }
+                <span style="font-size: 11px; color: var(--t3)">{{ msg.ago }}</span>
+              </div>
+
+              <div
+                [style.background]="msg.isInternal ? '#fff7ed' : isMine(msg) ? 'var(--acc)' : 'var(--s2)'"
+                [style.color]="isMine(msg) && !msg.isInternal ? '#fff' : 'var(--t1)'"
+                [style.border]="msg.isInternal ? '1px solid #fed7aa' : isMine(msg) ? 'none' : '1px solid var(--bd)'"
+                style="border-radius: 12px; padding: 11px 14px; font-size: 13.5px; line-height: 1.6; white-space: pre-wrap; word-break: break-word"
+              >
+                @if (msg.body && msg.body !== '(no message)') {
+                  <div>{{ msg.body }}</div>
+                }
+                @if (msg.attachments.length) {
+                  <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px">
+                    @for (att of msg.attachments; track att.id) {
+                      <button
+                        type="button"
+                        (click)="openLightbox(att.url)"
+                        style="padding: 0; border: 1px solid var(--bd); border-radius: 8px; overflow: hidden; cursor: zoom-in; background: #fff; line-height: 0"
+                        [title]="att.name"
+                      >
+                        <img
+                          [src]="att.url"
+                          [alt]="att.name"
+                          style="width: 150px; height: 96px; object-fit: cover; display: block"
+                        />
+                      </button>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        }
+      }
+    </div>
+
+    <!-- Composer -->
+    <div [class]="ui.card + ' ' + ui.cardPad">
+      <textarea
+        [class]="ui.input"
+        rows="3"
+        style="resize: vertical"
+        [placeholder]="isAdmin ? 'Reply to the customer…' : 'Add a reply…'"
+        [ngModel]="reply()"
+        (ngModelChange)="reply.set($event)"
+      ></textarea>
+
+      @if (staged().length) {
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px">
+          @for (att of staged(); track att.id) {
+            <div style="position: relative; border: 1px solid var(--bd); border-radius: 8px; overflow: hidden; line-height: 0">
+              <img [src]="att.url" [alt]="att.name" style="width: 90px; height: 64px; object-fit: cover; display: block" />
+              <button
+                type="button"
+                (click)="removeStaged(att.id)"
+                style="position: absolute; top: 3px; right: 3px; width: 18px; height: 18px; border-radius: 50%; border: none; background: rgba(0,0,0,0.6); color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0"
+                aria-label="Remove attachment"
+              >
+                <app-icon name="x" [size]="11" color="#fff" />
+              </button>
+            </div>
+          }
+        </div>
+      }
+
+      <div style="display: flex; align-items: center; gap: 8px; margin-top: 12px">
+        <label
+          [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm"
+          style="cursor: pointer; margin: 0"
+        >
+          <app-icon name="clip" [size]="13" />
+          Attach image
+          <input type="file" multiple accept="image/*" (change)="onFilesSelected($event)" style="display: none" />
+        </label>
+
+        @if (isAdmin) {
+          <button
+            type="button"
+            [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm"
+            [style.background]="internalNote() ? '#fff7ed' : ''"
+            [style.border-color]="internalNote() ? '#fed7aa' : ''"
+            [style.color]="internalNote() ? '#b45309' : ''"
+            (click)="internalNote.set(!internalNote())"
+          >
+            <app-icon name="lock" [size]="12" [color]="internalNote() ? '#b45309' : 'var(--t2)'" />
+            Internal note
+          </button>
+        }
+
+        <div style="flex: 1"></div>
+
+        <button
+          type="button"
+          [class]="ui.btn + ' ' + ui.btnPrimary"
+          [disabled]="!reply().trim() && !staged().length"
+          (click)="send()"
+        >
+          <app-icon name="send" [size]="13" color="#fff" />
+          {{ internalNote() ? 'Add note' : 'Send reply' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  @if (lightbox(); as url) {
+    <div
+      (click)="closeLightbox()"
+      style="position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,0.82); display: flex; align-items: center; justify-content: center; padding: 32px; cursor: zoom-out"
+    >
+      <img [src]="url" alt="Attachment" style="max-width: 92%; max-height: 92%; border-radius: 8px; box-shadow: 0 20px 60px rgba(0,0,0,0.5)" />
+      <button
+        type="button"
+        (click)="closeLightbox()"
+        style="position: absolute; top: 20px; right: 24px; width: 38px; height: 38px; border-radius: 50%; border: none; background: rgba(255,255,255,0.15); color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center"
+        aria-label="Close"
+      >
+        <app-icon name="x" [size]="18" color="#fff" />
+      </button>
+    </div>
+  }
+} @else {
+  <div [class]="ui.card + ' ' + ui.cardPad" style="text-align: center; color: var(--t3); padding: 48px">
+    Ticket not found.
+    <div style="margin-top: 14px">
+      <button type="button" [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm" (click)="back()">
+        Back to Tickets
+      </button>
+    </div>
+  </div>
+}

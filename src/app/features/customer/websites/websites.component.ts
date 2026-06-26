@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { AppContextService } from '../../../core/services/app-context.service';
-import { FixifyDataService } from '../../../core/services/fixify-data.service';
+import { DataSessionService, SitesDataService } from '../../../core/services/data';
 import { Site } from '../../../core/models/fixify.models';
 import { scoreColor } from '../../../core/utils/fixify.utils';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
@@ -20,18 +20,19 @@ import { tw } from '../../../shared/ui/tw';
 export class WebsitesComponent {
   protected readonly ui = tw;
 
-  private readonly data = inject(FixifyDataService);
+  private readonly session = inject(DataSessionService);
+  private readonly sitesData = inject(SitesDataService);
   private readonly ctx = inject(AppContextService);
   private readonly router = inject(Router);
 
   readonly scoreColor = scoreColor;
-  readonly loading = this.data.loading;
+  readonly loading = this.session.loading;
   readonly search = signal('');
 
   readonly sites = computed(() => {
-    this.data.dataRevision();
+    this.session.dataRevision();
     const q = this.search().trim().toLowerCase();
-    const all = this.data.mySites();
+    const all = this.sitesData.mySites();
     return q ? all.filter((s) => s.name.toLowerCase().includes(q)) : all;
   });
 

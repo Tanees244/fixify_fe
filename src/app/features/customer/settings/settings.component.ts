@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { FixifyDataService } from '../../../core/services/fixify-data.service';
+import { SitesDataService } from '../../../core/services/data';
 import { AppContextService } from '../../../core/services/app-context.service';
 import { Site } from '../../../core/models/fixify.models';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
@@ -18,11 +18,11 @@ import { tw } from '../../../shared/ui/tw';
 export class SettingsComponent {
   protected readonly ui = tw;
 
-  private readonly data = inject(FixifyDataService);
+  private readonly sitesData = inject(SitesDataService);
   private readonly ctx = inject(AppContextService);
 
   get sites(): Site[] {
-    return this.data.mySites();
+    return this.sitesData.mySites();
   }
 
   siteStatusBadge(st: Site['st']): 'bok' | 'bwn' | 'ber' {
@@ -38,6 +38,6 @@ export class SettingsComponent {
   }
 
   removeSite(id: number): void {
-    this.data.removeSite(id);
+    this.sitesData.removeSite(id);
   }
 }

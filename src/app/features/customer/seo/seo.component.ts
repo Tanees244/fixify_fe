@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 
 import { AppContextService } from '../../../core/services/app-context.service';
 
-import { FixifyDataService } from '../../../core/services/fixify-data.service';
+import { DataSessionService, SitesDataService } from '../../../core/services/data';
 
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
 import { ProgressBarComponent } from '../../../shared/components/progress-bar/progress-bar.component';
@@ -44,17 +44,19 @@ export class SeoComponent {
 
   readonly ctx = inject(AppContextService);
 
-  private readonly data = inject(FixifyDataService);
+  private readonly session = inject(DataSessionService);
+
+  private readonly sitesData = inject(SitesDataService);
 
 
 
   readonly scoreColor = scoreColor;
 
-  readonly loading = this.data.loading;
+  readonly loading = this.session.loading;
 
   readonly site = computed(() => {
 
-    this.data.dataRevision();
+    this.session.dataRevision();
 
     return this.ctx.selectedSite();
 
@@ -64,9 +66,9 @@ export class SeoComponent {
 
   readonly screen = computed(() => {
 
-    this.data.dataRevision();
+    this.session.dataRevision();
 
-    return this.data.seoScreen();
+    return this.sitesData.seoScreen();
 
   });
 
@@ -158,7 +160,7 @@ export class SeoComponent {
 
     if (!site) return;
 
-    await this.data.scanSiteSeo(site);
+    await this.sitesData.scanSiteSeo(site);
 
   }
 

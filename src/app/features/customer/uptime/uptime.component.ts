@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { AppContextService } from '../../../core/services/app-context.service';
-import { FixifyDataService } from '../../../core/services/fixify-data.service';
+import { DataSessionService, SitesDataService } from '../../../core/services/data';
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
 import { SparkLineComponent } from '../../../shared/components/spark-line/spark-line.component';
 import { UptimeHistoryDay } from '../../../core/models/site-screens.models';
@@ -17,14 +17,15 @@ export class UptimeComponent {
   protected readonly ui = tw;
 
   readonly ctx = inject(AppContextService);
-  private readonly data = inject(FixifyDataService);
+  private readonly session = inject(DataSessionService);
+  private readonly sitesData = inject(SitesDataService);
 
-  readonly loading = this.data.loading;
+  readonly loading = this.session.loading;
   readonly site = computed(() => this.ctx.selectedSite());
 
   readonly dashboard = computed(() => {
-    this.data.dataRevision();
-    return this.data.uptimeDashboard();
+    this.session.dataRevision();
+    return this.sitesData.uptimeDashboard();
   });
 
   readonly isOnline = computed(() => this.dashboard()?.status?.toLowerCase() === 'online');
