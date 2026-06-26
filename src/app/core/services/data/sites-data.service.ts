@@ -82,6 +82,8 @@ export class SitesDataService {
   readonly uptimeDashboard = signal<UptimeDashboard | null>(null);
 
   private nextSiteId = 100;
+  /** Customer id whose website list is already loaded (so we fetch it once globally). */
+  private customerWebsitesLoadedFor: number | null = null;
 
   ensureSelectedSite(): void {
     const custId = this.ctx.currentCustomerId();
@@ -144,6 +146,26 @@ export class SitesDataService {
     this.fetchWebsites({ clientId: apiId }, done);
   }
 
+  /**
+   * Loads the customer's website list once and keeps it global. Subsequent pages
+   * reuse the already-loaded list (and the globally selected site) instead of
+   * re-fetching, so the sidebar/topbar selection stays stable across navigation.
+   */
+  ensureCustomerWebsites(done?: () => void): void {
+    if (!this.session.useApi()) {
+      done?.();
+      return;
+    }
+    if (
+      this.customerWebsitesLoadedFor === this.ctx.currentCustomerId() &&
+      this.sites.length
+    ) {
+      done?.();
+      return;
+    }
+    this.fetchCustomerWebsites(done);
+  }
+
   fetchCustomerWebsites(done?: () => void): void {
     const user = this.auth.getCurrentUser();
     if (!this.session.useApi()) {
@@ -171,6 +193,7 @@ export class SitesDataService {
         );
         this.syncWordPressFromSites();
         this.syncSelectedSite(user ?? { role: 'customer' });
+        this.customerWebsitesLoadedFor = this.ctx.currentCustomerId();
         this.session.endLoad();
         done?.();
       },
@@ -1068,6 +1091,7 @@ export class SitesDataService {
     this.sites.splice(0, this.sites.length, ...sites);
     this.syncWordPressFromSites();
     this.syncSelectedSite(this.auth.getCurrentUser() ?? { role: 'customer' });
+    this.customerWebsitesLoadedFor = this.ctx.currentCustomerId();
   }
 
   syncSelectedSite(user: { customerId?: number; role: string }): void {
@@ -1096,15 +1120,18 @@ export class SitesDataService {
   private applyPerformanceToSite(localSiteId: number, data: SitePerformanceScreen): void {
     const idx = this.sites.findIndex((s) => s.id === localSiteId);
     if (idx < 0) return;
-    const perf = data.lighthouse.performance;
-    const seo = data.lighthouse.seo;
+    // Headline numbers on the site card use the desktop profile (falling back to mobile).
+    const lh = data.lighthouse?.desktop ?? data.lighthouse?.mobile;
+    const cwv = data.coreWebVitals?.desktop ?? data.coreWebVitals?.mobile;
+    const perf = lh?.performance ?? this.sites[idx].perf;
+    const seo = lh?.seo ?? this.sites[idx].seo;
     const updated: Site = {
       ...this.sites[idx],
       perf,
       seo,
-      lcp: data.coreWebVitals.lcp.value,
-      fid: data.coreWebVitals.fid.value,
-      cls: data.coreWebVitals.cls.value,
+      lcp: cwv?.lcp?.value ?? this.sites[idx].lcp,
+      fid: cwv?.fid?.value ?? this.sites[idx].fid,
+      cls: cwv?.cls?.value ?? this.sites[idx].cls,
       scan: data.lastScan,
       health: Math.round((perf + this.sites[idx].sec + seo + this.sites[idx].up) / 4),
       st: perf >= 80 ? 'ok' : perf >= 60 ? 'warn' : 'bad',

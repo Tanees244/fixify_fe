@@ -1,27 +1,47 @@
+export type DeviceType = 'desktop' | 'mobile';
+
+export interface LighthouseScores {
+  performance: number;
+  accessibility: number;
+  bestPractices: number;
+  seo: number;
+}
+
+export interface CoreWebVital {
+  value: string;
+  status: string;
+}
+
+export interface CoreWebVitals {
+  lcp: CoreWebVital;
+  fid: CoreWebVital;
+  cls: CoreWebVital;
+}
+
+export interface PageDeviceMetrics {
+  score: number;
+  lcp: string;
+  fid: string;
+  cls: string;
+}
+
+export interface PerformancePage {
+  url: string;
+  desktop: PageDeviceMetrics;
+  mobile: PageDeviceMetrics;
+}
+
 export interface SitePerformanceScreen {
   siteId: string;
   siteName: string;
   lastScan: string;
   scanning: boolean;
-  lighthouse: {
-    performance: number;
-    accessibility: number;
-    bestPractices: number;
-    seo: number;
-  };
-  coreWebVitals: {
-    lcp: { value: string; status: string };
-    fid: { value: string; status: string };
-    cls: { value: string; status: string };
-  };
+  /** Lighthouse category scores split by device. */
+  lighthouse: Record<DeviceType, LighthouseScores>;
+  /** Core Web Vitals split by device. */
+  coreWebVitals: Record<DeviceType, CoreWebVitals>;
   history: number[];
-  pages: Array<{
-    url: string;
-    score: number;
-    lcp: string;
-    fid: string;
-    cls: string;
-  }>;
+  pages: PerformancePage[];
 }
 
 export interface SiteSecurityScreen {
@@ -47,6 +67,22 @@ export interface SiteSecurityScreen {
   };
 }
 
+export interface SeoAudit {
+  id: string;
+  title: string;
+  description: string;
+  score: number | null;
+  scoreDisplayMode: string;
+  passed: boolean | null;
+}
+
+export interface SeoGoogleConnection {
+  connected: boolean;
+  email?: string;
+  gscSiteUrl?: string;
+  lastRefreshedAt?: string;
+}
+
 export interface SiteSeoScreen {
   siteId: string;
   siteName: string;
@@ -59,6 +95,8 @@ export interface SiteSeoScreen {
     backlinks: number | null;
   };
   signals: Array<{ label: string; score: number }>;
+  audits?: SeoAudit[];
+  google?: SeoGoogleConnection;
   keywords: Array<Record<string, unknown>>;
   issues: Array<{
     key: string;

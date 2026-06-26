@@ -1,6 +1,8 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 
 import { DataSessionService, SitesDataService } from '../../../core/services/data';
+
+import { DeviceType } from '../../../core/models/site-screens.models';
 
 import { AppContextService } from '../../../core/services/app-context.service';
 
@@ -62,6 +64,18 @@ export class PerformanceComponent {
 
   readonly loading = this.session.loading;
 
+  /** Lighthouse runs against desktop & mobile; user toggles which profile to view. */
+  readonly device = signal<DeviceType>('desktop');
+
+  readonly devices: { id: DeviceType; label: string }[] = [
+    { id: 'desktop', label: 'Desktop' },
+    { id: 'mobile', label: 'Mobile' },
+  ];
+
+  setDevice(device: DeviceType): void {
+    this.device.set(device);
+  }
+
 
 
   readonly site = computed(() => {
@@ -84,7 +98,10 @@ export class PerformanceComponent {
 
 
 
-  readonly pages = computed(() => this.screen()?.pages ?? []);
+  readonly pages = computed(() => {
+    const d = this.device();
+    return (this.screen()?.pages ?? []).map((p) => ({ url: p.url, ...p[d] }));
+  });
 
 
 
@@ -94,7 +111,7 @@ export class PerformanceComponent {
 
   readonly lighthouseScores = computed(() => {
 
-    const lh = this.screen()?.lighthouse;
+    const lh = this.screen()?.lighthouse?.[this.device()];
 
     if (!lh) return [];
 
@@ -116,7 +133,7 @@ export class PerformanceComponent {
 
   readonly cwv = computed(() => {
 
-    const vitals = this.screen()?.coreWebVitals;
+    const vitals = this.screen()?.coreWebVitals?.[this.device()];
 
     if (!vitals) return [];
 

@@ -46,7 +46,7 @@ const ADMIN_ROUTES: Record<string, string> = {
       <div [class]="ui.sidebarTop">
         <div [class]="ui.logo">
           <div [class]="ui.logoIcon">
-            <img src="/favicon.png" alt="Fixify" width="32" height="32" />
+            <img src="/favicon.png" alt="Fixify" width="40" height="40" />
           </div>
           <span [class]="ui.logoText">Fix<span class="text-fixify-accent">ify</span></span>
         </div>

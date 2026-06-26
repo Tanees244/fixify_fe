@@ -11,8 +11,7 @@ import {
   CustomersDataService,
   SubscriptionsDataService,
 } from '../../../core/services/data';
-import { AppContextService } from '../../../core/services/app-context.service';
-import { Customer, SubscriptionPlan } from '../../../core/models/fixify.models';
+import { Customer } from '../../../core/models/fixify.models';
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { TableSkeletonComponent } from '../../../shared/components/table-skeleton/table-skeleton.component';
@@ -33,12 +32,10 @@ export class SubscriptionsComponent {
   private readonly session = inject(DataSessionService);
   private readonly customersData = inject(CustomersDataService);
   private readonly subscriptionsData = inject(SubscriptionsDataService);
-  private readonly ctx = inject(AppContextService);
   private readonly router = inject(Router);
 
   readonly customers = this.customersData.customers;
   readonly loading = this.session.loading;
-  readonly planSaving = this.subscriptionsData.planSaving;
 
   readonly tab = signal<SubTab>('plans');
   readonly search = signal('');
@@ -106,27 +103,6 @@ export class SubscriptionsComponent {
 
   onSearch(value: string): void {
     this.search.set(value);
-  }
-
-  createPlan(): void {
-    this.ctx.openModal({ type: 'subscriptionPlan' });
-  }
-
-  editPlan(plan: SubscriptionPlan): void {
-    this.ctx.openModal({ type: 'subscriptionPlan', data: plan });
-  }
-
-  deletePlan(plan: SubscriptionPlan): void {
-    const count = this.subscriptionsData.customersOnPlan(plan.id);
-    this.ctx.openModal({
-      type: 'confirm',
-      title: 'Delete subscription plan?',
-      body: count
-        ? `Cannot delete "${plan.name}" — ${count} customer(s) are on this plan. Reassign them first.`
-        : `Permanently delete the "${plan.name}" plan (${plan.priceLabel})?`,
-      danger: count === 0,
-      onConfirm: count === 0 ? () => this.subscriptionsData.deleteSubscriptionPlan(plan.id) : undefined,
-    });
   }
 
   assignPlan(customer: Customer, planId: string): void {

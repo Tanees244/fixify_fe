@@ -51,36 +51,36 @@ export class RouteDataLoaderService {
     if (customerManageMatch) {
       const siteId = Number(customerManageMatch[1]);
       const screen = customerManageMatch[2] ?? 'overview';
-      this.sitesData.fetchCustomerWebsites(() => {
+      this.sitesData.ensureCustomerWebsites(() => {
         this.loadSiteManageScreen(siteId, screen);
         this.tick();
       });
       return;
     }
     if (path.startsWith('/customer/sites')) {
-      this.sitesData.fetchCustomerWebsites(() => this.tick());
+      this.sitesData.ensureCustomerWebsites(() => this.tick());
       return;
     }
     if (path.startsWith('/customer/performance')) {
-      this.sitesData.fetchCustomerWebsites(() => {
+      this.sitesData.ensureCustomerWebsites(() => {
         this.sitesData.fetchSitePerformance(this.ctx.selectedSite(), () => this.tick());
       });
       return;
     }
     if (path.startsWith('/customer/security')) {
-      this.sitesData.fetchCustomerWebsites(() => {
+      this.sitesData.ensureCustomerWebsites(() => {
         this.sitesData.fetchSiteSecurity(this.ctx.selectedSite(), () => this.tick());
       });
       return;
     }
     if (path.startsWith('/customer/seo')) {
-      this.sitesData.fetchCustomerWebsites(() => {
+      this.sitesData.ensureCustomerWebsites(() => {
         this.sitesData.fetchSiteSeo(this.ctx.selectedSite(), () => this.tick());
       });
       return;
     }
     if (path.startsWith('/customer/uptime')) {
-      this.sitesData.fetchCustomerWebsites(() => {
+      this.sitesData.ensureCustomerWebsites(() => {
         this.sitesData.fetchSiteUptime(this.ctx.selectedSite(), () => this.tick());
       });
       return;
@@ -90,12 +90,12 @@ export class RouteDataLoaderService {
       const done = () => {
         if (--pending === 0) this.tick();
       };
-      this.sitesData.fetchCustomerWebsites(done);
+      this.sitesData.ensureCustomerWebsites(done);
       this.ticketsData.fetchTickets({ role: 'client', page: 1, limit: 10 }, done);
       return;
     }
     if (path.startsWith('/customer/reports')) {
-      this.sitesData.fetchCustomerWebsites(() => {
+      this.sitesData.ensureCustomerWebsites(() => {
         const site = this.ctx.selectedSite();
         if (site) {
           this.reportsData.loadWebsiteReports(site.id, new Date().getFullYear(), () => this.tick());
@@ -110,7 +110,7 @@ export class RouteDataLoaderService {
       const done = () => {
         if (--pending === 0) this.tick();
       };
-      this.sitesData.fetchCustomerWebsites(done);
+      this.sitesData.ensureCustomerWebsites(done);
       this.subscriptionsData.fetchSubscriptions(done);
       return;
     }

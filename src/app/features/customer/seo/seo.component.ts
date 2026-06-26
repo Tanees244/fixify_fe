@@ -5,6 +5,7 @@ import { AppContextService } from '../../../core/services/app-context.service';
 import { DataSessionService, SitesDataService } from '../../../core/services/data';
 
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
+import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { ProgressBarComponent } from '../../../shared/components/progress-bar/progress-bar.component';
 import { StatCardsSkeletonComponent } from '../../../shared/components/stat-cards-skeleton/stat-cards-skeleton.component';
 import { CardPanelSkeletonComponent } from '../../../shared/components/card-panel-skeleton/card-panel-skeleton.component';
@@ -26,6 +27,7 @@ import { tw } from '../../../shared/ui/tw';
 
   imports: [
     BadgeComponent,
+    IconComponent,
     ProgressBarComponent,
     StatCardsSkeletonComponent,
     CardPanelSkeletonComponent,
@@ -83,6 +85,28 @@ export class SeoComponent {
 
 
   readonly signals = computed(() => this.screen()?.signals ?? []);
+
+
+
+  readonly google = computed(() => this.screen()?.google ?? null);
+
+
+
+  readonly audits = computed(() => this.screen()?.audits ?? []);
+
+
+
+  readonly auditsPassed = computed(
+    () => this.audits().filter((a) => a.passed === true).length
+  );
+
+
+
+  auditState(passed: boolean | null): 'pass' | 'fail' | 'manual' {
+    if (passed === true) return 'pass';
+    if (passed === false) return 'fail';
+    return 'manual';
+  }
 
 
 

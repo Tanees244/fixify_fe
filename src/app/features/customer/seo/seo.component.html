@@ -3,6 +3,21 @@
     <div [class]="ui.pageHeader">
       <div [class]="ui.pageTitle">SEO</div>
       <div [class]="ui.pageSub">{{ site.name }} · On-page analysis, indexing & rankings</div>
+      @if (!loading() && google(); as g) {
+        <div style="display: inline-flex; align-items: center; gap: 7px; margin-top: 8px; font-size: 12px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--bd); background: var(--s2)">
+          <span
+            style="width: 8px; height: 8px; border-radius: 999px"
+            [style.background]="g.connected ? 'var(--ok)' : 'var(--t3)'"
+          ></span>
+          <span style="color: var(--t2)">
+            Google Search Console:
+            <strong style="color: var(--t1)">{{ g.connected ? 'Connected' : 'Not connected' }}</strong>
+            @if (g.connected && g.email) {
+              · {{ g.email }}
+            }
+          </span>
+        </div>
+      }
     </div>
 
     <div [class]="ui.pageBody">
@@ -57,6 +72,45 @@
             } @else {
               <div style="padding: 16px 0; color: var(--t3); font-size: 13px">Keyword tracking data is not available yet.</div>
             }
+          </div>
+        </div>
+      }
+
+      @if (!loading() && audits().length) {
+        <div [class]="ui.pageSection + ' ' + ui.u + ' ' + ui.u2">
+          <div [class]="ui.sectionHead">
+            <div [class]="ui.sectionTitle">Lighthouse SEO Audits ({{ auditsPassed() }}/{{ audits().length }} passed)</div>
+          </div>
+          <div [class]="ui.card + ' ' + ui.cardPad">
+            <div style="display: flex; flex-direction: column; gap: 2px">
+              @for (a of audits(); track a.id) {
+                <div style="display: flex; align-items: flex-start; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--b2)">
+                  @switch (auditState(a.passed)) {
+                    @case ('pass') {
+                      <span style="flex-shrink: 0; width: 22px; height: 22px; border-radius: 999px; display: flex; align-items: center; justify-content: center; background: rgba(34,197,94,.14)">
+                        <app-icon name="check" [size]="13" color="var(--ok)" />
+                      </span>
+                    }
+                    @case ('fail') {
+                      <span style="flex-shrink: 0; width: 22px; height: 22px; border-radius: 999px; display: flex; align-items: center; justify-content: center; background: rgba(220,53,69,.14)">
+                        <app-icon name="x" [size]="13" color="var(--er)" />
+                      </span>
+                    }
+                    @default {
+                      <span style="flex-shrink: 0; width: 22px; height: 22px; border-radius: 999px; display: flex; align-items: center; justify-content: center; background: var(--s2)">
+                        <span style="font-size: 11px; color: var(--t3); font-weight: 700">i</span>
+                      </span>
+                    }
+                  }
+                  <div style="flex: 1; min-width: 0">
+                    <div style="font-weight: 600; font-size: 13px; color: var(--t1)">{{ a.title }}</div>
+                  </div>
+                  <app-badge [variant]="auditState(a.passed) === 'pass' ? 'bok' : auditState(a.passed) === 'fail' ? 'ber' : 'bgr'">
+                    {{ auditState(a.passed) === 'pass' ? 'Pass' : auditState(a.passed) === 'fail' ? 'Fail' : 'Manual' }}
+                  </app-badge>
+                </div>
+              }
+            </div>
           </div>
         </div>
       }
