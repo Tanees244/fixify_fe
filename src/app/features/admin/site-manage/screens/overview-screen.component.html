@@ -2,10 +2,35 @@
   <div [class]="ui.smPage + ' ' + ui.u">
     <div [class]="ui.smPageHd">
       <div>
-        <div [class]="ui.sectionTitle">Site Management</div>
-        <div [class]="ui.pageSub">Choose an area to manage {{ facade.site()?.name }}</div>
+        <div [class]="ui.sectionTitle">WordPress Overview</div>
+        <div [class]="ui.pageSub">
+          Agent snapshot for {{ facade.site()?.name }}
+          @if (state.dataSource) {
+            · <span style="text-transform: capitalize">{{ state.dataSource }}</span>
+          }
+        </div>
       </div>
+      @if (state.lastRefreshedAt) {
+        <span [class]="ui.topbarSiteBadge">Refreshed {{ formatRefreshed(state.lastRefreshedAt) }}</span>
+      }
     </div>
+
+    @if (state.dashboard?.notices?.length || state.warnings?.length) {
+      <div [class]="ui.u" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px">
+        @for (notice of state.dashboard?.notices ?? []; track notice.message) {
+          <div [class]="ui.adminDashPreviewBanner">
+            <app-icon name="alert" [size]="14" color="var(--wn)" />
+            <span><strong>{{ notice.source }}:</strong> {{ notice.message }}</span>
+          </div>
+        }
+        @for (warning of state.warnings ?? []; track warning) {
+          <div [class]="ui.adminDashPreviewBanner">
+            <app-icon name="alert" [size]="14" color="var(--wn)" />
+            {{ warning }}
+          </div>
+        }
+      </div>
+    }
 
     <div [class]="ui.grid4 + ' ' + ui.u" style="margin-bottom: 22px">
       <div [class]="ui.statCard">
@@ -13,18 +38,16 @@
           <app-icon name="refresh" [size]="13" color="var(--acc)" />
           WordPress
         </div>
-        <div [class]="ui.statVal" [style.color]="facade.wpCoreOutdated() ? 'var(--wn)' : 'var(--ok)'">{{ state.wpVersion || '—' }}</div>
-        <div [class]="ui.statSub">{{ facade.wpCoreOutdated() ? 'Update available' : 'Up to date' }}</div>
-      </div>
-      <div [class]="ui.statCard">
-        <div [class]="ui.statLbl">
-          <app-icon name="layers" [size]="13" color="var(--acc)" />
-          Plugins
+        <div [class]="ui.statVal" [style.color]="facade.wpCoreOutdated() ? 'var(--wn)' : 'var(--ok)'">
+          {{ state.wpVersion || '—' }}
         </div>
-        <div [class]="ui.statVal" [style.color]="facade.pendingPluginCount() ? 'var(--wn)' : 'var(--ok)'">
-          {{ facade.pendingPluginCount() }}
+        <div [class]="ui.statSub">
+          @if (facade.wpCoreOutdated()) {
+            Latest {{ state.latestWpVersion || '—' }}
+          } @else {
+            Up to date
+          }
         </div>
-        <div [class]="ui.statSub">Updates pending</div>
       </div>
       <div [class]="ui.statCard">
         <div [class]="ui.statLbl">
@@ -36,13 +59,229 @@
       </div>
       <div [class]="ui.statCard">
         <div [class]="ui.statLbl">
-          <app-icon name="file" [size]="13" color="var(--acc)" />
-          Theme
+          <app-icon name="layers" [size]="13" color="var(--acc)" />
+          Plugins
         </div>
-        <div [class]="ui.statVal" [style.color]="facade.themeOutdated() ? 'var(--wn)' : 'var(--t1)'">{{ state.activeTheme || '—' }}</div>
-        <div [class]="ui.statSub">{{ state.themeVersion ? 'v' + state.themeVersion : '—' }}</div>
+        <div [class]="ui.statVal" [style.color]="facade.pendingPluginCount() ? 'var(--wn)' : 'var(--ok)'">
+          {{ state.pluginStats?.installed ?? state.plugins.length }}
+        </div>
+        <div [class]="ui.statSub">
+          {{ facade.pendingPluginCount() }} update{{ facade.pendingPluginCount() === 1 ? '' : 's' }} pending
+          · {{ state.pluginStats?.active ?? 0 }} active
+        </div>
+      </div>
+      <div [class]="ui.statCard">
+        <div [class]="ui.statLbl">
+          <app-icon name="shield" [size]="13" color="var(--acc)" />
+          Agent Health
+        </div>
+        <div [class]="ui.statVal" [style.color]="scoreColor(state.agentHealth ?? 0)">
+          {{ state.agentHealth ?? '—' }}
+        </div>
+        <div [class]="ui.statSub">
+          {{ state.agentIssues ?? 0 }} issue{{ (state.agentIssues ?? 0) === 1 ? '' : 's' }}
+          · Last scan {{ state.lastScan || 'never' }}
+        </div>
       </div>
     </div>
+
+    @if (state.dashboard?.updates; as updates) {
+      <div [class]="ui.grid2 + ' ' + ui.u" style="margin-bottom: 22px">
+        <div [class]="ui.card + ' ' + ui.cardPad + ' ' + ui.smPanel">
+          <div [class]="ui.sectionHead" style="margin-bottom: 14px">
+            <div [class]="ui.sectionTitle" style="font-size: 14px">Pending Updates</div>
+            <app-badge [variant]="updates.total ? 'bwn' : 'bok'">{{ updates.total }} total</app-badge>
+          </div>
+          <div [class]="ui.wpSummaryGrid">
+            <div [class]="ui.wpSummaryItem">
+              <span [class]="ui.wpSummaryLabel">WordPress core</span>
+              <span [class]="ui.wpSummaryValue">
+                @if (updates.core.available) {
+                  <app-badge variant="bwn">{{ updates.core.current }} → {{ updates.core.latest }}</app-badge>
+                } @else {
+                  <app-badge variant="bok">Up to date</app-badge>
+                }
+              </span>
+            </div>
+            <div [class]="ui.wpSummaryItem">
+              <span [class]="ui.wpSummaryLabel">Plugins</span>
+              <span [class]="ui.wpSummaryValue">{{ updates.plugins }} pending</span>
+            </div>
+            <div [class]="ui.wpSummaryItem">
+              <span [class]="ui.wpSummaryLabel">Themes</span>
+              <span [class]="ui.wpSummaryValue">{{ updates.themes }} pending</span>
+            </div>
+            <div [class]="ui.wpSummaryItem">
+              <span [class]="ui.wpSummaryLabel">Comments</span>
+              <span [class]="ui.wpSummaryValue">{{ updates.comments }} awaiting moderation</span>
+            </div>
+          </div>
+        </div>
+
+        <div [class]="ui.card + ' ' + ui.cardPad + ' ' + ui.smPanel">
+          <div [class]="ui.sectionHead" style="margin-bottom: 14px">
+            <div [class]="ui.sectionTitle" style="font-size: 14px">WordPress Admin Links</div>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px">
+            @if (state.dashboard?.adminUrls?.dashboard; as url) {
+              <button type="button" [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm" (click)="openAdminUrl(url)">
+                <app-icon name="extl" [size]="12" /> Dashboard
+              </button>
+            }
+            @if (state.dashboard?.adminUrls?.plugins; as url) {
+              <button type="button" [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm" (click)="openAdminUrl(url)">
+                <app-icon name="layers" [size]="12" /> Plugins
+              </button>
+            }
+            @if (state.dashboard?.adminUrls?.updateCore; as url) {
+              <button type="button" [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm" (click)="openAdminUrl(url)">
+                <app-icon name="refresh" [size]="12" /> Update Core
+              </button>
+            }
+            @if (state.dashboard?.adminUrls?.updates; as url) {
+              <button type="button" [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm" (click)="openAdminUrl(url)">
+                <app-icon name="refresh" [size]="12" /> Updates
+              </button>
+            }
+          </div>
+          <div style="margin-top: 16px; display: flex; flex-wrap: wrap; gap: 8px">
+            @if (state.dataSource) {
+              <span [class]="ui.topbarSiteBadge">Source: {{ state.dataSource }}</span>
+            }
+            @if (state.agentHealth !== undefined) {
+              <span [class]="ui.topbarSiteBadge">
+                Health
+                <app-badge [variant]="healthBadgeVariant(state.agentHealth)">{{ state.agentHealth }}</app-badge>
+              </span>
+            }
+            @if (state.activeTheme) {
+              <span [class]="ui.topbarSiteBadge">Theme: {{ state.activeTheme }}</span>
+            }
+          </div>
+        </div>
+      </div>
+    }
+
+    @if (facade.pendingPlugins().length) {
+      <div [class]="ui.sectionHead + ' ' + ui.u">
+        <div [class]="ui.sectionTitle">Plugins Needing Updates</div>
+      </div>
+      <div [class]="ui.card + ' ' + ui.smPanel + ' ' + ui.u" style="overflow: hidden; margin-bottom: 22px">
+        <table [class]="ui.table">
+          <thead>
+            <tr>
+              <th [class]="ui.th">Plugin</th>
+              <th [class]="ui.th">Installed</th>
+              <th [class]="ui.th">Latest</th>
+              <th [class]="ui.th">Status</th>
+              @if (!facade.isCustomer()) {
+                <th [class]="ui.th"></th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (p of facade.pendingPlugins(); track p.id) {
+              <tr>
+                <td [class]="ui.td" style="font-weight: 600">{{ p.name }}</td>
+                <td [class]="ui.td + ' ' + ui.wpMono">{{ p.version }}</td>
+                <td [class]="ui.td + ' ' + ui.wpMono">{{ p.latestVersion }}</td>
+                <td [class]="ui.td">
+                  <app-badge variant="bwn">{{ p.status === 'update' ? 'Update available' : p.status }}</app-badge>
+                </td>
+                @if (!facade.isCustomer()) {
+                  <td [class]="ui.td" style="text-align: right">
+                    <button
+                      type="button"
+                      [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm"
+                      [disabled]="facade.scanning()"
+                      (click)="facade.updatePlugin(p.id)"
+                    >
+                      Update
+                    </button>
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    @if (state.dashboard?.filePermissions?.length) {
+      <div [class]="ui.sectionHead + ' ' + ui.u">
+        <div [class]="ui.sectionTitle">File Permissions</div>
+      </div>
+      <div [class]="ui.card + ' ' + ui.smPanel + ' ' + ui.u" style="overflow: hidden; margin-bottom: 22px">
+        <table [class]="ui.table">
+          <thead>
+            <tr>
+              <th [class]="ui.th">Path</th>
+              <th [class]="ui.th">Exists</th>
+              <th [class]="ui.th">Writable</th>
+              <th [class]="ui.th">Permissions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (perm of state.dashboard!.filePermissions; track perm.path) {
+              <tr>
+                <td [class]="ui.td">
+                  <div style="font-weight: 500">{{ perm.label }}</div>
+                  <div style="font-size: 11px; color: var(--t3); font-family: 'DM Mono', monospace">{{ perm.path }}</div>
+                </td>
+                <td [class]="ui.td">
+                  <app-badge [variant]="perm.exists ? 'bok' : 'ber'">{{ perm.exists ? 'Yes' : 'No' }}</app-badge>
+                </td>
+                <td [class]="ui.td">
+                  <app-badge [variant]="perm.writable ? 'bok' : 'ber'">{{ perm.writable ? 'Yes' : 'No' }}</app-badge>
+                </td>
+                <td [class]="ui.td + ' ' + ui.wpMono">{{ perm.permissions || '—' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    @if (!facade.isCustomer() && (facade.wpCoreOutdated() || facade.pendingPluginCount() > 0)) {
+      <div [class]="ui.card + ' ' + ui.cardPad + ' ' + ui.u" style="margin-bottom: 22px">
+        <div [class]="ui.sectionHead" style="margin-bottom: 14px">
+          <div [class]="ui.sectionTitle">Quick Updates</div>
+          <div [class]="ui.pageSub" style="margin: 0">Run updates directly from the connected WordPress agent</div>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px">
+          @if (facade.wpCoreOutdated()) {
+            <button
+              type="button"
+              [class]="ui.btn + ' ' + ui.btnPrimary + ' ' + ui.btnSm"
+              [disabled]="facade.scanning()"
+              (click)="facade.updateWordPressCore()"
+            >
+              @if (facade.scanning()) {
+                <app-icon name="loader" [size]="13" color="#fff" />
+              } @else {
+                <app-icon name="refresh" [size]="13" color="#fff" />
+              }
+              Update WordPress to {{ state.latestWpVersion || 'latest' }}
+            </button>
+          }
+          @if (facade.pendingPluginCount() > 0) {
+            <button
+              type="button"
+              [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm"
+              [disabled]="facade.scanning()"
+              (click)="facade.updateAllPlugins()"
+            >
+              @if (facade.scanning()) {
+                <app-icon name="loader" [size]="13" />
+              } @else {
+                <app-icon name="layers" [size]="13" />
+              }
+              Update all plugins ({{ facade.pendingPluginCount() }})
+            </button>
+          }
+        </div>
+      </div>
+    }
 
     <div [class]="ui.sectionHead + ' ' + ui.u">
       <div [class]="ui.sectionTitle">Management Screens</div>

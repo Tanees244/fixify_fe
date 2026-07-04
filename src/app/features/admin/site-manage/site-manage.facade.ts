@@ -7,6 +7,7 @@ import {
   DataSessionService,
   SitesDataService,
 } from '../../../core/services/data';
+import { AppContextService } from '../../../core/services/app-context.service';
 import { scoreColor } from '../../../core/utils/fixify.utils';
 
 @Injectable()
@@ -16,8 +17,10 @@ export class SiteManageFacade {
   private readonly session = inject(DataSessionService);
   private readonly sitesData = inject(SitesDataService);
   private readonly customersData = inject(CustomersDataService);
+  private readonly ctx = inject(AppContextService);
 
   readonly loading = this.session.loading;
+  readonly scanning = this.ctx.scanning;
   readonly scoreColor = scoreColor;
 
   readonly siteId = toSignal(
@@ -43,12 +46,26 @@ export class SiteManageFacade {
 
   readonly pendingPluginCount = computed(() => {
     const state = this.wpState();
-    return state ? state.plugins.filter((p) => p.status !== 'ok').length : 0;
+    if (!state) return 0;
+    if (state.pluginStats?.updatesNeeded !== undefined) return state.pluginStats.updatesNeeded;
+    if (state.dashboard?.updates?.plugins !== undefined) return state.dashboard.updates.plugins;
+    return state.plugins.filter((p) => p.status !== 'ok').length;
   });
 
   readonly wpCoreOutdated = computed(() => {
     const s = this.wpState();
-    return !!s && s.wpVersion !== s.latestWpVersion;
+    if (!s) return false;
+    if (s.dashboard?.updates?.core?.available) return true;
+    return !!s.wpVersion && !!s.latestWpVersion && s.wpVersion !== s.latestWpVersion;
+  });
+
+  readonly pendingPlugins = computed(() => {
+    const state = this.wpState();
+    return state?.plugins.filter((p) => p.status !== 'ok') ?? [];
+  });
+
+  readonly themeUpdatesPending = computed(() => {
+    return this.wpState()?.dashboard?.updates?.themes ?? 0;
   });
 
   readonly themeOutdated = computed(() => {
@@ -91,5 +108,20 @@ export class SiteManageFacade {
         queryParams: { tab: 'wordpress', site: s.id },
       });
     }
+  }
+
+  updateWordPressCore(): void {
+    const id = this.siteId();
+    if (id) void this.sitesData.performWordPressAction(id, 'update_wordpress_core');
+  }
+
+  updateAllPlugins(): void {
+    const id = this.siteId();
+    if (id) void this.sitesData.performWordPressAction(id, 'update_all_plugins');
+  }
+
+  updatePlugin(pluginId: string): void {
+    const id = this.siteId();
+    if (id) void this.sitesData.performWordPressAction(id, 'update_plugin', pluginId);
   }
 }

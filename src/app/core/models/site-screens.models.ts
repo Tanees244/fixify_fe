@@ -209,6 +209,7 @@ export interface WpConnectionStatus {
   siteId: string;
   connected: boolean;
   connectPageUrl: string | null;
+  pluginDownloadUrl?: string | null;
   reachable?: boolean;
   wpVersion?: string;
   agentVersion?: string;
@@ -224,6 +225,51 @@ export interface WpApiPlugin {
   active: boolean;
 }
 
+export interface WpDashboardNotice {
+  type: string;
+  source: string;
+  message: string;
+}
+
+export interface WpDashboardUpdates {
+  total: number;
+  core: { available: boolean; current: string; latest: string };
+  plugins: number;
+  themes: number;
+  comments: number;
+}
+
+export interface WpFilePermission {
+  path: string;
+  label: string;
+  exists: boolean;
+  writable: boolean;
+  permissions: string | null;
+}
+
+export interface WpAdminUrls {
+  dashboard?: string;
+  updateCore?: string;
+  plugins?: string;
+  updates?: string;
+}
+
+export interface WpPluginsDashboard {
+  notices: WpDashboardNotice[];
+  warnings: string[];
+  updates: WpDashboardUpdates;
+  filePermissions: WpFilePermission[];
+  adminUrls: WpAdminUrls;
+  phpVersion: string;
+  wpVersion: string;
+}
+
+export interface WpPluginStats {
+  installed: number;
+  updatesNeeded: number;
+  active: number;
+}
+
 export interface WpOverviewScreen {
   siteId: string;
   siteName: string;
@@ -236,7 +282,14 @@ export interface WpOverviewScreen {
 export interface WpPluginsScreen {
   siteId: string;
   siteName: string;
-  stats: { installed: number; updatesNeeded: number; active: number };
+  health?: number;
+  issues?: number;
+  lastScan?: string;
+  lastRefreshedAt?: string;
+  dataSource?: string;
+  warnings?: string[];
+  dashboard?: WpPluginsDashboard;
+  stats: WpPluginStats;
   plugins: WpApiPlugin[];
 }
 

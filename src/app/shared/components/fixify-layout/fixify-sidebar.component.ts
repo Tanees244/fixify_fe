@@ -42,13 +42,21 @@ const ADMIN_ROUTES: Record<string, string> = {
   imports: [RouterLink, RouterLinkActive, IconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <aside [class]="ui.sidebar">
+    <aside [class]="ui.sidebar + (ctx.mobileNavOpen() ? ' ' + ui.sidebarOpen : '')">
       <div [class]="ui.sidebarTop">
         <div [class]="ui.logo">
           <div [class]="ui.logoIcon">
             <img src="/favicon.png" alt="Fixify" width="40" height="40" />
           </div>
           <span [class]="ui.logoText">Fix<span class="text-fixify-accent">ify</span></span>
+          <button
+            type="button"
+            class="ml-auto inline-flex h-8 w-8 items-center justify-center rounded-lg border border-fixify-border bg-fixify-surface-2 lg:hidden"
+            (click)="ctx.closeMobileNav()"
+            aria-label="Close menu"
+          >
+            <app-icon name="x" [size]="14" />
+          </button>
         </div>
 
         @if (auth.user()?.role === 'customer') {
@@ -77,6 +85,7 @@ const ADMIN_ROUTES: Record<string, string> = {
                 routerLinkActive
                 #rla="routerLinkActive"
                 [class]="ui.nav + (rla.isActive ? ' ' + ui.navActive : '')"
+                (click)="ctx.closeMobileNav()"
               >
                 <app-icon [name]="item.icon" [size]="15" />
                 <span class="min-w-0 flex-1">{{ item.label }}</span>
@@ -92,6 +101,7 @@ const ADMIN_ROUTES: Record<string, string> = {
                 ui.navWp +
                 (wpRla.isActive ? ' ' + ui.navWpActive : '')
               "
+              (click)="ctx.closeMobileNav()"
             >
               <app-icon name="plus" [size]="15" />
               <span class="min-w-0 flex-1">Add WordPress</span>
@@ -108,6 +118,7 @@ const ADMIN_ROUTES: Record<string, string> = {
                 routerLinkActive
                 #adminRla="routerLinkActive"
                 [class]="ui.nav + (adminRla.isActive ? ' ' + ui.navActive : '')"
+                (click)="ctx.closeMobileNav()"
               >
                 <app-icon [name]="item.icon" [size]="15" />
                 <span>{{ item.label }}</span>

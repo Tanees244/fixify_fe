@@ -6,5 +6,6 @@ export { SubscriptionsDataService } from './subscriptions-data.service';
 export { InsightsDataService } from './insights-data.service';
 export { ReportsDataService } from './reports-data.service';
 export { CustomerDashboardDataService } from './customer-dashboard-data.service';
+export { AdminDashboardDataService } from './admin-dashboard-data.service';
 export type { FetchTicketsParams } from './tickets-data.service';
 export type { FetchReportsParams, GenerateReportOptions } from './reports-data.service';

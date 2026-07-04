@@ -65,7 +65,7 @@
       </div>
       <button
         type="button"
-        [class]="ui.btn + ' ' + ui.btnPrimary"
+        [class]="ui.btn + ' ' + ui.btnPrimary + ' w-full sm:w-auto'"
         [disabled]="!selectedSiteId() || generating()"
         (click)="generateReport()"
       >
@@ -128,7 +128,7 @@
           }
         </select>
       </div>
-      <button type="button" [class]="ui.btn + ' ' + ui.btnGhost" (click)="applyFilters()" [disabled]="loading()">
+      <button type="button" [class]="ui.btn + ' ' + ui.btnGhost + ' w-full sm:w-auto'" (click)="applyFilters()" [disabled]="loading()">
         Apply Filters
       </button>
     </div>
@@ -148,7 +148,7 @@
     <div style="display: flex; flex-direction: column; gap: 10px" [class]="ui.u">
       @for (r of reports(); track r.apiId ?? r.id; let i = $index) {
         <div [class]="ui.card + ' ' + ui.cardPad + ' ' + ui.cardHover">
-          <div style="display: flex; align-items: center; gap: 14px; cursor: pointer" (click)="toggleReport(r)">
+          <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; cursor: pointer" (click)="toggleReport(r)">
             <div style="width: 44px; height: 44px; border-radius: 10px; background: var(--acl); display: flex; align-items: center; justify-content: center; flex-shrink: 0">
               <app-icon name="file" [size]="20" color="var(--acc)" />
             </div>

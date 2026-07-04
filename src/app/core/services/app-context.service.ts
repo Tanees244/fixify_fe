@@ -8,6 +8,8 @@ export class AppContextService {
   readonly scanning = signal(false);
   readonly modal = signal<ModalState | null>(null);
   readonly currentCustomerId = signal(1);
+  /** Mobile drawer nav (sidebar overlay). */
+  readonly mobileNavOpen = signal(false);
 
   setMode(mode: AppMode): void {
     this.mode.set(mode);
@@ -19,5 +21,13 @@ export class AppContextService {
 
   closeModal(): void {
     this.modal.set(null);
+  }
+
+  toggleMobileNav(): void {
+    this.mobileNavOpen.update((v) => !v);
+  }
+
+  closeMobileNav(): void {
+    this.mobileNavOpen.set(false);
   }
 }

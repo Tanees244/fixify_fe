@@ -1,11 +1,11 @@
 <div>
   <div [class]="ui.pageHeader">
-    <div style="display: flex; justify-content: space-between; align-items: flex-start">
+    <div [class]="ui.pageHeaderRow">
       <div>
         <div [class]="ui.pageTitle">All Websites</div>
         <div [class]="ui.pageSub">{{ sitesTotal() || sites.length }} websites</div>
       </div>
-      <div style="display: flex; gap: 8px">
+      <div [class]="ui.pageHeaderActions">
         <button [class]="ui.btn + ' ' + ui.btnGhost" type="button" (click)="scanAll()">
           <app-icon name="refresh" [size]="13" />
           Scan All
@@ -18,7 +18,7 @@
     </div>
   </div>
 
-  <div style="display: flex; gap: 10px; margin-bottom: 16px">
+  <div [class]="ui.toolbar">
     <div [class]="ui.search">
       <app-icon name="search" [size]="14" color="var(--t3)" />
       <input
@@ -38,7 +38,8 @@
     }
   </div>
 
-  <div [class]="ui.card" style="overflow: hidden">
+  <div [class]="ui.card">
+    <div [class]="ui.tableScroll">
     <table [class]="ui.table">
       <thead>
         <tr>
@@ -130,6 +131,7 @@
         </tbody>
       }
     </table>
+    </div>
   </div>
 
   @if (showPagination()) {

@@ -17,48 +17,61 @@
     }
   </div>
 
-  <div [class]="ui.grid2 + ' ' + ui.u + ' ' + ui.u1" style="margin-bottom: 22px">
-    <div [class]="ui.card + ' ' + ui.cardPad + ' ' + ui.cardHover">
-      <div [class]="ui.sectionHead" style="margin-bottom: 14px">
+  <div [class]="ui.card + ' ' + ui.cardPad + ' ' + ui.cardHover + ' ' + ui.u" style="margin-bottom: 22px">
+    <div [class]="ui.sectionHead" style="margin-bottom: 14px">
+      <div>
         <div [class]="ui.sectionTitle">Site Health Distribution</div>
+        <div [class]="ui.pageSub" style="margin: 4px 0 0">Breakdown across all monitored websites</div>
       </div>
-      @for (item of healthDistribution(); track item.label) {
-        <div
-          style="display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--b2)"
-        >
-          <span
-            style="width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0"
-            [style.background]="item.color"
-          ></span>
-          <span style="flex: 1; font-size: 13.5px; color: var(--t2)">{{ item.label }}</span>
-          <span style="font-weight: 700; font-size: 18px" [style.color]="item.color">{{
-            item.count
-          }}</span>
-          <div style="width: 80px">
-            <app-progress-bar [value]="healthPct(item.count)" [color]="item.color" />
-          </div>
-        </div>
+      @if (totalSiteCount() > 0) {
+        <span [class]="ui.topbarSiteBadge">{{ totalSiteCount() }} sites total</span>
       }
     </div>
+    @for (item of healthDistribution(); track item.label) {
+      <div [class]="ui.healthRow">
+        <span
+          style="width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0"
+          [style.background]="item.color"
+        ></span>
+        <span style="flex: 1; font-size: 13.5px; color: var(--t2)">{{ item.label }}</span>
+        <span [class]="ui.healthCount" [style.color]="item.color">{{ item.count }}</span>
+        <div style="width: 120px">
+          <app-progress-bar [value]="healthPct(item.count)" [color]="item.color" />
+        </div>
+      </div>
+    } @empty {
+      <div style="padding: 20px 0; text-align: center; color: var(--t3); font-size: 13px">
+        No site health data
+      </div>
+    }
+  </div>
 
-    <div [class]="ui.card + ' ' + ui.cardPad + ' ' + ui.cardHover">
-      <div [class]="ui.sectionHead" style="margin-bottom: 14px">
-        <div [class]="ui.sectionTitle">Revenue by Plan</div>
-      </div>
-      @for (item of revenuePlans(); track item.plan) {
-        <div
-          style="display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--b2)"
-        >
-          <span
-            style="width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0"
-            [style.background]="item.color"
-          ></span>
-          <span style="flex: 1; font-size: 13px; color: var(--t2)">{{ item.plan }}</span>
-          <span style="font-size: 12px; color: var(--t3)">{{ item.count }} customers</span>
-          <span style="font-weight: 700; color: var(--t1); font-size: 13px">{{ item.revenue }}/mo</span>
-        </div>
-      }
+  <div [class]="ui.sectionHead + ' ' + ui.u">
+    <div>
+      <div [class]="ui.sectionTitle">Platform Snapshot</div>
+      <div [class]="ui.pageSub" style="margin: 4px 0 0">Live operational metrics across the platform</div>
     </div>
+  </div>
+
+  <div [class]="ui.snapshotGrid + ' ' + ui.u" style="margin-bottom: 22px">
+    @for (item of platformSnapshot(); track item.label) {
+      <div [class]="snapshotCardClass(item.tone)">
+        <div [class]="ui.snapshotCardTop">
+          <div [class]="ui.snapshotIcon" [style.background]="item.iconBg">
+            <app-icon [name]="item.icon" [size]="18" [color]="item.color" />
+          </div>
+          <div [class]="ui.snapshotValue" [style.color]="item.color">{{ item.value }}</div>
+        </div>
+        <div>
+          <div [class]="ui.snapshotLabel">{{ item.label }}</div>
+          <div [class]="ui.snapshotDetail">{{ item.detail }}</div>
+        </div>
+      </div>
+    } @empty {
+      <div [class]="ui.card + ' ' + ui.cardPad" style="grid-column: 1 / -1; text-align: center; color: var(--t3); font-size: 13px">
+        No platform metrics
+      </div>
+    }
   </div>
 
   <div [class]="ui.sectionHead">
@@ -66,7 +79,8 @@
     <button [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm" type="button" (click)="viewAllTickets()">View All Tickets</button>
   </div>
 
-  <div [class]="ui.card" style="overflow: hidden">
+  <div [class]="ui.card">
+    <div [class]="ui.tableScroll">
     <table [class]="ui.table">
       <thead>
         <tr>
@@ -82,13 +96,13 @@
         <app-table-skeleton [rows]="4" [cols]="6" />
       } @else {
         <tbody>
-          @for (t of recentTickets(); track t.id) {
-            <tr [class]="ui.trHover">
+          @for (t of recentActivity(); track t.id) {
+            <tr [class]="ui.trHover" style="cursor: pointer" (click)="openTicket(t.id)">
               <td [class]="ui.td">
                 <div>
                   <span
                     style="font-family: 'DM Mono', monospace; font-size: 11px; color: var(--acc); font-weight: 600"
-                    >{{ t.id }}</span
+                    >{{ t.ticket }}</span
                   >
                   <div style="font-size: 12.5px; color: var(--t1); font-weight: 500; margin-top: 1px">
                     {{ t.title }}
@@ -97,27 +111,28 @@
               </td>
               <td [class]="ui.td" style="font-size: 12.5px">{{ t.site }}</td>
               <td [class]="ui.td" style="font-size: 12.5px; color: var(--t2)">
-                {{ customerName(t) }}
+                {{ t.customer }}
               </td>
               <td [class]="ui.td">
-                <app-badge [variant]="priorityBadge(t.pri)">{{ t.pri }}</app-badge>
+                <app-badge [variant]="priorityBadge(t.priority)">{{ t.priority }}</app-badge>
               </td>
               <td [class]="ui.td">
                 <app-badge [variant]="ticketStatusBadge(t.status)">{{
                   ticketStatusLabel(t.status)
                 }}</app-badge>
               </td>
-              <td [class]="ui.td" style="font-size: 12px; color: var(--t3)">{{ t.ago }}</td>
+              <td [class]="ui.td" style="font-size: 12px; color: var(--t3)">{{ t.age }}</td>
             </tr>
           } @empty {
             <tr>
               <td [class]="ui.td" colspan="6" style="text-align: center; padding: 28px; color: var(--t3)">
-                No recent tickets
+                No recent activity
               </td>
             </tr>
           }
         </tbody>
       }
     </table>
+    </div>
   </div>
 </div>

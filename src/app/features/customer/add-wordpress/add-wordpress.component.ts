@@ -96,7 +96,11 @@ export class AddWordpressComponent {
     this.submitting.set(false);
 
     if (site) {
-      this.router.navigate(['/customer/dashboard']);
+      if (this.sitesData.needsWordPressConnect(site.id)) {
+        this.router.navigate(['/customer/sites', site.id, 'connect']);
+      } else {
+        this.router.navigate(['/customer/sites', site.id, 'manage', 'overview']);
+      }
     }
   }
 }

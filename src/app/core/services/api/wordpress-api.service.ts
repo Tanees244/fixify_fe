@@ -59,4 +59,20 @@ export class WordpressApiService extends ApiBaseService {
       this.url(`${this.base(siteId)}/maintenance`)
     );
   }
+
+  /** Omit plugins to update all pending plugin updates. */
+  updatePlugins(siteId: string, plugins?: string[]): Observable<ApiEnvelope<unknown>> {
+    const body = plugins?.length ? { plugins } : {};
+    return this.http.post<ApiEnvelope<unknown>>(
+      this.url(`${this.base(siteId)}/plugins/update`),
+      body
+    );
+  }
+
+  updateCore(siteId: string): Observable<ApiEnvelope<unknown>> {
+    return this.http.post<ApiEnvelope<unknown>>(
+      this.url(`${this.base(siteId)}/core/update`),
+      {}
+    );
+  }
 }

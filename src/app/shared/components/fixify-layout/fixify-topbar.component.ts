@@ -76,7 +76,16 @@ function resolvePageKey(url: string): string {
 
     <header [class]="ui.topbar">
 
-      <div class="flex items-center gap-3">
+      <div class="flex min-w-0 items-center gap-2 sm:gap-3">
+
+        <button
+          type="button"
+          [class]="ui.topbarMenuBtn"
+          (click)="ctx.toggleMobileNav()"
+          aria-label="Open menu"
+        >
+          <app-icon name="menu" [size]="16" />
+        </button>
 
         <div [class]="ui.topbarTitle">{{ pageTitle() }}</div>
 

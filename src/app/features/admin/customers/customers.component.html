@@ -1,6 +1,6 @@
 <div>
   <div [class]="ui.pageHeader">
-    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px">
+    <div [class]="ui.pageHeaderRow">
       <div>
         <div [class]="ui.pageTitle">Customers</div>
         <div [class]="ui.pageSub">
@@ -10,10 +10,12 @@
           }
         </div>
       </div>
-      <button [class]="ui.btn + ' ' + ui.btnPrimary" type="button" (click)="onboardCustomer()">
-        <app-icon name="plus" [size]="13" color="#fff" />
-        Onboard Customer
-      </button>
+      <div [class]="ui.pageHeaderActions">
+        <button [class]="ui.btn + ' ' + ui.btnPrimary" type="button" (click)="onboardCustomer()">
+          <app-icon name="plus" [size]="13" color="#fff" />
+          Onboard Customer
+        </button>
+      </div>
     </div>
   </div>
 
@@ -42,7 +44,7 @@
     </button>
   </div>
 
-  <div style="display: flex; gap: 10px; margin-bottom: 16px" [class]="ui.u">
+  <div [class]="ui.toolbar + ' ' + ui.u">
     <div [class]="ui.search">
       <app-icon name="search" [size]="14" color="var(--t3)" />
       <input
@@ -54,7 +56,8 @@
     </div>
   </div>
 
-  <div [class]="ui.card + ' ' + ui.u" style="overflow: hidden">
+  <div [class]="ui.card + ' ' + ui.u">
+    <div [class]="ui.tableScroll">
     <table [class]="ui.table">
       <thead>
         <tr>
@@ -124,5 +127,6 @@
       </tbody>
       }
     </table>
+    </div>
   </div>
 </div>

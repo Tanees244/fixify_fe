@@ -28,6 +28,13 @@ import { tw } from '../../ui/tw';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div [class]="ui.app">
+      @if (ctx.mobileNavOpen()) {
+        <div
+          [class]="ui.mobileNavBackdrop"
+          (click)="ctx.closeMobileNav()"
+          aria-hidden="true"
+        ></div>
+      }
       <app-fixify-sidebar />
       <div [class]="ui.mainCol">
         <app-fixify-topbar />
@@ -41,10 +48,10 @@ import { tw } from '../../ui/tw';
 })
 export class FixifyLayoutComponent implements OnInit {
   protected readonly ui = tw;
+  protected readonly ctx = inject(AppContextService);
 
   private readonly sitesData = inject(SitesDataService);
   private readonly routeLoader = inject(RouteDataLoaderService);
-  private readonly ctx = inject(AppContextService);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
 
@@ -55,6 +62,7 @@ export class FixifyLayoutComponent implements OnInit {
         takeUntilDestroyed()
       )
       .subscribe((e) => {
+        this.ctx.closeMobileNav();
         this.syncModeFromUrl();
         this.routeLoader.loadForUrl((e as NavigationEnd).urlAfterRedirects);
       });

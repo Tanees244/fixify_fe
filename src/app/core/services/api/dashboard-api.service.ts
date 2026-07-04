@@ -1,10 +1,16 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { AdminMonthlyReportItem, AdminWebsiteDashboardData, ApiEnvelope, CustomerDashboardData } from '../../models/api.models';
+import { AdminDashboardOverviewData, AdminMonthlyReportItem, AdminWebsiteDashboardData, ApiEnvelope, CustomerDashboardData } from '../../models/api.models';
 import { ApiBaseService } from './api-base.service';
 
 @Injectable({ providedIn: 'root' })
 export class DashboardApiService extends ApiBaseService {
+  getAdminOverview(): Observable<ApiEnvelope<AdminDashboardOverviewData>> {
+    return this.http.get<ApiEnvelope<AdminDashboardOverviewData>>(
+      this.url('/api/admin/dashboard/overview')
+    );
+  }
+
   getCustomerDashboard(siteId?: string): Observable<ApiEnvelope<CustomerDashboardData>> {
     return this.http.get<ApiEnvelope<CustomerDashboardData>>(
       this.url('/api/customer/dashboard'),

@@ -7,6 +7,21 @@
           {{ state.plugins.length }} installed · {{ facade.pendingPluginCount() }} need updates
         </div>
       </div>
+      @if (!facade.isCustomer() && facade.pendingPluginCount() > 0) {
+        <button
+          type="button"
+          [class]="ui.btn + ' ' + ui.btnPrimary + ' ' + ui.btnSm"
+          [disabled]="facade.scanning()"
+          (click)="facade.updateAllPlugins()"
+        >
+          @if (facade.scanning()) {
+            <app-icon name="loader" [size]="13" color="#fff" />
+          } @else {
+            <app-icon name="refresh" [size]="13" color="#fff" />
+          }
+          Update all plugins
+        </button>
+      }
     </div>
 
     <div [class]="ui.fltBar">
@@ -29,10 +44,13 @@
             <th [class]="ui.th">Latest</th>
             <th [class]="ui.th">Status</th>
             <th [class]="ui.th">Active</th>
+            @if (!facade.isCustomer()) {
+              <th [class]="ui.th"></th>
+            }
           </tr>
         </thead>
         @if (loading()) {
-          <app-table-skeleton [rows]="6" [cols]="5" />
+          <app-table-skeleton [rows]="6" [cols]="facade.isCustomer() ? 5 : 6" />
         } @else {
           <tbody>
             @for (p of filteredPlugins(); track p.id) {
@@ -44,10 +62,24 @@
                 <app-badge [variant]="pluginBadge(p.status)">{{ pluginStatusLabel(p.status) }}</app-badge>
               </td>
               <td [class]="ui.td">{{ p.active ? 'Yes' : 'No' }}</td>
+              @if (!facade.isCustomer()) {
+                <td [class]="ui.td" style="text-align: right">
+                  @if (p.status !== 'ok') {
+                    <button
+                      type="button"
+                      [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm"
+                      [disabled]="facade.scanning()"
+                      (click)="facade.updatePlugin(p.id)"
+                    >
+                      Update
+                    </button>
+                  }
+                </td>
+              }
             </tr>
           } @empty {
             <tr>
-              <td [class]="ui.td" colspan="5" style="text-align: center; padding: 28px; color: var(--t3)">
+              <td [class]="ui.td" [attr.colspan]="facade.isCustomer() ? 5 : 6" style="text-align: center; padding: 28px; color: var(--t3)">
                 No plugins match this filter
               </td>
             </tr>

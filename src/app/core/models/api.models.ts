@@ -109,6 +109,7 @@ export interface CreateWebsiteRequest {
 
 export interface WordPressConnectInfo {
   connectPageUrl: string;
+  pluginDownloadUrl?: string | null;
   connected: boolean;
 }
 
@@ -281,6 +282,49 @@ export interface CustomerDashboardData {
   recommendations: unknown[];
   latestInsights: unknown[];
   recentTickets: unknown[];
+}
+
+export interface AdminDashboardStatValue {
+  value: number;
+  active?: number;
+  critical?: number;
+  detail?: string;
+  change?: string;
+}
+
+export interface AdminDashboardHealthBucket {
+  label: string;
+  count: number;
+}
+
+export interface AdminDashboardActivityItem {
+  id: string;
+  ticket: string;
+  title: string;
+  site?: string;
+  customer?: string;
+  priority?: string;
+  status?: string;
+  age?: string;
+  createdAt?: string;
+}
+
+export interface AdminDashboardOverviewData {
+  totalCustomers?: AdminDashboardStatValue;
+  monitoredSites?: AdminDashboardStatValue;
+  openTickets?: AdminDashboardStatValue;
+  avgHealthScore?: AdminDashboardStatValue;
+  healthDistribution?: {
+    healthy?: AdminDashboardHealthBucket;
+    warning?: AdminDashboardHealthBucket;
+    critical?: AdminDashboardHealthBucket;
+  };
+  recentActivity?: AdminDashboardActivityItem[];
+  totalActiveClients?: AdminDashboardStatValue;
+  totalActiveWebsites?: AdminDashboardStatValue;
+  websitesNeedingUpdates?: AdminDashboardStatValue;
+  securityAlertsToday?: AdminDashboardStatValue;
+  backupsCompletedLast24h?: AdminDashboardStatValue;
 }
 
 export interface AdminMonthlyReportItem {

@@ -1,19 +1,21 @@
 <div>
   <div [class]="ui.pageHeader">
-    <div style="display: flex; justify-content: space-between; align-items: flex-start">
+    <div [class]="ui.pageHeaderRow">
       <div>
         <div [class]="ui.pageTitle">All Tickets</div>
         <div [class]="ui.pageSub">{{ ticketsTotal() }} total · {{ openCount() }} open on this page</div>
       </div>
-      <button [class]="ui.btn + ' ' + ui.btnPrimary" type="button" (click)="createTicket()">
-        <app-icon name="plus" [size]="13" color="#fff" />
-        New Ticket
-      </button>
+      <div [class]="ui.pageHeaderActions">
+        <button [class]="ui.btn + ' ' + ui.btnPrimary" type="button" (click)="createTicket()">
+          <app-icon name="plus" [size]="13" color="#fff" />
+          New Ticket
+        </button>
+      </div>
     </div>
   </div>
 
-  <div style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap">
-    <div [class]="ui.search" style="max-width: 240px">
+  <div [class]="ui.toolbar">
+    <div [class]="ui.search">
       <app-icon name="search" [size]="14" color="var(--t3)" />
       <input
         [class]="ui.searchInput"
@@ -24,7 +26,7 @@
     </div>
     <select
       [class]="ui.input"
-      style="width: auto; padding: 7px 12px"
+      style="width: auto; min-width: 140px; padding: 7px 12px"
       [value]="customerFilter()"
       (change)="setCustomerFilter($any($event.target).value)"
     >
@@ -35,7 +37,7 @@
     </select>
     <select
       [class]="ui.input"
-      style="width: auto; padding: 7px 12px"
+      style="width: auto; min-width: 120px; padding: 7px 12px"
       [value]="priorityFilter()"
       (change)="setPriorityFilter($any($event.target).value)"
     >
@@ -47,7 +49,7 @@
     </select>
     <select
       [class]="ui.input"
-      style="width: auto; padding: 7px 12px"
+      style="width: auto; min-width: 120px; padding: 7px 12px"
       [value]="statusFilter()"
       (change)="setStatusFilter($any($event.target).value)"
     >
@@ -59,7 +61,8 @@
     </select>
   </div>
 
-  <div [class]="ui.card" style="overflow: hidden">
+  <div [class]="ui.card">
+    <div [class]="ui.tableScroll">
     <table [class]="ui.table">
       <thead>
         <tr>
@@ -123,6 +126,7 @@
         </tbody>
       }
     </table>
+    </div>
   </div>
 
   @if (showPagination()) {

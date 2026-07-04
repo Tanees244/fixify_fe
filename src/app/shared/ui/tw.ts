@@ -20,11 +20,15 @@ export const tw = {
 
   // App shell
 
-  app: 'grid h-screen min-h-screen grid-cols-[220px_1fr] overflow-hidden',
+  app: 'relative grid h-screen min-h-screen grid-cols-1 overflow-hidden lg:grid-cols-[220px_1fr]',
 
-  mainCol: 'flex h-screen min-h-screen flex-col overflow-hidden',
+  mainCol: 'flex h-screen min-h-screen min-w-0 flex-col overflow-hidden',
 
-  content: 'flex-1 overflow-y-auto px-7 py-6',
+  content: 'flex-1 overflow-y-auto overflow-x-hidden px-4 py-4 sm:px-6 sm:py-5 lg:px-7 lg:py-6',
+
+  /** Dimmed backdrop when mobile nav is open. */
+  mobileNavBackdrop:
+    'fixed inset-0 z-40 bg-black/40 lg:hidden',
 
 
 
@@ -32,7 +36,9 @@ export const tw = {
 
   sidebar:
 
-    'z-10 flex h-screen min-h-screen shrink-0 flex-col overflow-hidden border-r border-fixify-border bg-white shadow-[2px_0_12px_rgba(13,30,61,0.04)]',
+    'fixed inset-y-0 left-0 z-50 flex h-screen w-[min(280px,86vw)] shrink-0 -translate-x-full flex-col overflow-hidden border-r border-fixify-border bg-white shadow-[2px_0_12px_rgba(13,30,61,0.04)] transition-transform duration-200 ease-out lg:static lg:z-10 lg:w-auto lg:translate-x-0',
+
+  sidebarOpen: 'translate-x-0',
 
   sidebarTop: 'shrink-0',
 
@@ -104,9 +110,12 @@ export const tw = {
 
   topbar:
 
-    'flex h-[60px] shrink-0 items-center justify-between gap-4 border-b border-fixify-border bg-white px-6',
+    'flex h-[56px] shrink-0 items-center justify-between gap-3 border-b border-fixify-border bg-white px-3 sm:h-[60px] sm:gap-4 sm:px-6',
 
-  topbarTitle: 'text-[15px] font-bold text-fixify-text-1',
+  topbarMenuBtn:
+    'inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] border border-fixify-border bg-fixify-surface-2 text-fixify-text-2 lg:hidden',
+
+  topbarTitle: 'truncate text-[14px] font-bold text-fixify-text-1 sm:text-[15px]',
 
   topbarSiteBadge:
 
@@ -132,7 +141,7 @@ export const tw = {
 
   grid2: 'grid grid-cols-1 gap-[18px] sm:grid-cols-2',
 
-  grid3: 'grid grid-cols-1 gap-[18px] sm:grid-cols-3',
+  grid3: 'grid grid-cols-1 gap-[18px] sm:grid-cols-2 xl:grid-cols-3',
 
   grid4: 'grid grid-cols-1 gap-[18px] sm:grid-cols-2 lg:grid-cols-4',
 
@@ -146,15 +155,28 @@ export const tw = {
 
   // Page header
 
-  pageHeader: 'mb-[22px]',
+  pageHeader: 'mb-[18px] sm:mb-[22px]',
+
+  /** Title block + action buttons row. */
+  pageHeaderRow:
+    'flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4',
 
   pageTitle:
 
-    'text-[22px] font-bold leading-tight tracking-[-0.4px] text-fixify-text-1',
+    'text-[20px] font-bold leading-tight tracking-[-0.4px] text-fixify-text-1 sm:text-[22px]',
 
-  pageSub: 'mt-1 text-[13px] text-fixify-text-3',
+  pageSub: 'mt-1 text-[12.5px] text-fixify-text-3 sm:text-[13px]',
 
-  sectionHead: 'mb-3.5 flex items-center justify-between',
+  pageHeaderActions: 'flex flex-wrap items-center gap-2',
+
+  /** Filters / search toolbar under the header. */
+  toolbar: 'mb-4 flex flex-wrap items-center gap-2.5 sm:gap-3',
+
+  /** Horizontal scroll for wide tables on small screens. */
+  tableScroll: 'w-full overflow-x-auto',
+
+  sectionHead:
+    'mb-3.5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between',
 
   sectionTitle: 'text-[15px] font-bold text-fixify-text-1',
 
@@ -176,7 +198,36 @@ export const tw = {
 
     'rounded-[14px] border border-fixify-border bg-white p-[18px_20px] shadow-[0_1px_4px_rgba(13,30,61,0.07)]',
 
+  snapshotGrid:
+    'grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5',
 
+  snapshotCard:
+    'flex min-h-[118px] flex-col justify-between rounded-[14px] border border-fixify-border bg-white p-4 shadow-[0_1px_4px_rgba(13,30,61,0.07)] transition-[box-shadow,transform,border-color] duration-200 hover:-translate-y-px hover:shadow-[0_4px_16px_rgba(13,30,61,0.09)]',
+
+  snapshotCardWarn:
+    'border-[rgba(217,119,6,0.28)] bg-gradient-to-br from-white to-[rgba(217,119,6,0.05)]',
+
+  snapshotCardAlert:
+    'border-[rgba(220,38,38,0.28)] bg-gradient-to-br from-white to-[rgba(220,38,38,0.05)]',
+
+  snapshotCardOk:
+    'border-[rgba(5,150,105,0.22)] bg-gradient-to-br from-white to-[rgba(5,150,105,0.04)]',
+
+  snapshotCardTop: 'flex items-start justify-between gap-2',
+
+  snapshotIcon:
+    'flex h-10 w-10 shrink-0 items-center justify-center rounded-[11px]',
+
+  snapshotLabel: 'text-[13px] font-semibold leading-snug text-fixify-text-1',
+
+  snapshotDetail: 'mt-1 text-[11.5px] leading-relaxed text-fixify-text-3',
+
+  snapshotValue: 'text-[28px] font-bold leading-none tracking-[-0.5px] tabular-nums',
+
+  healthRow:
+    'flex items-center gap-3 rounded-[10px] border border-transparent px-2 py-2.5 transition-colors hover:border-fixify-border hover:bg-fixify-surface-2/70',
+
+  healthCount: 'min-w-[28px] text-right text-[18px] font-bold tabular-nums',
 
   // Form
 
@@ -230,7 +281,7 @@ export const tw = {
 
   search:
 
-    'flex max-w-[360px] flex-1 items-center gap-2 rounded-[10px] border border-fixify-border bg-fixify-surface-2 px-3 py-[7px]',
+    'flex w-full max-w-none flex-1 items-center gap-2 rounded-[10px] border border-fixify-border bg-fixify-surface-2 px-3 py-[7px] sm:max-w-[360px]',
 
   searchInput:
 
@@ -240,7 +291,7 @@ export const tw = {
 
   // Table
 
-  table: 'fx-table w-full border-collapse text-[13.5px]',
+  table: 'fx-table w-full min-w-[640px] border-collapse text-[13.5px]',
 
   th: 'border-b border-fixify-border bg-fixify-surface-2 px-3.5 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wide text-fixify-text-3',
 
@@ -435,11 +486,11 @@ export const tw = {
 
   adminTabs:
 
-    'mb-[18px] flex gap-1 border-b border-fixify-border pb-0',
+    'mb-[18px] flex gap-1 overflow-x-auto border-b border-fixify-border pb-0',
 
   adminTab:
 
-    'mb-[-1px] inline-flex cursor-pointer items-center gap-1.5 border-b-2 border-transparent bg-transparent px-4 py-2.5 text-[13px] font-medium text-fixify-text-3 transition hover:text-fixify-text-2',
+    'mb-[-1px] inline-flex shrink-0 cursor-pointer items-center gap-1.5 border-b-2 border-transparent bg-transparent px-3 py-2.5 text-[13px] font-medium text-fixify-text-3 transition hover:text-fixify-text-2 sm:px-4',
 
   adminTabActive:
 
@@ -471,7 +522,7 @@ export const tw = {
 
     'mb-0.5 block text-[11px] font-semibold uppercase tracking-wide text-fixify-text-3',
 
-  adminInlineSelect: 'min-w-[160px] px-2.5 py-1.5 text-[12.5px]',
+  adminInlineSelect: 'min-w-[120px] max-w-[180px] px-2.5 py-1.5 text-[12.5px]',
 
   adminPlanCard: 'p-5',
 
@@ -497,7 +548,7 @@ export const tw = {
 
   // WordPress flow
 
-  wpSteps: 'mb-[22px] flex w-full items-center gap-0',
+  wpSteps: 'mb-[22px] flex w-full items-center gap-0 overflow-x-auto pb-1',
 
   wpPage: 'w-full',
 

@@ -14,6 +14,13 @@ export const CUSTOMER_ROUTES: Routes = [
       import('./websites/websites.component').then((m) => m.WebsitesComponent),
   },
   {
+    path: 'sites/:siteId/connect',
+    loadComponent: () =>
+      import('../wordpress-connect/wordpress-connect-step.component').then(
+        (m) => m.WordpressConnectStepComponent
+      ),
+  },
+  {
     path: 'sites/:siteId/manage',
     loadComponent: () =>
       import('../admin/site-manage/site-manage-shell.component').then(

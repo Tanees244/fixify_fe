@@ -13,6 +13,13 @@ export const ADMIN_ROUTES: Routes = [
       import('./sites/sites.component').then((m) => m.SitesComponent),
   },
   {
+    path: 'sites/:siteId/connect',
+    loadComponent: () =>
+      import('../wordpress-connect/wordpress-connect-step.component').then(
+        (m) => m.WordpressConnectStepComponent
+      ),
+  },
+  {
     path: 'sites/:siteId/manage',
     loadComponent: () =>
       import('./site-manage/site-manage-shell.component').then(

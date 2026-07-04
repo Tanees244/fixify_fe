@@ -14,6 +14,24 @@
       </div>
     }
 
+    @if (facade.wpCoreOutdated() && !facade.isCustomer()) {
+      <div [class]="ui.u" style="margin-bottom: 18px">
+        <button
+          type="button"
+          [class]="ui.btn + ' ' + ui.btnPrimary + ' ' + ui.btnSm"
+          [disabled]="facade.scanning()"
+          (click)="facade.updateWordPressCore()"
+        >
+          @if (facade.scanning()) {
+            <app-icon name="loader" [size]="13" color="#fff" />
+          } @else {
+            <app-icon name="refresh" [size]="13" color="#fff" />
+          }
+          Update WordPress to {{ state.latestWpVersion || 'latest' }}
+        </button>
+      </div>
+    }
+
     <div [class]="ui.grid2 + ' ' + ui.u" style="margin-bottom: 18px">
       <div [class]="ui.card + ' ' + ui.cardPad + ' ' + ui.smPanel">
         <div [class]="ui.sectionHead" style="margin-bottom: 16px">

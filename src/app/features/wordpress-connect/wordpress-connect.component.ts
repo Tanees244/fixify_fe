@@ -100,6 +100,17 @@ export class WordpressConnectComponent implements OnInit {
 
     this.phase.set('success');
     this.session.init();
+    if (this.apiId) {
+      const site = this.sitesData.sites.find((s) => s.apiId === this.apiId);
+      if (site) {
+        this.sitesData.setWordPressConnection(site.id, {
+          siteId: this.apiId,
+          connected: true,
+          connectPageUrl: null,
+          pluginDownloadUrl: null,
+        });
+      }
+    }
     this.loadAndRedirect();
   }
 

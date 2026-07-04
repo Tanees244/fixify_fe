@@ -1,6 +1,8 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { SiteManageFacade } from '../site-manage.facade';
+import { scoreColor } from '../../../../core/utils/fixify.utils';
+import { BadgeComponent } from '../../../../shared/components/badge/badge.component';
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
 import { ManageSkeletonComponent } from './manage-skeleton.component';
 import { tw } from '../../../../shared/ui/tw';
@@ -9,12 +11,13 @@ import { tw } from '../../../../shared/ui/tw';
   selector: 'app-site-manage-overview',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, IconComponent, ManageSkeletonComponent],
+  imports: [RouterLink, IconComponent, BadgeComponent, ManageSkeletonComponent],
   templateUrl: './overview-screen.component.html',
 })
 export class OverviewScreenComponent {
   protected readonly ui = tw;
   protected readonly facade = inject(SiteManageFacade);
+  protected readonly scoreColor = scoreColor;
 
   readonly sections = [
     {
@@ -57,4 +60,24 @@ export class OverviewScreenComponent {
       icon: 'cog',
     },
   ];
+
+  formatRefreshed(iso?: string): string {
+    if (!iso) return '—';
+    try {
+      return new Date(iso).toLocaleString();
+    } catch {
+      return iso;
+    }
+  }
+
+  openAdminUrl(url?: string): void {
+    if (url) window.open(url, '_blank', 'noopener,noreferrer');
+  }
+
+  healthBadgeVariant(score?: number): 'bok' | 'bwn' | 'ber' | 'bgr' {
+    if (score === undefined) return 'bgr';
+    if (score >= 80) return 'bok';
+    if (score >= 60) return 'bwn';
+    return 'ber';
+  }
 }

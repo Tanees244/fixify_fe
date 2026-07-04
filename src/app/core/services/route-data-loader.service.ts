@@ -9,6 +9,7 @@ import { TicketsDataService } from './data/tickets-data.service';
 import { ReportsDataService } from './data/reports-data.service';
 import { SubscriptionsDataService } from './data/subscriptions-data.service';
 import { CustomerDashboardDataService } from './data/customer-dashboard-data.service';
+import { AdminDashboardDataService } from './data/admin-dashboard-data.service';
 
 @Injectable({ providedIn: 'root' })
 export class RouteDataLoaderService {
@@ -19,6 +20,7 @@ export class RouteDataLoaderService {
   private readonly reportsData = inject(ReportsDataService);
   private readonly subscriptionsData = inject(SubscriptionsDataService);
   private readonly customerDashboardData = inject(CustomerDashboardDataService);
+  private readonly adminDashboardData = inject(AdminDashboardDataService);
   private readonly auth = inject(AuthService);
   private readonly ctx = inject(AppContextService);
   private readonly appRef = inject(ApplicationRef);
@@ -45,6 +47,14 @@ export class RouteDataLoaderService {
     // —— Customer ——
     if (path.startsWith('/customer/dashboard')) {
       this.customerDashboardData.fetchDashboard(undefined, () => this.tick());
+      return;
+    }
+    const customerConnectMatch = path.match(/^\/customer\/sites\/(\d+)\/connect$/);
+    if (customerConnectMatch) {
+      const siteId = Number(customerConnectMatch[1]);
+      this.sitesData.ensureCustomerWebsites(() => {
+        this.sitesData.fetchWordPressConnectionStatus(siteId, () => this.tick());
+      });
       return;
     }
     const customerManageMatch = path.match(/^\/customer\/sites\/(\d+)\/manage(?:\/(\w+))?/);
@@ -116,9 +126,8 @@ export class RouteDataLoaderService {
     }
 
     // —— Admin ——
-    // Overview: no bulk API calls for now (visit Customers / Sites / Tickets tabs separately)
     if (path === '/admin/overview') {
-      this.tick();
+      this.adminDashboardData.fetchOverview(() => this.tick());
       return;
     }
     if (path === '/admin/sites') {
@@ -185,6 +194,15 @@ export class RouteDataLoaderService {
       return;
     }
 
+    const adminConnectMatch = path.match(/^\/admin\/sites\/(\d+)\/connect$/);
+    if (adminConnectMatch) {
+      const siteId = Number(adminConnectMatch[1]);
+      this.sitesData.fetchWebsites(undefined, () => {
+        this.sitesData.fetchWordPressConnectionStatus(siteId, () => this.tick());
+      });
+      return;
+    }
+
     const manageMatch = path.match(/^\/admin\/sites\/(\d+)\/manage(?:\/(\w+))?/);
     if (manageMatch) {
       const siteId = Number(manageMatch[1]);
@@ -228,6 +246,19 @@ export class RouteDataLoaderService {
   }
 
   private loadSiteManageScreen(siteId: number, screen: string): void {
+    const site = this.sitesData.sites.find((s) => s.id === siteId);
+    if (site?.platform === 'wordpress') {
+      this.sitesData.fetchWordPressConnectionStatus(siteId, () => {
+        if (this.sitesData.needsWordPressConnect(siteId)) {
+          const prefix = this.router.url.startsWith('/customer') ? '/customer' : '/admin';
+          this.router.navigate([prefix, 'sites', siteId, 'connect']);
+          this.tick();
+          return;
+        }
+        this.sitesData.fetchWordPressManage(siteId, screen, () => this.tick());
+      });
+      return;
+    }
     this.sitesData.fetchWordPressManage(siteId, screen, () => this.tick());
   }
 

@@ -1,0 +1,110 @@
+<div [class]="ui.u + ' ' + ui.wpPage">
+  <div [class]="ui.pageHeader">
+    <a [routerLink]="sitesRoot()" [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm + ' ' + ui.adminBackBtn" style="text-decoration: none; display: inline-flex">
+      <app-icon name="chevL" [size]="13" />
+      Back to Websites
+    </a>
+
+    @if (site(); as s) {
+      <div style="display: flex; align-items: center; gap: 12px; margin-top: 10px; margin-bottom: 4px">
+        <app-site-avatar [fa]="s.fa" [size]="44" />
+        <div>
+          <div [class]="ui.pageTitle">Connect WordPress</div>
+          <div [class]="ui.pageSub">
+            Install and connect the WebCare plugin on <strong>{{ s.name }}</strong> to enable management.
+          </div>
+        </div>
+      </div>
+    } @else {
+      <div [class]="ui.pageTitle" style="margin-top: 10px">Connect WordPress</div>
+    }
+  </div>
+
+  <div [class]="ui.wpSteps">
+    <div [class]="ui.wpStep + ' ' + ui.wpStepOn">
+      <div [class]="ui.wpStepNum">1</div>
+      <span>Site created</span>
+    </div>
+    <div [class]="ui.wpStepLine + ' ' + ui.wpStepLineOn"></div>
+    <div [class]="ui.wpStep + ' ' + ui.wpStepOn + ' ' + ui.wpStepActive">
+      <div [class]="ui.wpStepNum">2</div>
+      <span>Connect plugin</span>
+    </div>
+    <div [class]="ui.wpStepLine"></div>
+    <div [class]="ui.wpStep">
+      <div [class]="ui.wpStepNum">3</div>
+      <span>Manage site</span>
+    </div>
+  </div>
+
+  <div [class]="ui.card + ' ' + ui.cardPad + ' ' + ui.wpFormCard">
+    @if (status()?.connected) {
+      <div style="text-align: center; padding: 12px 0 8px">
+        <div style="width: 56px; height: 56px; border-radius: 16px; background: rgba(34,197,94,.12); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px">
+          <app-icon name="check" [size]="28" color="var(--ok)" />
+        </div>
+        <div style="font-size: 18px; font-weight: 700; margin-bottom: 8px">Plugin connected</div>
+        <p style="font-size: 13.5px; color: var(--t2); line-height: 1.6; margin: 0 0 6px">
+          @if (status()?.wpVersion) {
+            WordPress {{ status()?.wpVersion }}
+            @if (status()?.agentVersion) {
+              · Agent {{ status()?.agentVersion }}
+            }
+          } @else {
+            Your site is ready for WordPress management.
+          }
+        </p>
+        <p style="font-size: 12.5px; color: var(--t3); margin: 0 0 20px">Redirecting to site overview…</p>
+        <button type="button" [class]="ui.btn + ' ' + ui.btnPrimary" (click)="goToManage()">
+          Open site overview
+        </button>
+      </div>
+    } @else {
+      <div style="font-weight: 700; font-size: 15px; margin-bottom: 10px">Connect the WebCare plugin</div>
+      <p style="font-size: 13.5px; color: var(--t2); line-height: 1.65; margin: 0 0 20px">
+        Open the connect wizard in a new tab and follow the steps in your WordPress admin, or download the plugin and install it manually.
+        This page checks every few seconds until the connection is confirmed.
+      </p>
+
+      <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 22px">
+        @if (status()?.connectPageUrl) {
+          <button type="button" [class]="ui.btn + ' ' + ui.btnPrimary" (click)="openConnectWizard()">
+            <app-icon name="extl" [size]="13" color="#fff" />
+            Open connect wizard
+          </button>
+        }
+        @if (status()?.pluginDownloadUrl) {
+          <button type="button" [class]="ui.btn + ' ' + ui.btnGhost" (click)="downloadPlugin()">
+            <app-icon name="dl" [size]="13" />
+            Download plugin (.zip)
+          </button>
+        }
+        @if (!status()?.connectPageUrl && !status()?.pluginDownloadUrl && !checking()) {
+          <div style="font-size: 13px; color: var(--t3); padding: 12px 14px; border-radius: 10px; background: var(--b1, rgba(0,0,0,.03)); border: 1px solid var(--b2)">
+            Waiting for connection details from the server…
+          </div>
+        }
+      </div>
+
+      <div
+        style="border-radius: 10px; padding: 14px 16px; background: var(--b1, rgba(0,0,0,.03)); border: 1px solid var(--b2); margin-bottom: 20px"
+      >
+        <div style="font-weight: 600; font-size: 13px; margin-bottom: 10px">Manual install</div>
+        <ol style="margin: 0; padding-left: 18px; font-size: 13px; color: var(--t2); line-height: 1.7">
+          <li>Download the plugin zip and upload it under <strong>Plugins → Add New → Upload</strong> in wp-admin.</li>
+          <li>Activate <strong>WebCare Connector</strong>.</li>
+          <li>Open the plugin settings and click <strong>Connect to Fixify</strong>.</li>
+        </ol>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 10px; padding-top: 16px; border-top: 1px solid var(--b2)">
+        @if (polling()) {
+          <app-icon name="loader" [size]="16" color="var(--acc)" />
+          <span style="font-size: 13px; color: var(--t2)">
+            Waiting for connection{{ checking() ? '…' : ' — checking every 3 seconds' }}
+          </span>
+        }
+      </div>
+    }
+  </div>
+</div>

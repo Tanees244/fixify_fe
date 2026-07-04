@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { SiteManageFacade } from '../site-manage.facade';
 import { DataSessionService } from '../../../../core/services/data';
 import { BadgeComponent } from '../../../../shared/components/badge/badge.component';
+import { IconComponent } from '../../../../shared/components/icon/icon.component';
 import { TableSkeletonComponent } from '../../../../shared/components/table-skeleton/table-skeleton.component';
 import { tw } from '../../../../shared/ui/tw';
 
@@ -11,7 +12,7 @@ type PluginFilter = 'all' | 'updates' | 'vulnerable' | 'active';
   selector: 'app-site-manage-plugins',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [BadgeComponent, TableSkeletonComponent],
+  imports: [BadgeComponent, IconComponent, TableSkeletonComponent],
   templateUrl: './plugins-screen.component.html',
 })
 export class PluginsScreenComponent {

@@ -180,6 +180,39 @@ export interface WordPressPlugin {
   active: boolean;
 }
 
+export interface WordPressAgentDashboard {
+  notices: { type: string; source: string; message: string }[];
+  warnings: string[];
+  updates: {
+    total: number;
+    core: { available: boolean; current: string; latest: string };
+    plugins: number;
+    themes: number;
+    comments: number;
+  };
+  filePermissions: {
+    path: string;
+    label: string;
+    exists: boolean;
+    writable: boolean;
+    permissions: string | null;
+  }[];
+  adminUrls: {
+    dashboard?: string;
+    updateCore?: string;
+    plugins?: string;
+    updates?: string;
+  };
+  phpVersion: string;
+  wpVersion: string;
+}
+
+export interface WordPressPluginStats {
+  installed: number;
+  updatesNeeded: number;
+  active: number;
+}
+
 export interface WordPressSiteState {
   siteId: number;
   wpVersion: string;
@@ -194,6 +227,14 @@ export interface WordPressSiteState {
   lastCoreUpdate: string;
   sslValid: boolean;
   dbOptimized: string;
+  agentHealth?: number;
+  agentIssues?: number;
+  lastScan?: string;
+  lastRefreshedAt?: string;
+  dataSource?: string;
+  warnings?: string[];
+  dashboard?: WordPressAgentDashboard;
+  pluginStats?: WordPressPluginStats;
 }
 
 export type WordPressAdminActionType =
