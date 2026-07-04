@@ -8,6 +8,7 @@ import {
   WpMaintenanceScreen,
   WpOverviewScreen,
   WpPluginsScreen,
+  WpRefreshResponseData,
   WpSecurityScreen,
   WpThemeScreen,
 } from '../../models/site-screens.models';
@@ -24,8 +25,11 @@ export class WordpressApiService extends ApiBaseService {
     return this.http.get<ApiEnvelope<WpConnectionStatus>>(this.url(`${this.base(siteId)}/status`));
   }
 
-  refresh(siteId: string): Observable<ApiEnvelope<unknown>> {
-    return this.http.post<ApiEnvelope<unknown>>(this.url(`${this.base(siteId)}/refresh`), {});
+  refresh(siteId: string): Observable<ApiEnvelope<WpRefreshResponseData>> {
+    return this.http.post<ApiEnvelope<WpRefreshResponseData>>(
+      this.url(`${this.base(siteId)}/refresh`),
+      {}
+    );
   }
 
   getOverview(siteId: string): Observable<ApiEnvelope<WpOverviewScreen>> {

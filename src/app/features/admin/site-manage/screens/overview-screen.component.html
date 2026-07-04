@@ -10,9 +10,25 @@
           }
         </div>
       </div>
-      @if (state.lastRefreshedAt) {
-        <span [class]="ui.topbarSiteBadge">Refreshed {{ formatRefreshed(state.lastRefreshedAt) }}</span>
-      }
+      <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap">
+        @if (state.lastRefreshedAt) {
+          <span [class]="ui.topbarSiteBadge">Refreshed {{ formatRefreshed(state.lastRefreshedAt) }}</span>
+        }
+        <button
+          type="button"
+          [class]="ui.btn + ' ' + ui.btnPrimary + ' ' + ui.btnSm"
+          [disabled]="facade.scanning() || facade.loading()"
+          (click)="facade.refreshWordPress()"
+        >
+          @if (facade.scanning()) {
+            <app-icon name="loader" [size]="13" color="#fff" />
+            Scanning…
+          } @else {
+            <app-icon name="refresh" [size]="13" color="#fff" />
+            Scan site
+          }
+        </button>
+      </div>
     </div>
 
     @if (state.dashboard?.notices?.length || state.warnings?.length) {

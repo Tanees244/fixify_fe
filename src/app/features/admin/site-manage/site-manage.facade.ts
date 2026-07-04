@@ -124,4 +124,9 @@ export class SiteManageFacade {
     const id = this.siteId();
     if (id) void this.sitesData.performWordPressAction(id, 'update_plugin', pluginId);
   }
+
+  refreshWordPress(): void {
+    const id = this.siteId();
+    if (id) void this.sitesData.refreshWordPressSite(id);
+  }
 }

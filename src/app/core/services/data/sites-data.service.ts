@@ -523,13 +523,29 @@ export class SitesDataService {
   }
 
   private applyWpOverview(siteId: number, data: WpOverviewScreen): void {
-    this.patchWpState(siteId, {
+    const current = this.wordpressStateBySiteId.get(siteId);
+    const patch: Partial<WordPressSiteState> = {
       wpVersion: data.wordpress?.version ?? '',
       latestWpVersion: data.wordpress?.latestVersion ?? data.wordpress?.version ?? '',
       phpVersion: data.php?.version ?? '',
       activeTheme: data.theme?.name ?? 'Theme',
       themeVersion: data.theme?.version?.replace(/^v/i, '') ?? '',
-    });
+    };
+
+    if (data.health !== undefined) patch.agentHealth = data.health;
+    if (data.issues !== undefined) patch.agentIssues = data.issues;
+    if (data.lastScan) patch.lastScan = data.lastScan;
+    if (data.lastRefreshedAt) patch.lastRefreshedAt = data.lastRefreshedAt;
+    if (data.warnings?.length) patch.warnings = data.warnings;
+    if (data.plugins) {
+      patch.pluginStats = {
+        installed: data.plugins.total,
+        updatesNeeded: data.plugins.updatesPending,
+        active: current?.pluginStats?.active ?? data.plugins.total,
+      };
+    }
+
+    this.patchWpState(siteId, patch);
   }
 
   private applyWpCore(siteId: number, data: WpCoreScreen): void {
@@ -943,6 +959,35 @@ export class SitesDataService {
     this.sites[idx] = updated;
     if (this.ctx.selectedSite()?.id === siteId) {
       this.ctx.selectedSite.set(updated);
+    }
+  }
+
+  async refreshWordPressSite(siteId: number): Promise<void> {
+    const site = this.sites.find((s) => s.id === siteId);
+    const apiId = this.websiteApiId(siteId) ?? site?.apiId;
+    if (!this.session.useApi() || !apiId) {
+      this.toast.error('Website not linked to API');
+      return;
+    }
+
+    this.ctx.scanning.set(true);
+    try {
+      const res = await firstValueFrom(this.wordpressApi.refresh(apiId));
+      if (res.data?.overview) {
+        this.applyWpOverview(siteId, res.data.overview);
+      }
+      if (res.data?.lastRefreshedAt) {
+        this.patchWpState(siteId, { lastRefreshedAt: res.data.lastRefreshedAt });
+      }
+      await this.reloadWordPressManageFromApi(siteId, apiId);
+      this.toast.success(res.message ?? 'WordPress data refreshed');
+    } catch (err: unknown) {
+      const message =
+        (err as { error?: { message?: string } })?.error?.message ||
+        'Failed to refresh WordPress data';
+      this.toast.error(message);
+    } finally {
+      this.ctx.scanning.set(false);
     }
   }
 

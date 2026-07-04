@@ -273,10 +273,24 @@ export interface WpPluginStats {
 export interface WpOverviewScreen {
   siteId: string;
   siteName: string;
+  health?: number;
+  issues?: number;
+  lastScan?: string;
+  lastRefreshedAt?: string;
+  warnings?: string[];
+  dataSources?: Record<string, string>;
+  restAuth?: { authenticated: boolean; httpStatus: number; message: string };
   wordpress: { version: string; latestVersion: string; status: string; upToDate: boolean };
   plugins: { total: number; updatesPending: number; status: string };
   php: { version: string; status: string; isSupported: boolean };
   theme: { name: string; version: string };
+}
+
+export interface WpRefreshResponseData {
+  siteId: string;
+  lastRefreshedAt: string;
+  sections?: string[];
+  overview?: WpOverviewScreen;
 }
 
 export interface WpPluginsScreen {
