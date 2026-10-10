@@ -4,10 +4,10 @@ import { catchError, throwError } from 'rxjs';
 import { Router } from '@angular/router';
 import { NotificationService } from '../services/notification.service';
 import { AuthService } from '../services/auth.service';
+import { isDirectS3Url } from '../utils/http-url.util';
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
-  // S3 presigned uploads are handled outside HttpClient; skip if any slip through.
-  if (/amazonaws\.com/i.test(req.url)) {
+  if (isDirectS3Url(req.url)) {
     return next(req);
   }
 

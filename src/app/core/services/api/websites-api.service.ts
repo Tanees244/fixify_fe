@@ -18,7 +18,7 @@ export class WebsitesApiService extends ApiBaseService {
     return this.http.get<
       ApiEnvelope<{ items: unknown[]; websites: unknown[]; total: number; page: number; limit: number }>
     >(
-      this.url('/websites'),
+      this.url('/api/websites'),
       {
         params: this.buildParams({
           page: params.page ?? 1,
@@ -32,26 +32,26 @@ export class WebsitesApiService extends ApiBaseService {
   }
 
   createWebsite(body: CreateWebsiteRequest): Observable<ApiEnvelope<CreateWebsiteResponseData>> {
-    return this.http.post<ApiEnvelope<CreateWebsiteResponseData>>(this.url('/websites'), body);
+    return this.http.post<ApiEnvelope<CreateWebsiteResponseData>>(this.url('/api/websites'), body);
   }
 
   activateWebsite(websiteId: string): Observable<ApiEnvelope<unknown>> {
     return this.http.patch<ApiEnvelope<unknown>>(
-      this.url(`/websites/${encodeURIComponent(websiteId)}/activate`),
+      this.url(`/api/websites/${encodeURIComponent(websiteId)}/activate`),
       {}
     );
   }
 
   deactivateWebsite(websiteId: string): Observable<ApiEnvelope<unknown>> {
     return this.http.patch<ApiEnvelope<unknown>>(
-      this.url(`/websites/${encodeURIComponent(websiteId)}/deactivate`),
+      this.url(`/api/websites/${encodeURIComponent(websiteId)}/deactivate`),
       {}
     );
   }
 
   deleteWebsite(websiteId: string): Observable<ApiEnvelope<unknown>> {
     return this.http.delete<ApiEnvelope<unknown>>(
-      this.url(`/websites/${encodeURIComponent(websiteId)}`)
+      this.url(`/api/websites/${encodeURIComponent(websiteId)}`)
     );
   }
 }

@@ -8,7 +8,9 @@ export class ApiBaseService {
   readonly baseUrl = environment.apiUrl;
 
   protected url(path: string): string {
-    return `${this.baseUrl}${path}`;
+    const base = this.baseUrl.replace(/\/+$/, '');
+    const normalized = path.startsWith('/') ? path : `/${path}`;
+    return `${base}${normalized}`;
   }
 
   protected buildParams(values: Record<string, string | number | undefined>): HttpParams {

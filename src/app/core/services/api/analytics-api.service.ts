@@ -17,11 +17,11 @@ import { ApiBaseService } from './api-base.service';
 @Injectable({ providedIn: 'root' })
 export class AnalyticsApiService extends ApiBaseService {
   checkPageSpeed(body: PageSpeedRequest): Observable<PageSpeedResponse> {
-    return this.http.post<PageSpeedResponse>(this.url('/analytics/pagespeed'), body);
+    return this.http.post<PageSpeedResponse>(this.url('/api/analytics/pagespeed'), body);
   }
 
   checkUptime(url: string): Observable<UptimeResponse> {
-    return this.http.post<UptimeResponse>(this.url('/analytics/uptime'), { url });
+    return this.http.post<UptimeResponse>(this.url('/api/analytics/uptime'), { url });
   }
 
   getUptimeDashboard(websiteId: string): Observable<ApiEnvelope<UptimeDashboard>> {
@@ -31,11 +31,11 @@ export class AnalyticsApiService extends ApiBaseService {
   }
 
   checkSsl(url: string): Observable<SSLResponse> {
-    return this.http.post<SSLResponse>(this.url('/analytics/ssl'), { url });
+    return this.http.post<SSLResponse>(this.url('/api/analytics/ssl'), { url });
   }
 
   checkPhpVersion(url: string): Observable<PHPVersionResponse> {
-    return this.http.post<PHPVersionResponse>(this.url('/analytics/php-version'), { url });
+    return this.http.post<PHPVersionResponse>(this.url('/api/analytics/php-version'), { url });
   }
 
   getWordPressPlugins(
@@ -43,7 +43,7 @@ export class AnalyticsApiService extends ApiBaseService {
     username: string,
     password: string
   ): Observable<WordPressPluginsResponse> {
-    return this.http.post<WordPressPluginsResponse>(this.url('/analytics/wordpress/plugins'), {
+    return this.http.post<WordPressPluginsResponse>(this.url('/api/analytics/wordpress/plugins'), {
       url,
       username,
       password,
@@ -55,7 +55,7 @@ export class AnalyticsApiService extends ApiBaseService {
     username: string,
     password: string
   ): Observable<WordPressUpdatesResponse> {
-    return this.http.post<WordPressUpdatesResponse>(this.url('/analytics/wordpress/updates'), {
+    return this.http.post<WordPressUpdatesResponse>(this.url('/api/analytics/wordpress/updates'), {
       url,
       username,
       password,
@@ -67,7 +67,7 @@ export class AnalyticsApiService extends ApiBaseService {
     username: string,
     password: string
   ): Observable<WordPressHealthResponse> {
-    return this.http.post<WordPressHealthResponse>(this.url('/analytics/wordpress/health'), {
+    return this.http.post<WordPressHealthResponse>(this.url('/api/analytics/wordpress/health'), {
       url,
       username,
       password,
@@ -75,10 +75,10 @@ export class AnalyticsApiService extends ApiBaseService {
   }
 
   checkBlacklist(url: string): Observable<unknown> {
-    return this.http.post(this.url('/analytics/blacklist'), { url });
+    return this.http.post(this.url('/api/analytics/blacklist'), { url });
   }
 
   checkGtMetrix(body: { url: string; action: string; testId?: string }): Observable<unknown> {
-    return this.http.post(this.url('/analytics/gtmetrix'), body);
+    return this.http.post(this.url('/api/analytics/gtmetrix'), body);
   }
 }
