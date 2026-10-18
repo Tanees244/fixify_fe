@@ -12,14 +12,14 @@ import { ApiBaseService } from './api-base.service';
 @Injectable({ providedIn: 'root' })
 export class ClientsApiService extends ApiBaseService {
   createClient(body: CreateClientRequest): Observable<ApiEnvelope<CreateClientResponseData>> {
-    return this.http.post<ApiEnvelope<CreateClientResponseData>>(this.url('/api/admin/clients'), body);
+    return this.http.post<ApiEnvelope<CreateClientResponseData>>(this.url('/admin/clients'), body);
   }
 
   getClients(
     params: GetClientsParams = {}
   ): Observable<ApiEnvelope<{ clients: unknown[]; pagination: unknown }>> {
     return this.http.get<ApiEnvelope<{ clients: unknown[]; pagination: unknown }>>(
-      this.url('/api/admin/clients'),
+      this.url('/admin/clients'),
       {
         params: this.buildParams({
           page: params.page ?? 1,
@@ -33,26 +33,26 @@ export class ClientsApiService extends ApiBaseService {
 
   getClientById(clientProfileId: string): Observable<ApiEnvelope<unknown>> {
     return this.http.get<ApiEnvelope<unknown>>(
-      this.url(`/api/admin/clients/${encodeURIComponent(clientProfileId)}`)
+      this.url(`/admin/clients/${encodeURIComponent(clientProfileId)}`)
     );
   }
 
   deleteClient(clientProfileId: string): Observable<ApiEnvelope<unknown>> {
     return this.http.delete<ApiEnvelope<unknown>>(
-      this.url(`/api/admin/clients/${encodeURIComponent(clientProfileId)}`)
+      this.url(`/admin/clients/${encodeURIComponent(clientProfileId)}`)
     );
   }
 
   activateClient(clientProfileId: string): Observable<ApiEnvelope<unknown>> {
     return this.http.patch<ApiEnvelope<unknown>>(
-      this.url(`/api/admin/clients/${encodeURIComponent(clientProfileId)}/activate`),
+      this.url(`/admin/clients/${encodeURIComponent(clientProfileId)}/activate`),
       {}
     );
   }
 
   deactivateClient(clientProfileId: string): Observable<ApiEnvelope<unknown>> {
     return this.http.patch<ApiEnvelope<unknown>>(
-      this.url(`/api/admin/clients/${encodeURIComponent(clientProfileId)}/deactivate`),
+      this.url(`/admin/clients/${encodeURIComponent(clientProfileId)}/deactivate`),
       {}
     );
   }

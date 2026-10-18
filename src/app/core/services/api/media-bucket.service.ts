@@ -10,7 +10,7 @@ import { ApiBaseService } from './api-base.service';
 @Injectable({ providedIn: 'root' })
 export class MediaBucketService extends ApiBaseService {
   presignUpload(body: PresignUploadRequest): Observable<PresignUploadResponse> {
-    return this.http.post<PresignUploadResponse>(this.url('/api/mediabucket/presign-upload'), body);
+    return this.http.post<PresignUploadResponse>(this.url('/mediabucket/presign-upload'), body);
   }
 
   /**
