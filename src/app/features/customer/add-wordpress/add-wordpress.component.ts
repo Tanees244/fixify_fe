@@ -42,7 +42,8 @@ export class AddWordpressComponent {
 
   readonly steps = [
     { n: 1, label: 'Site details' },
-    { n: 2, label: 'Monitoring plan' },
+    { n: 2, label: 'Plan & monitoring' },
+    { n: 3, label: 'Review' },
   ];
 
   readonly plans = computed(() => {
@@ -54,13 +55,17 @@ export class AddWordpressComponent {
     return this.subscriptionsData.planLabel(id);
   }
 
+  selectedPlanFeatures(): string[] {
+    return this.subscriptionsData.getPlan(this.plan())?.features ?? [];
+  }
+
   canContinueStep1(): boolean {
     return this.siteName().trim().length > 0 && this.siteUrl().trim().length > 0;
   }
 
   next(): void {
     if (this.step() === 1 && !this.canContinueStep1()) return;
-    if (this.step() < 2) {
+    if (this.step() < 3) {
       this.step.update((s) => s + 1);
     }
   }

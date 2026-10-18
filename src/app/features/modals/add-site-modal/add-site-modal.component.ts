@@ -14,117 +14,48 @@ import { AuthService } from '../../../core/services/auth.service';
 import {
   CustomersDataService,
   DataSessionService,
+  SubscriptionsDataService,
 } from '../../../core/services/data';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { ModalHeaderComponent } from '../../../shared/components/modal-header/modal-header.component';
+import { ToggleComponent } from '../../../shared/components/toggle/toggle.component';
 import { tw } from '../../../shared/ui/tw';
 
 @Component({
   selector: 'app-add-site-modal',
   standalone: true,
-  imports: [FormsModule, IconComponent, ModalHeaderComponent],
+  imports: [FormsModule, IconComponent, ModalHeaderComponent, ToggleComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <app-modal-header
-      [title]="stepTitle()"
-      icon="globe"
-      (closed)="closed.emit()"
-    />
+    <app-modal-header title="Add Website" icon="globe" (closed)="closed.emit()" />
     <div [class]="ui.modalBody">
+      <div [class]="ui.wpSteps">
+        @for (s of steps; track s.n) {
+          <div
+            [class]="
+              ui.wpStep +
+              (step() >= s.n ? ' ' + ui.wpStepOn : '') +
+              (step() === s.n ? ' ' + ui.wpStepActive : '')
+            "
+          >
+            <div [class]="ui.wpStepNum">{{ s.n }}</div>
+            <span>{{ s.label }}</span>
+          </div>
+          @if (s.n < steps.length) {
+            <div [class]="ui.wpStepLine + (step() > s.n ? ' ' + ui.wpStepLineOn : '')"></div>
+          }
+        }
+      </div>
+
       @if (step() === 1) {
-        <p class="mb-[18px] text-[13.5px] leading-relaxed text-fixify-text-2">
-          What kind of website are you adding? This determines which monitoring
-          modules we activate.
-        </p>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px">
-          @for (t of siteTypes; track t.id) {
-            <div
-              (click)="siteType.set(t.id)"
-              [style.border]="
-                '2px solid ' +
-                (siteType() === t.id ? t.color : 'var(--bd)')
-              "
-              style="border-radius: 14px; padding: 22px 18px; cursor: pointer; transition: all 0.18s; text-align: center"
-              [style.background]="
-                siteType() === t.id ? t.color + '0f' : 'var(--sr)'
-              "
-            >
-              <div
-                [style.background]="
-                  siteType() === t.id ? t.color : t.color + '18'
-                "
-                style="width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; transition: background 0.18s"
-              >
-                <app-icon
-                  [name]="t.icon"
-                  [size]="24"
-                  [color]="siteType() === t.id ? '#fff' : t.color"
-                />
-              </div>
-              <div class="mb-[7px] text-[15px] font-bold text-fixify-text-1">
-                {{ t.label }}
-              </div>
-              <div class="text-[12.5px] leading-snug text-fixify-text-3">
-                {{ t.desc }}
-              </div>
-              @if (siteType() === t.id) {
-                <div
-                  style="margin-top: 12px; display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600"
-                  [style.color]="t.color"
-                >
-                  <app-icon name="check" [size]="12" [color]="t.color" />
-                  Selected
-                </div>
-              }
-            </div>
-          }
-        </div>
-      }
-
-      @if (step() === 2) {
-        <p class="mb-4 text-[13.5px] leading-relaxed text-fixify-text-2">
-          Select your platform to unlock tailored monitoring, plugin health
-          checks, and automation templates.
-        </p>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px">
-          @for (p of cmsPlatforms; track p.id) {
-            <div
-              (click)="platform.set(p.id)"
-              [style.border]="
-                '2px solid ' + (platform() === p.id ? p.color : 'var(--bd)')
-              "
-              [style.background]="platform() === p.id ? p.bg : 'var(--sr)'"
-              style="border-radius: 12px; padding: 14px 16px; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 10px"
-            >
-              <div
-                [style.background]="p.color"
-                style="width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0"
-              >
-                <span style="color: #fff; font-weight: 800; font-size: 11px">{{
-                  p.label.slice(0, 2).toUpperCase()
-                }}</span>
-              </div>
-              <div style="flex: 1; min-width: 0">
-                <div class="text-[13.5px] font-bold text-fixify-text-1">
-                  {{ p.label }}
-                </div>
-                <div class="mt-0.5 truncate text-[11px] text-fixify-text-3">
-                  {{ p.desc }}
-                </div>
-              </div>
-              @if (platform() === p.id) {
-                <app-icon name="check" [size]="14" [color]="p.color" />
-              }
-            </div>
-          }
-        </div>
-      }
-
-      @if (step() === 3) {
         @if (isAdmin()) {
           <div [class]="ui.field">
             <label [class]="ui.label">Customer *</label>
-            <select [class]="ui.input" [ngModel]="customerId()" (ngModelChange)="customerId.set($event)">
+            <select
+              [class]="ui.input"
+              [ngModel]="customerId()"
+              (ngModelChange)="customerId.set($event)"
+            >
               <option value="">Select a customer…</option>
               @for (c of customers(); track c.id) {
                 <option [value]="c.id">{{ c.company || c.name }} — {{ c.email }}</option>
@@ -132,32 +63,18 @@ import { tw } from '../../../shared/ui/tw';
             </select>
           </div>
         }
-        @if (selectedPlatform(); as pl) {
-          @if (pl.id !== 'custom') {
-            <div
-              [style.background]="pl.bg"
-              [style.border]="'1px solid ' + pl.color + '40'"
-              style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 10px; margin-bottom: 16px"
-            >
-              <div
-                [style.background]="pl.color"
-                style="width: 34px; height: 34px; border-radius: 9px; display: flex; align-items: center; justify-content: center; flex-shrink: 0"
-              >
-                <span style="color: #fff; font-weight: 800; font-size: 11px">{{
-                  pl.label.slice(0, 2).toUpperCase()
-                }}</span>
-              </div>
-              <div>
-                <div class="text-[13px] font-semibold text-fixify-text-1">
-                  {{ pl.label }} Site
-                </div>
-                <div class="mt-px text-[11.5px] text-fixify-text-3">
-                  {{ pl.desc }}
-                </div>
-              </div>
-            </div>
-          }
-        }
+        <div [class]="ui.field">
+          <label [class]="ui.label">Platform</label>
+          <select
+            [class]="ui.input"
+            [ngModel]="platform()"
+            (ngModelChange)="platform.set($event)"
+          >
+            @for (p of platforms; track p.id) {
+              <option [value]="p.id">{{ p.label }}</option>
+            }
+          </select>
+        </div>
         <div [class]="ui.field">
           <label [class]="ui.label">Website URL *</label>
           <input
@@ -176,25 +93,105 @@ import { tw } from '../../../shared/ui/tw';
             (ngModelChange)="siteName.set($event)"
           />
         </div>
+        @if (selectedPlatform(); as pl) {
+          <div
+            [style.background]="pl.bg"
+            [style.border]="'1px solid ' + pl.color + '40'"
+            class="rounded-[10px] p-3 text-[13px] leading-relaxed text-fixify-text-2"
+          >
+            <strong [style.color]="pl.color">{{ pl.label }} monitoring:</strong>
+            {{ pl.desc }}
+          </div>
+        }
+      }
+
+      @if (step() === 2) {
         <div [class]="ui.field">
           <label [class]="ui.label">Plan</label>
           <select [class]="ui.input" [ngModel]="plan()" (ngModelChange)="plan.set($event)">
-            <option>Starter</option>
-            <option>Pro</option>
-            <option>Business</option>
-            <option>Enterprise</option>
+            @for (p of plans(); track p.id) {
+              <option [value]="p.id">{{ p.name }} — {{ p.priceLabel }}</option>
+            }
           </select>
         </div>
-        <div
-          class="rounded-[10px] border border-fixify-accent-mid bg-fixify-accent-soft p-3 text-[13px] leading-relaxed text-fixify-text-2"
-        >
-          <strong class="text-fixify-accent">Monitoring activated:</strong>
-          Performance · Security · SEO · Uptime
-          @if (siteType() === 'cms' && selectedPlatform(); as pl) {
-            <span [style.color]="pl.color">
-              · {{ pl.label }} plugin health · Core updates · Theme checks
-            </span>
-          }
+        @if (selectedPlanFeatures().length) {
+          <div class="mb-4 text-[12.5px] leading-relaxed text-fixify-text-3">
+            @for (feat of selectedPlanFeatures(); track feat) {
+              <div>✓ {{ feat }}</div>
+            }
+          </div>
+        }
+        @if (platform() === 'wordpress') {
+          <div class="flex flex-col gap-1">
+            <div [class]="ui.wpToggleRow">
+              <div>
+                <div class="text-[13.5px] font-medium">Plugin health scanning</div>
+                <div class="mt-0.5 text-[11.5px] text-fixify-text-3">
+                  Monitor active plugins for vulnerabilities
+                </div>
+              </div>
+              <app-toggle
+                [checked]="enablePluginScan()"
+                (toggled)="enablePluginScan.set($event)"
+              />
+            </div>
+            <div [class]="ui.wpToggleRow">
+              <div>
+                <div class="text-[13.5px] font-medium">Auto-update notifications</div>
+                <div class="mt-0.5 text-[11.5px] text-fixify-text-3">
+                  Alert when WordPress core or plugins need updates
+                </div>
+              </div>
+              <app-toggle
+                [checked]="enableAutoUpdates()"
+                (toggled)="enableAutoUpdates.set($event)"
+              />
+            </div>
+          </div>
+        }
+      }
+
+      @if (step() === 3) {
+        <div [class]="ui.wpSummary">
+          <div class="mb-3 text-[13px] font-semibold text-fixify-text-1">Website summary</div>
+          <div [class]="ui.wpSummaryGrid">
+            @if (isAdmin()) {
+              <div [class]="ui.wpSummaryItem">
+                <span [class]="ui.wpSummaryLabel">Customer</span>
+                <span [class]="ui.wpSummaryValue">{{ customerLabel() }}</span>
+              </div>
+            }
+            <div [class]="ui.wpSummaryItem">
+              <span [class]="ui.wpSummaryLabel">Platform</span>
+              <span [class]="ui.wpSummaryValue">{{ selectedPlatform()?.label }}</span>
+            </div>
+            <div [class]="ui.wpSummaryItem">
+              <span [class]="ui.wpSummaryLabel">Site name</span>
+              <span [class]="ui.wpSummaryValue">{{ siteName() || '—' }}</span>
+            </div>
+            <div [class]="ui.wpSummaryItem">
+              <span [class]="ui.wpSummaryLabel">Site URL</span>
+              <span [class]="ui.wpSummaryValue + ' ' + ui.wpMono">{{ url() || '—' }}</span>
+            </div>
+            <div [class]="ui.wpSummaryItem">
+              <span [class]="ui.wpSummaryLabel">Plan</span>
+              <span [class]="ui.wpSummaryValue">{{ planLabel() }}</span>
+            </div>
+            @if (platform() === 'wordpress') {
+              <div [class]="ui.wpSummaryItem">
+                <span [class]="ui.wpSummaryLabel">Plugin scan</span>
+                <span [class]="ui.wpSummaryValue">{{
+                  enablePluginScan() ? 'Enabled' : 'Disabled'
+                }}</span>
+              </div>
+              <div [class]="ui.wpSummaryItem">
+                <span [class]="ui.wpSummaryLabel">Auto-update alerts</span>
+                <span [class]="ui.wpSummaryValue">{{
+                  enableAutoUpdates() ? 'Enabled' : 'Disabled'
+                }}</span>
+              </div>
+            }
+          </div>
         </div>
       }
     </div>
@@ -210,31 +207,20 @@ import { tw } from '../../../shared/ui/tw';
           <app-icon name="chevL" [size]="13" /> Back
         </button>
       }
-      @if (step() === 1) {
+      @if (step() < 3) {
         <button
           type="button"
           [class]="ui.btn + ' ' + ui.btnPrimary"
-          [disabled]="!siteType()"
-          (click)="onStep1Continue()"
+          [disabled]="step() === 1 && !canContinueStep1()"
+          (click)="step.set(step() + 1)"
         >
           <app-icon name="chevR" [size]="13" color="#fff" /> Continue
         </button>
-      }
-      @if (step() === 2) {
+      } @else {
         <button
           type="button"
           [class]="ui.btn + ' ' + ui.btnPrimary"
-          [disabled]="!platform()"
-          (click)="step.set(3)"
-        >
-          <app-icon name="chevR" [size]="13" color="#fff" /> Continue
-        </button>
-      }
-      @if (step() === 3) {
-        <button
-          type="button"
-          [class]="ui.btn + ' ' + ui.btnPrimary"
-          [disabled]="!canSubmit()"
+          [disabled]="!canContinueStep1()"
           (click)="submit()"
         >
           <app-icon name="plus" [size]="13" color="#fff" /> Add Website
@@ -250,22 +236,33 @@ export class AddSiteModalComponent {
   private readonly auth = inject(AuthService);
   private readonly session = inject(DataSessionService);
   private readonly customersData = inject(CustomersDataService);
+  private readonly subscriptionsData = inject(SubscriptionsDataService);
 
   readonly ui = tw;
   readonly step = signal(1);
-  readonly siteType = signal('');
-  readonly platform = signal('');
+  readonly platform = signal('wordpress');
   readonly url = signal('');
   readonly siteName = signal('');
-  readonly plan = signal('Pro');
+  readonly plan = signal('free');
+  readonly enablePluginScan = signal(true);
+  readonly enableAutoUpdates = signal(false);
   readonly customerId = signal<number | ''>('');
 
-  readonly cmsPlatforms = PLATFORMS.filter((p) => p.id !== 'custom');
+  readonly platforms = PLATFORMS;
+  readonly steps = [
+    { n: 1, label: 'Site details' },
+    { n: 2, label: 'Plan & monitoring' },
+    { n: 3, label: 'Review' },
+  ];
 
   readonly isAdmin = computed(() => this.auth.user()?.role === 'admin');
   readonly customers = computed(() => {
     this.session.dataRevision();
     return this.customersData.customers;
+  });
+  readonly plans = computed(() => {
+    this.session.dataRevision();
+    return this.subscriptionsData.subscriptionPlans;
   });
 
   constructor() {
@@ -274,54 +271,48 @@ export class AddSiteModalComponent {
     }
   }
 
-  readonly siteTypes = [
-    {
-      id: 'custom',
-      label: 'Custom Website',
-      icon: 'globe',
-      color: 'var(--acc)',
-      desc: 'React, Next.js, Vue, plain HTML — any custom-built site without a CMS',
-    },
-    {
-      id: 'cms',
-      label: 'CMS / Platform',
-      icon: 'layers',
-      color: '#059669',
-      desc: 'WordPress, Shopify, Wix, Squarespace, Webflow, Magento & more',
-    },
-  ];
-
-  stepTitle(): string {
-    if (this.step() === 1) return 'Choose Website Type';
-    if (this.step() === 2) return 'Select Your Platform';
-    return 'Configure Your Website';
-  }
-
   selectedPlatform(): Platform | undefined {
-    return (
-      PLATFORMS.find((p) => p.id === this.platform()) ??
-      PLATFORMS.find((p) => p.id === 'custom')
-    );
+    return PLATFORMS.find((p) => p.id === this.platform());
   }
 
-  onStep1Continue(): void {
-    this.step.set(this.siteType() === 'cms' ? 2 : 3);
+  selectedPlanFeatures(): string[] {
+    return this.subscriptionsData.getPlan(this.plan())?.features ?? [];
   }
 
-  canSubmit(): boolean {
+  planLabel(): string {
+    return this.subscriptionsData.planLabel(this.plan());
+  }
+
+  customerLabel(): string {
+    const c = this.customers().find((x) => x.id === Number(this.customerId()));
+    return c ? `${c.company || c.name} — ${c.email}` : '—';
+  }
+
+  canContinueStep1(): boolean {
     if (!this.url().trim()) return false;
     if (this.isAdmin() && !this.customerId()) return false;
     return true;
   }
 
   submit(): void {
-    if (!this.canSubmit()) return;
+    if (!this.canContinueStep1()) return;
+    const isWp = this.platform() === 'wordpress';
+    const url = this.url().trim();
+    const name = this.siteName().trim();
     this.submitted.emit({
-      url: this.url(),
-      name: this.siteName() || undefined,
+      url,
+      name: name || undefined,
       plan: this.plan(),
-      type: this.siteType(),
-      platform: this.siteType() === 'cms' ? this.platform() : 'custom',
+      type: this.platform() === 'custom' ? 'custom' : 'cms',
+      platform: this.platform(),
+      wordpress: isWp
+        ? {
+            siteName: name,
+            siteUrl: url,
+            enablePluginScan: this.enablePluginScan(),
+            enableAutoUpdates: this.enableAutoUpdates(),
+          }
+        : undefined,
       custId: this.isAdmin() && this.customerId() ? Number(this.customerId()) : undefined,
     });
   }
