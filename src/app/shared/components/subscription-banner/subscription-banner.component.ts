@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { EntitlementsService } from '../../../core/services/entitlements.service';
@@ -35,6 +35,7 @@ interface BannerView {
           <button
             type="button"
             style="font-weight: 700; text-decoration: underline; color: inherit; white-space: nowrap; background: none; border: 0; cursor: pointer"
+            [disabled]="busy()"
             (click)="resume()"
           >
             {{ v.cta }}
@@ -55,13 +56,21 @@ export class SubscriptionBannerComponent {
   private readonly api = inject(BillingApiService);
   private readonly toast = inject(NotificationService);
 
+  readonly busy = signal(false);
+
   resume(): void {
+    if (this.busy()) return;
+    this.busy.set(true);
     this.api.resume().subscribe({
       next: () => {
         this.toast.success('Plan resumed');
         this.ent.refresh();
+        this.busy.set(false);
       },
-      error: (err) => this.toast.error(err?.error?.message || 'Could not resume plan'),
+      error: (err) => {
+        this.busy.set(false);
+        this.toast.error(err?.error?.message || 'Could not resume plan');
+      },
     });
   }
   private readonly datePipe = new DatePipe('en-US');

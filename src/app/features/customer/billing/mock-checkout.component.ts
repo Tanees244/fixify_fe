@@ -90,7 +90,8 @@ export class MockCheckoutComponent implements OnInit {
     this.busy.set(true);
     this.api.mockConfirm(p.id, this.interval()).subscribe({
       next: () => {
-        this.ent.refresh();
+        this.ent.reset();
+        this.ent.load(true);
         this.router.navigate(['/customer/billing'], { queryParams: { checkout: 'success' } });
       },
       error: (err) => {

@@ -78,7 +78,7 @@ import { tw } from '../../../shared/ui/tw';
         </div>
 
         <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 26px">
-          <button type="button" [class]="ui.btn + ' ' + ui.btnPrimary" (click)="showPlans.set(!showPlans())">
+          <button type="button" [class]="ui.btn + ' ' + ui.btnPrimary" [disabled]="busy()" (click)="showPlans.set(!showPlans())">
             {{ showPlans() ? 'Hide plans' : 'Change plan' }}
           </button>
           <button

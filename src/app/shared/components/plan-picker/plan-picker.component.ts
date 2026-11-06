@@ -24,6 +24,7 @@ export interface PlanPick {
   imports: [IconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
+    @if (visiblePlans().length) {
     <div style="display: flex; justify-content: center; margin-bottom: 18px">
       <div
         style="display: inline-flex; gap: 4px; padding: 4px; border: 1px solid var(--bd); border-radius: 99px; background: var(--sr)"
@@ -44,6 +45,8 @@ export interface PlanPick {
         </button>
       </div>
     </div>
+
+    }
 
     <div [class]="ui.grid3">
       @for (p of visiblePlans(); track p.id) {
