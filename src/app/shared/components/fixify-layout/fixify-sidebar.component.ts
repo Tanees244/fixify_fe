@@ -22,6 +22,7 @@ const CUSTOMER_ROUTES: Record<string, string> = {
   ai: '/customer/ai',
   tickets: '/customer/tickets',
   reports: '/customer/reports',
+  billing: '/customer/billing',
   settings: '/customer/settings',
   'add-wordpress': '/customer/add-wordpress',
 };

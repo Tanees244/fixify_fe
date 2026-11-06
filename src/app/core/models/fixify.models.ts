@@ -1,3 +1,4 @@
+import { PlanLimits } from './billing.models';
 export type SiteStatus = 'ok' | 'warn' | 'bad';
 export type TicketStatus = 'open' | 'inprogress' | 'testing' | 'resolved' | 'closed';
 export type TicketPriority = 'critical' | 'high' | 'medium' | 'low';
@@ -12,14 +13,17 @@ export interface SubscriptionPlan {
   priceLabel: string;
   color: string;
   features: string[];
+  slug: string;
+  priceYearly: number;
+  isDefault: boolean;
+  isPublic: boolean;
+  sortOrder: number;
+  stripePriceMonthlyId: string;
+  stripePriceYearlyId: string;
+  limits: PlanLimits;
 }
 
-export interface SubscriptionPlanPayload {
-  name: string;
-  price: number;
-  color: string;
-  features: string[];
-}
+export type SubscriptionPlanPayload = Omit<SubscriptionPlan, 'id' | 'priceLabel'>;
 
 export type CustomerApprovalStatus = 'pending' | 'approved' | 'rejected';
 

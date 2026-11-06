@@ -31,6 +31,13 @@
   </div>
 
   <div [class]="ui.card + ' ' + ui.cardPad + ' ' + ui.wpFormCard">
+    @if (step() === 1 && siteLimitReached()) {
+      <div style="padding: 12px 14px; border-radius: 10px; background: #fff7ed; border: 1px solid #fed7aa; color: #c2410c; font-size: 13px; margin-bottom: 16px">
+        {{ ent.readOnly() ? 'Your trial has ended — choose a plan to add sites.' : 'You have reached your plan's website limit.' }}
+        <a routerLink="/customer/billing" style="font-weight: 700; text-decoration: underline; color: inherit">Upgrade or add a site</a>
+      </div>
+    }
+
     @if (step() === 1) {
       <div style="font-weight: 700; font-size: 15px; margin-bottom: 16px">Site details</div>
       <p style="font-size: 13.5px; color: var(--t2); margin-bottom: 18px; line-height: 1.6">
@@ -85,14 +92,31 @@
     @if (step() === 2) {
       <div style="font-weight: 700; font-size: 15px; margin-bottom: 16px">Plan &amp; monitoring</div>
 
+      @if (ent.subscription(); as sub) {
+        <div [class]="ui.fld">
+          <label [class]="ui.label">Your plan</label>
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border: 1px solid var(--bd); border-radius: 10px">
+            <div>
+              <div style="font-weight: 700" [style.color]="sub.plan.color">{{ sub.plan.name }}{{ sub.status === 'trialing' ? ' trial' : '' }}</div>
+              <div style="font-size: 12px; color: var(--t3); margin-top: 2px">
+                {{ sub.usage.sitesUsed }} / {{ ent.siteAllowance() === null ? 'unlimited' : ent.siteAllowance() }} sites ·
+                {{ sub.limits.uptime_interval_min }}-min uptime checks · {{ sub.limits.scan_frequency }} scans
+              </div>
+            </div>
+            <a routerLink="/customer/billing" [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm">Change plan</a>
+          </div>
+        </div>
+      } @else {
       <div [class]="ui.fld">
-        <label [class]="ui.label">Plan</label>
-        <select [class]="ui.input" [ngModel]="plan()" (ngModelChange)="plan.set($event)">
-          @for (p of plans(); track p.id) {
-            <option [value]="p.id">{{ p.name }} — {{ p.priceLabel }}</option>
-          }
-        </select>
-      </div>
+          <label [class]="ui.label">Plan</label>
+          <select [class]="ui.input" [ngModel]="plan()" (ngModelChange)="plan.set($event)">
+            @for (p of plans(); track p.id) {
+              <option [value]="p.id">{{ p.name }} — {{ p.priceLabel }}</option>
+            }
+          </select>
+        </div>
+  
+      }
 
       @if (selectedPlanFeatures().length) {
         <div style="margin-bottom: 16px; font-size: 12.5px; color: var(--t3); line-height: 1.6">

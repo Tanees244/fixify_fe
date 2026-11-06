@@ -14,6 +14,7 @@ import {
   WordPressPlugin,
   WordPressSiteState,
 } from '../models/fixify.models';
+import { DEFAULT_PLAN_LIMITS, PlanLimits } from '../models/billing.models';
 import { OnboardCustomerRequest } from '../models/api.models';
 import { EntityIdRegistry } from '../services/entity-id-registry.service';
 import { formatPriceLabel } from '../constants/subscription.constants';
@@ -91,9 +92,19 @@ function healthFromStats(stats: Record<string, unknown> | undefined): {
   return { health, perf, sec, seo, up, issues, st, lcp, fid, cls, scan };
 }
 
+export function mapPlanLimits(raw: unknown): PlanLimits {
+  const r = isRecord(raw) ? raw : {};
+  const out: Record<string, unknown> = { ...DEFAULT_PLAN_LIMITS };
+  for (const key of Object.keys(DEFAULT_PLAN_LIMITS)) {
+    if (key in r) out[key] = r[key];
+  }
+  return out as unknown as PlanLimits;
+}
+
 export function mapApiSubscriptionPlan(raw: unknown): SubscriptionPlan {
   const p = isRecord(raw) ? raw : {};
-  const price = typeof p['price'] === 'number' ? p['price'] : 0;
+  const num = (v: unknown, d = 0) => (typeof v === 'number' ? v : d);
+  const price = num(p['price'] ?? p['priceMonthly']);
   return {
     id: String(p['id'] ?? ''),
     name: String(p['name'] ?? 'Plan'),
@@ -101,6 +112,14 @@ export function mapApiSubscriptionPlan(raw: unknown): SubscriptionPlan {
     priceLabel: String(p['priceLabel'] ?? formatPriceLabel(price)),
     color: String(p['color'] ?? '#6b88ad'),
     features: Array.isArray(p['features']) ? p['features'].map((f) => String(f)) : [],
+    slug: String(p['slug'] ?? ''),
+    priceYearly: num(p['priceYearly'], price * 10),
+    isDefault: p['isDefault'] === true,
+    isPublic: p['isPublic'] !== false,
+    sortOrder: num(p['sortOrder']),
+    stripePriceMonthlyId: String(p['stripePriceMonthlyId'] ?? ''),
+    stripePriceYearlyId: String(p['stripePriceYearlyId'] ?? ''),
+    limits: mapPlanLimits(p['limits']),
   };
 }
 

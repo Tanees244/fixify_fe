@@ -1,3 +1,4 @@
+import { AdminSubscriptionPanelComponent } from './admin-subscription-panel.component';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -43,6 +44,7 @@ function tabFromQuery(param: string | null): DetailTab {
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    AdminSubscriptionPanelComponent,
     RouterLink,
     IconComponent,
     BadgeComponent,

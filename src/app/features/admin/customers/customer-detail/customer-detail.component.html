@@ -111,6 +111,8 @@
         </div>
       </div>
 
+      <app-admin-subscription-panel [customerApiId]="c.apiId" />
+
       @if (sites().length) {
         <div [class]="ui.sectionHead + ' ' + ui.u">
           <div [class]="ui.sectionTitle">Websites</div>

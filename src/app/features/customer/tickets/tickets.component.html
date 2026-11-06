@@ -7,10 +7,22 @@
           {{ ticketsTotal() || tickets().length }} total · {{ openCount() }} open
         </div>
       </div>
-      <button type="button" [class]="ui.btn + ' ' + ui.btnPrimary" (click)="createTicket()">
-        <app-icon name="plus" [size]="14" color="#fff" />
-        New Ticket
-      </button>
+      <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px">
+        <button type="button" [class]="ui.btn + ' ' + ui.btnPrimary" (click)="createTicket()" [disabled]="!ent.canCreateTicket()">
+          <app-icon [name]="ent.canCreateTicket() ? 'plus' : 'lock'" [size]="14" color="#fff" />
+          New Ticket
+        </button>
+        @if (ent.ticketsRemaining() !== null) {
+          <span style="font-size: 11.5px; color: var(--t3)">
+            @if (ent.canCreateTicket()) {
+              {{ ent.usage()?.ticketsUsed }}/{{ ent.limits()?.tickets_monthly }} tickets used
+            } @else {
+              Limit reached · resets {{ ent.resetDate() | date: 'mediumDate' }} ·
+              <a routerLink="/customer/billing" style="color: var(--acc); font-weight: 600">Upgrade</a>
+            }
+          </span>
+        }
+      </div>
     </div>
   </div>
 

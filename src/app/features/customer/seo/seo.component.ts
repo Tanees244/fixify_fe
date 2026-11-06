@@ -1,3 +1,4 @@
+import { EntitlementsService } from '../../../core/services/entitlements.service';
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 
 import { AppContextService } from '../../../core/services/app-context.service';
@@ -45,6 +46,7 @@ export class SeoComponent {
 
 
   readonly ctx = inject(AppContextService);
+  readonly ent = inject(EntitlementsService);
 
   private readonly session = inject(DataSessionService);
 

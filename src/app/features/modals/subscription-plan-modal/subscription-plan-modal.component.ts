@@ -12,6 +12,13 @@ import {
   SubscriptionPlan,
   SubscriptionPlanPayload,
 } from '../../../core/models/fixify.models';
+import {
+  DEFAULT_PLAN_LIMITS,
+  LIMIT_FIELDS,
+  LimitField,
+  PlanLimitKey,
+  PlanLimits,
+} from '../../../core/models/billing.models';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { ModalHeaderComponent } from '../../../shared/components/modal-header/modal-header.component';
 import { tw } from '../../../shared/ui/tw';
@@ -53,6 +60,40 @@ const PLAN_COLORS = ['#6b88ad', '#1d6fe0', '#059669', '#7c3aed', '#d97706', '#dc
           />
         </div>
       </div>
+      <div [class]="ui.grid2">
+        <div [class]="ui.field">
+          <label [class]="ui.label">Price (USD/year)</label>
+          <input [class]="ui.input" type="number" min="0" step="1" [ngModel]="priceYearly()" (ngModelChange)="priceYearly.set(+$event || 0)" />
+        </div>
+        <div [class]="ui.field">
+          <label [class]="ui.label">Slug</label>
+          <input [class]="ui.input" placeholder="starter | pro | business" [ngModel]="slug()" (ngModelChange)="slug.set($event)" />
+        </div>
+      </div>
+      <div [class]="ui.grid2">
+        <div [class]="ui.field">
+          <label [class]="ui.label">Stripe monthly price ID</label>
+          <input [class]="ui.input" placeholder="price_…" [ngModel]="stripeMonthly()" (ngModelChange)="stripeMonthly.set($event)" />
+        </div>
+        <div [class]="ui.field">
+          <label [class]="ui.label">Stripe yearly price ID</label>
+          <input [class]="ui.input" placeholder="price_…" [ngModel]="stripeYearly()" (ngModelChange)="stripeYearly.set($event)" />
+        </div>
+      </div>
+      <div [class]="ui.grid2">
+        <div [class]="ui.field">
+          <label [class]="ui.label">Sort order</label>
+          <input [class]="ui.input" type="number" step="1" [ngModel]="sortOrder()" (ngModelChange)="sortOrder.set(+$event || 0)" />
+        </div>
+        <div [class]="ui.field" style="justify-content: flex-end; gap: 8px">
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 13px">
+            <input type="checkbox" [ngModel]="isDefault()" (ngModelChange)="isDefault.set($event)" /> Default plan
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 13px">
+            <input type="checkbox" [ngModel]="isPublic()" (ngModelChange)="isPublic.set($event)" /> Public (pricing page)
+          </label>
+        </div>
+      </div>
       <div [class]="ui.field">
         <label [class]="ui.label">Color</label>
         <div class="flex flex-wrap gap-2">
@@ -78,6 +119,46 @@ const PLAN_COLORS = ['#6b88ad', '#1d6fe0', '#059669', '#7c3aed', '#d97706', '#dc
           [ngModel]="featuresText()"
           (ngModelChange)="featuresText.set($event)"
         ></textarea>
+      </div>
+      <div [class]="ui.field">
+        <label [class]="ui.label">Limits</label>
+        <div style="display: grid; gap: 10px; border: 1px solid var(--bd); border-radius: 10px; padding: 12px">
+          @for (f of limitFields; track f.key) {
+            <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 10px; align-items: center">
+              <span style="font-size: 12.5px; color: var(--t2)">{{ f.label }}</span>
+              @switch (f.kind) {
+                @case ('bool') {
+                  <input type="checkbox" [ngModel]="limits()[f.key]" (ngModelChange)="setLimit(f.key, $event)" />
+                }
+                @case ('select') {
+                  <select [class]="ui.input" [ngModel]="limits()[f.key]" (ngModelChange)="setLimit(f.key, $event)">
+                    @for (o of f.options; track o.value) {
+                      <option [value]="o.value">{{ o.label }}</option>
+                    }
+                  </select>
+                }
+                @default {
+                  <div style="display: flex; gap: 8px; align-items: center">
+                    <input
+                      [class]="ui.input"
+                      type="number"
+                      min="0"
+                      [disabled]="limits()[f.key] === null"
+                      [ngModel]="limits()[f.key]"
+                      (ngModelChange)="setLimit(f.key, +$event || 0)"
+                    />
+                    @if (f.unlimited) {
+                      <label style="display: flex; align-items: center; gap: 4px; font-size: 12px; white-space: nowrap">
+                        <input type="checkbox" [ngModel]="limits()[f.key] === null" (ngModelChange)="toggleNull(f, $event)" />
+                        {{ f.nullMeansNotAllowed ? 'Not allowed' : 'Unlimited' }}
+                      </label>
+                    }
+                  </div>
+                }
+              }
+            </div>
+          }
+        </div>
       </div>
     </div>
     <div [class]="ui.modalFooter">
@@ -113,6 +194,23 @@ export class SubscriptionPlanModalComponent implements OnChanges {
   readonly price = signal(0);
   readonly color = signal('#1d6fe0');
   readonly featuresText = signal('');
+  readonly priceYearly = signal(0);
+  readonly slug = signal('');
+  readonly stripeMonthly = signal('');
+  readonly stripeYearly = signal('');
+  readonly sortOrder = signal(0);
+  readonly isDefault = signal(false);
+  readonly isPublic = signal(true);
+  readonly limits = signal<PlanLimits>({ ...DEFAULT_PLAN_LIMITS });
+  readonly limitFields = LIMIT_FIELDS;
+
+  setLimit(key: PlanLimitKey, value: unknown): void {
+    this.limits.update((l) => ({ ...l, [key]: value }));
+  }
+
+  toggleNull(f: LimitField, isNull: boolean): void {
+    this.setLimit(f.key, isNull ? null : 0);
+  }
 
   ngOnChanges(): void {
     if (this.plan) {
@@ -125,6 +223,14 @@ export class SubscriptionPlanModalComponent implements OnChanges {
       this.price.set(0);
       this.color.set('#1d6fe0');
       this.featuresText.set('');
+      this.priceYearly.set(0);
+      this.slug.set('');
+      this.stripeMonthly.set('');
+      this.stripeYearly.set('');
+      this.sortOrder.set(0);
+      this.isDefault.set(false);
+      this.isPublic.set(true);
+      this.limits.set({ ...DEFAULT_PLAN_LIMITS });
     }
   }
 
@@ -134,6 +240,14 @@ export class SubscriptionPlanModalComponent implements OnChanges {
       name: this.name().trim(),
       price: this.price(),
       color: this.color(),
+      slug: this.slug().trim(),
+      priceYearly: this.priceYearly(),
+      stripePriceMonthlyId: this.stripeMonthly().trim(),
+      stripePriceYearlyId: this.stripeYearly().trim(),
+      sortOrder: this.sortOrder(),
+      isDefault: this.isDefault(),
+      isPublic: this.isPublic(),
+      limits: this.limits(),
       features: this.featuresText()
         .split('\n')
         .map((f) => f.trim())

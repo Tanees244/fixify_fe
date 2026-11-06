@@ -1,3 +1,4 @@
+import { EntitlementsService } from '../../../core/services/entitlements.service';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -27,6 +28,7 @@ export class AddWordpressComponent {
   private readonly session = inject(DataSessionService);
   private readonly sitesData = inject(SitesDataService);
   private readonly subscriptionsData = inject(SubscriptionsDataService);
+  protected readonly ent = inject(EntitlementsService);
   private readonly router = inject(Router);
 
   readonly wp = PLATFORMS.find((p) => p.id === 'wordpress')!;
@@ -59,8 +61,17 @@ export class AddWordpressComponent {
     return this.subscriptionsData.getPlan(this.plan())?.features ?? [];
   }
 
+  /** Backend enforces max_sites + extra_sites; this mirrors it for the UI. */
+  siteLimitReached(): boolean {
+    return !this.ent.canAddSite(this.sitesData.mySites().length);
+  }
+
   canContinueStep1(): boolean {
-    return this.siteName().trim().length > 0 && this.siteUrl().trim().length > 0;
+    return (
+      this.siteName().trim().length > 0 &&
+      this.siteUrl().trim().length > 0 &&
+      !this.siteLimitReached()
+    );
   }
 
   next(): void {
@@ -93,7 +104,7 @@ export class AddWordpressComponent {
     const site = await this.sitesData.addSite({
       url,
       name: this.siteName().trim(),
-      plan: this.plan(),
+      plan: this.ent.subscription()?.plan.id ?? this.plan(),
       type: 'cms',
       platform: 'wordpress',
       wordpress: this.buildWordPressDetails(),

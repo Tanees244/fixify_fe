@@ -4,6 +4,9 @@
       <div [class]="ui.pageTitle">Subscriptions</div>
       <div [class]="ui.pageSub">
         {{ approvedCustomers().length }} active subscribers · ${{ mrr() }}/mo MRR
+        @if (trialsEndingSoon() > 0) {
+          · <span style="color: var(--wn); font-weight: 600">{{ trialsEndingSoon() }} trial{{ trialsEndingSoon() === 1 ? '' : 's' }} ending in 3 days</span>
+        }
         @if (pending().length) {
           · <span style="color: var(--wn); font-weight: 600">{{ pending().length }} pending approval</span>
         }
@@ -75,6 +78,12 @@
           (input)="onSearch($any($event.target).value)"
         />
       </div>
+      <select [class]="ui.input" style="width: auto; padding: 7px 12px" [value]="statusFilter()" (change)="setStatusFilter($any($event.target).value)">
+        <option value="">All statuses</option>
+        @for (st of statuses; track st) {
+          <option [value]="st">{{ st }}</option>
+        }
+      </select>
     </div>
 
     <div [class]="ui.card + ' ' + ui.u">
@@ -124,7 +133,7 @@
                     </select>
                   </td>
                   <td [class]="ui.td" style="font-weight: 700; color: var(--t1)">${{ planPrice(c.plan) }}</td>
-                  <td [class]="ui.td"><app-badge [variant]="c.status === 'active' ? 'bok' : 'bwn'">{{ c.status }}</app-badge></td>
+                  <td [class]="ui.td"><app-badge [variant]="c.status === 'active' ? 'bok' : 'bwn'">{{ statusFor(c)?.status ?? c.status }}</app-badge></td>
                   <td [class]="ui.td">
                     <button type="button" [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm" (click)="viewCustomer(c.id)">
                       <app-icon name="eye" [size]="12" />

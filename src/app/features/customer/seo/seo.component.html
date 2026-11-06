@@ -118,7 +118,8 @@
       <div [class]="ui.pageSection + ' ' + (loading() ? '' : ui.u + ' ' + ui.u2)">
         <div [class]="ui.sectionHead">
           <div [class]="ui.sectionTitle">SEO Issues{{ loading() ? '' : ' (' + issues().length + ')' }}</div>
-          <button type="button" [class]="ui.btn + ' ' + ui.btnPrimary + ' ' + ui.btnSm" (click)="rescan()" [disabled]="ctx.scanning() || loading()">
+          <button type="button" [class]="ui.btn + ' ' + ui.btnPrimary + ' ' + ui.btnSm" (click)="rescan()" [disabled]="ctx.scanning() || loading() || !ent.can('manual_rescan')" [attr.title]="ent.can('manual_rescan') ? null : ent.lockHint('manual_rescan')">
+            @if (!ent.can('manual_rescan')) { <app-icon name="lock" [size]="12" /> }
             {{ ctx.scanning() ? 'Scanning…' : 'Re-scan' }}
           </button>
         </div>

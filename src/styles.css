@@ -73,3 +73,13 @@ app-root {
   color: var(--color-fixify-text-1);
   -webkit-font-smoothing: antialiased;
 }
+
+/* Expired subscription = read-only: disable actions except inside [data-allow]. */
+[data-readonly='true'] main button:not([data-allow]):not([data-allow] *),
+[data-readonly='true'] main input:not([data-allow]):not([data-allow] *),
+[data-readonly='true'] main select:not([data-allow]):not([data-allow] *),
+[data-readonly='true'] main textarea:not([data-allow]):not([data-allow] *) {
+  opacity: 0.55;
+  pointer-events: none;
+  cursor: not-allowed;
+}

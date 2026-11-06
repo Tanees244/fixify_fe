@@ -1,3 +1,4 @@
+import { SubscriptionPlanRequest } from '../../models/api.models';
 import { Injectable, Injector, inject, signal } from '@angular/core';
 import { SubscriptionPlan, SubscriptionPlanPayload } from '../../models/fixify.models';
 import { mapApiSubscriptionPlan } from '../../utils/api-mappers.util';
@@ -69,6 +70,14 @@ export class SubscriptionsDataService {
     });
   }
 
+  private toRequest(data: SubscriptionPlanPayload): SubscriptionPlanRequest {
+    return {
+      ...data,
+      name: data.name.trim(),
+      features: data.features.filter((f) => f.trim()),
+    };
+  }
+
   createSubscriptionPlan(data: SubscriptionPlanPayload): void {
     if (!this.session.useApi()) {
       this.toast.error('Sign in to create subscription plans');
@@ -76,12 +85,7 @@ export class SubscriptionsDataService {
     }
     this.planSaving.set(true);
     this.subscriptionsApi
-      .createPlan({
-        name: data.name.trim(),
-        price: data.price,
-        color: data.color,
-        features: data.features.filter((f) => f.trim()),
-      })
+      .createPlan(this.toRequest(data))
       .subscribe({
         next: () => {
           this.syncPlansFromApi(() => {
@@ -104,12 +108,7 @@ export class SubscriptionsDataService {
     }
     this.planSaving.set(true);
     this.subscriptionsApi
-      .updatePlan(id, {
-        name: data.name.trim(),
-        price: data.price,
-        color: data.color,
-        features: data.features.filter((f) => f.trim()),
-      })
+      .updatePlan(id, this.toRequest(data))
       .subscribe({
         next: () => {
           this.syncPlansFromApi(() => {
