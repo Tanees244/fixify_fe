@@ -2,10 +2,13 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { EntitlementsService } from '../../../core/services/entitlements.service';
+import { BillingApiService } from '../../../core/services/api/billing-api.service';
+import { NotificationService } from '../../../core/services/notification.service';
 
 interface BannerView {
   text: string;
   cta: string;
+  action?: 'resume';
   bg: string;
   fg: string;
   border: string;
@@ -28,17 +31,39 @@ interface BannerView {
         [style.border-color]="v.border"
       >
         <span>{{ v.text }}</span>
-        <a
-          routerLink="/customer/billing"
-          style="font-weight: 700; text-decoration: underline; color: inherit; white-space: nowrap"
-          >{{ v.cta }}</a
-        >
+        @if (v.action === 'resume') {
+          <button
+            type="button"
+            style="font-weight: 700; text-decoration: underline; color: inherit; white-space: nowrap; background: none; border: 0; cursor: pointer"
+            (click)="resume()"
+          >
+            {{ v.cta }}
+          </button>
+        } @else {
+          <a
+            routerLink="/customer/billing"
+            style="font-weight: 700; text-decoration: underline; color: inherit; white-space: nowrap"
+            >{{ v.cta }}</a
+          >
+        }
       </div>
     }
   `,
 })
 export class SubscriptionBannerComponent {
   private readonly ent = inject(EntitlementsService);
+  private readonly api = inject(BillingApiService);
+  private readonly toast = inject(NotificationService);
+
+  resume(): void {
+    this.api.resume().subscribe({
+      next: () => {
+        this.toast.success('Plan resumed');
+        this.ent.refresh();
+      },
+      error: (err) => this.toast.error(err?.error?.message || 'Could not resume plan'),
+    });
+  }
   private readonly datePipe = new DatePipe('en-US');
 
   readonly view = computed<BannerView | null>(() => {
@@ -78,6 +103,7 @@ export class SubscriptionBannerComponent {
         return {
           text: `Your plan is canceled. Access ends ${this.datePipe.transform(s.currentPeriodEnd, 'mediumDate') ?? 'at period end'}.`,
           cta: 'Resume plan',
+          action: 'resume',
           bg: '#fffbeb',
           fg: '#92400e',
           border: '#fde68a',

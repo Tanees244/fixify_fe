@@ -89,6 +89,11 @@ import { tw } from '../../../shared/ui/tw';
           >
             Manage billing
           </button>
+          @if (s.cancelAtPeriodEnd && s.status !== 'expired') {
+            <button type="button" [class]="ui.btn + ' ' + ui.btnPrimary" [disabled]="busy()" (click)="resume()">
+              Resume plan
+            </button>
+          }
           @if (s.status === 'active' && !s.cancelAtPeriodEnd) {
             <button type="button" [class]="ui.btn + ' ' + ui.btnGhost" [disabled]="busy()" (click)="cancel()">
               Cancel plan
@@ -185,7 +190,8 @@ export class BillingComponent implements OnInit {
       s && s.status === 'active'
         ? this.api.changePlan(
             pick.plan.id,
-            current && pick.plan.price < current.price ? 'downgrade' : 'upgrade'
+            current && pick.plan.price < current.price ? 'downgrade' : 'upgrade',
+            pick.interval
           )
         : this.api.checkout(pick.plan.id, pick.interval);
     call.subscribe({
@@ -226,6 +232,21 @@ export class BillingComponent implements OnInit {
       error: (err) => {
         this.busy.set(false);
         this.toast.error(err?.error?.message || 'Could not open billing portal');
+      },
+    });
+  }
+
+  resume(): void {
+    this.busy.set(true);
+    this.api.resume().subscribe({
+      next: () => {
+        this.busy.set(false);
+        this.ent.refresh();
+        this.toast.success('Plan resumed');
+      },
+      error: (err) => {
+        this.busy.set(false);
+        this.toast.error(err?.error?.message || 'Could not resume plan');
       },
     });
   }

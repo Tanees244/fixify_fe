@@ -24,11 +24,19 @@ export class BillingApiService extends ApiBaseService {
   }
 
   /** Upgrades prorate immediately; downgrades are scheduled for period end (backend decides). */
-  changePlan(planId: string, direction: 'upgrade' | 'downgrade'): Observable<ApiEnvelope<unknown>> {
+  changePlan(
+    planId: string,
+    direction: 'upgrade' | 'downgrade',
+    interval: BillingInterval
+  ): Observable<ApiEnvelope<unknown>> {
     return this.http.put<ApiEnvelope<unknown>>(
       this.url(`/api/billing/subscription/${direction}`),
-      { planSlug: planId }
+      { planSlug: planId, interval }
     );
+  }
+
+  resume(): Observable<ApiEnvelope<unknown>> {
+    return this.http.post<ApiEnvelope<unknown>>(this.url('/api/billing/subscription/resume'), {});
   }
 
   /** Demo only: backend BILLING_MOCK=true. */
