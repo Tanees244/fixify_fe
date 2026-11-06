@@ -1,3 +1,4 @@
+import { EntitlementsService } from '../entitlements.service';
 import { Injectable, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import {
@@ -107,6 +108,7 @@ export class TicketsDataService {
   private readonly ids = inject(EntityIdRegistry);
   private readonly api = inject(TicketsApiService);
   private readonly media = inject(MediaBucketService);
+  private readonly entitlements = inject(EntitlementsService);
 
   readonly tickets: Ticket[] = [];
   readonly ticketsPage = signal(1);
@@ -267,7 +269,14 @@ export class TicketsDataService {
       this.toast.error('Cannot create ticket right now');
       return null;
     }
-    const attachments = await this.uploadFiles(data.files);
+    let attachments: ApiTicketAttachmentInput[];
+    try {
+      attachments = await this.uploadFiles(data.files);
+    } catch {
+      // uploadFiles already toasted the file name; make the next step obvious and keep the form usable.
+      this.toast.error('Attachment upload failed. Remove the attachment and submit again, or try later.');
+      return null;
+    }
     const body: CreateTicketRequest = {
       subject: data.subject.trim(),
       website: data.websiteId,
@@ -291,6 +300,7 @@ export class TicketsDataService {
       this.messagesByTicket.delete(ticket.id);
       this.session.bump();
       this.toast.success(`Ticket ${ticket.number ?? ''} created`.trim());
+      this.entitlements.refresh(); // ticket counter / limit state
       this.ctx.closeModal();
       return ticket.id;
     } catch {

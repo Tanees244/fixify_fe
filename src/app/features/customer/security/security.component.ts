@@ -120,14 +120,20 @@ export class SecurityComponent {
 
 
 
+  /** Days until expiry computed from the expiry date now (the stored daysRemaining is from scan time). */
+  private readonly sslDays = computed<number | null>(() => {
+    const ssl = this.ssl();
+    const t = ssl?.expires ? Date.parse(ssl.expires) : NaN;
+    if (!Number.isNaN(t)) return Math.floor((t - Date.now()) / 86_400_000);
+    return ssl?.daysRemaining ?? null;
+  });
+
+  readonly sslValid = computed(() => !!this.ssl()?.valid && (this.sslDays() ?? 1) > 0);
+
   readonly sslExpiryLabel = computed(() => {
-
-    const days = this.ssl()?.daysRemaining;
-
+    const days = this.sslDays();
     if (days == null) return '—';
-
-    return `${days} days`;
-
+    return days < 0 ? `Expired ${-days} days ago` : `${days} days remaining`;
   });
 
 

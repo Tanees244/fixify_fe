@@ -1,6 +1,6 @@
 <div>
   <div [class]="ui.pageHeader">
-    <div [class]="ui.pageTitle">Good morning, {{ customerName }} 👋</div>
+    <div [class]="ui.pageTitle">Good morning{{ customerName ? ', ' + customerName : '' }} 👋</div>
     <div [class]="ui.pageSub">Website health overview · {{ formatDateLong() }}</div>
   </div>
 
@@ -142,7 +142,7 @@
               </div>
               <div style="flex: 1; min-width: 0">
                 <div style="font-weight: 600; font-size: 13.5px; color: var(--t1)">{{ a.action }}</div>
-                <div style="font-size: 11px; color: var(--t3); margin: 3px 0 4px">{{ a.siteName }} · {{ a.performedAt }}</div>
+                <div style="font-size: 11px; color: var(--t3); margin: 3px 0 4px">{{ a.siteName }} · {{ whenLabel(a.performedAt) }}</div>
                 <div style="font-size: 13px; color: var(--t2); line-height: 1.55">{{ a.details }}</div>
               </div>
             </div>

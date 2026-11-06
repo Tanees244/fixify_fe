@@ -78,7 +78,7 @@ export class DashboardComponent {
   }
 
   get customerName(): string {
-    return this.dashboardData.greetingName() || 'there';
+    return this.dashboardData.greetingName();
   }
 
   ticketTypeBadge(type: string): 'bac' | 'bwn' | 'bbl' {
@@ -110,5 +110,19 @@ export class DashboardComponent {
 
   viewTicket(ticket: Ticket): void {
     this.router.navigate(['/customer/tickets', ticket.id]);
+  }
+
+  /** Backend sends ISO timestamps for team updates; leave already-friendly text (e.g. "2h ago") alone. */
+  whenLabel(v: string | null | undefined): string {
+    if (!v) return '';
+    if (!/^\d{4}-\d{2}-\d{2}T/.test(v)) return v;
+    const d = new Date(v);
+    if (Number.isNaN(d.getTime())) return v;
+    const mins = Math.round((Date.now() - d.getTime()) / 60000);
+    if (mins < 1) return 'Just now';
+    if (mins < 60) return mins + 'm ago';
+    if (mins < 60 * 24) return Math.floor(mins / 60) + 'h ago';
+    if (mins < 60 * 24 * 7) return Math.floor(mins / 1440) + 'd ago';
+    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
   }
 }
