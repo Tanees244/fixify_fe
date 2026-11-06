@@ -1,5 +1,9 @@
+import { DatePipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
+import { EntitlementsService } from '../../../core/services/entitlements.service';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { NotificationService } from '../../../core/services/notification.service';
 import { Router } from '@angular/router';
 import { DataSessionService, SitesDataService, TicketsDataService } from '../../../core/services/data';
 import { AppContextService } from '../../../core/services/app-context.service';
@@ -19,7 +23,7 @@ import { tw } from '../../../shared/ui/tw';
   selector: 'app-customer-tickets',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, IconComponent, BadgeComponent, TableSkeletonComponent],
+  imports: [DatePipe, RouterLink, FormsModule, IconComponent, BadgeComponent, TableSkeletonComponent],
   templateUrl: './tickets.component.html',
 })
 export class TicketsComponent {
@@ -30,6 +34,8 @@ export class TicketsComponent {
   private readonly ticketsData = inject(TicketsDataService);
   private readonly ctx = inject(AppContextService);
   private readonly router = inject(Router);
+  private readonly toast = inject(NotificationService);
+  readonly ent = inject(EntitlementsService);
 
   readonly Math = Math;
 
@@ -93,6 +99,10 @@ export class TicketsComponent {
   }
 
   createTicket(): void {
+    if (!this.ent.canCreateTicket()) {
+      this.toast.show(this.ent.readOnly() ? 'Your trial has ended — choose a plan' : 'Ticket limit reached for this period. Upgrade your plan for more tickets.', 'warning');
+      return;
+    }
     this.ctx.openModal({ type: 'createTicket', sites: this.sitesData.mySites() });
   }
 

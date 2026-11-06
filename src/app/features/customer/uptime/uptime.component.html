@@ -4,7 +4,7 @@
       <div [class]="ui.pageTitle">Uptime & Availability</div>
       <div [class]="ui.pageSub">
         {{ site.name }} · Real-time monitoring
-        @if (dashboard(); as d) { · {{ d.checkInterval }} }
+        @if (dashboard(); as d) { · {{ ent.intervalLabel() || d.checkInterval }} }
       </div>
     </div>
 
@@ -28,7 +28,7 @@
         <div [class]="ui.statCard">
           <div [class]="ui.statLbl">Uptime (30d)</div>
           <div [class]="ui.statVal" [style.color]="d.uptime30d >= 99.9 ? 'var(--ok)' : 'var(--wn)'">{{ d.uptime30d }}%</div>
-          <div [class]="ui.statSub">{{ d.checkInterval }}</div>
+          <div [class]="ui.statSub">{{ ent.intervalLabel() || d.checkInterval }}</div>
         </div>
         <div [class]="ui.statCard">
           <div [class]="ui.statLbl">Avg Response</div>

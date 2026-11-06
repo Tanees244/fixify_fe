@@ -6,6 +6,9 @@ import {
   signal,
 } from '@angular/core';
 import { Router } from '@angular/router';
+import { BillingApiService } from '../../../core/services/api/billing-api.service';
+import { AdminSubscriptionRow } from '../../../core/models/billing.models';
+import { mapAdminSubscriptionsList } from '../../../core/utils/billing-mappers.util';
 import {
   DataSessionService,
   CustomersDataService,
@@ -33,6 +36,37 @@ export class SubscriptionsComponent {
   private readonly customersData = inject(CustomersDataService);
   private readonly subscriptionsData = inject(SubscriptionsDataService);
   private readonly router = inject(Router);
+  private readonly billingApi = inject(BillingApiService);
+
+  readonly statusFilter = signal('');
+  readonly statusRows = signal<AdminSubscriptionRow[]>([]);
+  readonly trialsEndingSoon = signal(0);
+  readonly statuses = ['trialing', 'active', 'past_due', 'expired', 'canceled'];
+
+  constructor() {
+    this.loadStatuses();
+  }
+
+  loadStatuses(): void {
+    this.billingApi.adminList(this.statusFilter() || undefined).subscribe({
+      next: (res) => {
+        const l = mapAdminSubscriptionsList(res.data);
+        this.statusRows.set(l.items);
+        this.trialsEndingSoon.set(l.trialsEndingSoon);
+      },
+      error: () => undefined,
+    });
+  }
+
+  setStatusFilter(v: string): void {
+    this.statusFilter.set(v);
+    this.loadStatuses();
+  }
+
+  /** Subscription row for a customer (matched by email) from the admin list, if loaded. */
+  statusFor(c: Customer): AdminSubscriptionRow | undefined {
+    return this.statusRows().find((r) => r.email.toLowerCase() === c.email.toLowerCase());
+  }
 
   readonly customers = this.customersData.customers;
   readonly loading = this.session.loading;
@@ -67,11 +101,13 @@ export class SubscriptionsComponent {
   readonly filteredAssignments = computed(() => {
     this.session.dataRevision();
     const q = this.search().toLowerCase();
+    const filter = this.statusFilter();
     return this.approvedCustomers().filter(
       (c) =>
-        q === '' ||
-        c.name.toLowerCase().includes(q) ||
-        c.company.toLowerCase().includes(q)
+        (q === '' ||
+          c.name.toLowerCase().includes(q) ||
+          c.company.toLowerCase().includes(q)) &&
+        (!filter || this.statusFor(c)?.status === filter)
     );
   });
 

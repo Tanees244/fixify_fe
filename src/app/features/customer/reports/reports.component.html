@@ -7,6 +7,14 @@
       </div>
     </div>
 
+    @if (ent.lockedByPlan('reports')) {
+      <div [class]="ui.card + ' ' + ui.cardPad" style="text-align: center; padding: 48px 20px">
+        <app-icon name="lock" [size]="28" color="var(--t3)" />
+        <div style="font-weight: 700; font-size: 16px; margin-top: 12px">Monthly reports are available on Pro</div>
+        <div style="font-size: 13px; color: var(--t3); margin: 6px 0 16px">{{ ent.lockHint('reports') }} and above.</div>
+        <a routerLink="/customer/billing" [class]="ui.btn + ' ' + ui.btnPrimary">Upgrade plan</a>
+      </div>
+    } @else {
     @if (loading()) {
       <app-stat-cards-skeleton [count]="3" [gridClass]="ui.grid3" [class]="ui.u" style="margin-bottom: 22px" />
     } @else {
@@ -84,7 +92,7 @@
                 <div style="font-size: 12px; color: var(--t3); margin-top: 3px">Score {{ r.health }} · Generated {{ r.generatedAt }}</div>
               </div>
               @if (i === 0) { <app-badge variant="bac">Latest</app-badge> }
-              <button type="button" [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm" (click)="downloadReport(r); $event.stopPropagation()">
+              <button type="button" [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm" (click)="downloadReport(r); $event.stopPropagation()" [disabled]="!ent.can('export')" [attr.title]="ent.can('export') ? null : ent.lockHint('export')">
                 <app-icon name="dl" [size]="13" /> Download
               </button>
             </div>
@@ -105,6 +113,7 @@
           </div>
         }
       </div>
+    }
     }
   </div>
 }

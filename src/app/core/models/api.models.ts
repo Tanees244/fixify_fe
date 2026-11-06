@@ -1,3 +1,4 @@
+import { PlanLimits } from './billing.models';
 export interface ApiEnvelope<T = unknown> {
   success?: boolean;
   status?: number;
@@ -346,6 +347,14 @@ export interface SubscriptionPlanRequest {
   price: number;
   color: string;
   features: string[];
+  slug?: string;
+  priceYearly?: number;
+  isDefault?: boolean;
+  isPublic?: boolean;
+  sortOrder?: number;
+  stripePriceMonthlyId?: string;
+  stripePriceYearlyId?: string;
+  limits?: PlanLimits;
 }
 
 export interface OnboardSiteWordPressRequest {

@@ -75,6 +75,11 @@ export const CUSTOMER_ROUTES: Routes = [
       import('./settings/settings.component').then((m) => m.SettingsComponent),
   },
   {
+    path: 'billing',
+    loadComponent: () =>
+      import('./billing/billing.component').then((m) => m.BillingComponent),
+  },
+  {
     path: 'add-wordpress',
     loadComponent: () =>
       import('./add-wordpress/add-wordpress.component').then(

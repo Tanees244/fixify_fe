@@ -1,3 +1,4 @@
+import { EntitlementsService } from '../../../core/services/entitlements.service';
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 
 import { DataSessionService, SitesDataService } from '../../../core/services/data';
@@ -47,6 +48,7 @@ export class SecurityComponent {
   private readonly sitesData = inject(SitesDataService);
 
   readonly ctx = inject(AppContextService);
+  readonly ent = inject(EntitlementsService);
 
 
 

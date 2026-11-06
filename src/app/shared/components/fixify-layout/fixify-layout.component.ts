@@ -14,6 +14,8 @@ import { SitesDataService } from '../../../core/services/data';
 import { AppContextService } from '../../../core/services/app-context.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { RouteDataLoaderService } from '../../../core/services/route-data-loader.service';
+import { EntitlementsService } from '../../../core/services/entitlements.service';
+import { SubscriptionBannerComponent } from '../subscription-banner/subscription-banner.component';
 import { tw } from '../../ui/tw';
 
 @Component({
@@ -24,6 +26,7 @@ import { tw } from '../../ui/tw';
     FixifySidebarComponent,
     FixifyTopbarComponent,
     ModalHostComponent,
+    SubscriptionBannerComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -36,8 +39,11 @@ import { tw } from '../../ui/tw';
         ></div>
       }
       <app-fixify-sidebar />
-      <div [class]="ui.mainCol">
+      <div [class]="ui.mainCol" [attr.data-readonly]="ent.readOnly() ? 'true' : null">
         <app-fixify-topbar />
+        @if (auth.user()?.role === 'customer') {
+          <app-subscription-banner />
+        }
         <main [class]="ui.content">
           <router-outlet />
         </main>
@@ -52,7 +58,8 @@ export class FixifyLayoutComponent implements OnInit {
 
   private readonly sitesData = inject(SitesDataService);
   private readonly routeLoader = inject(RouteDataLoaderService);
-  private readonly auth = inject(AuthService);
+  protected readonly auth = inject(AuthService);
+  protected readonly ent = inject(EntitlementsService);
   private readonly router = inject(Router);
 
   constructor() {
@@ -71,6 +78,7 @@ export class FixifyLayoutComponent implements OnInit {
   ngOnInit(): void {
     this.auth.restoreSession().subscribe(() => {
       this.syncModeFromAuth();
+      this.ent.load();
       this.syncModeFromUrl();
       this.routeLoader.loadForUrl(this.router.url);
     });

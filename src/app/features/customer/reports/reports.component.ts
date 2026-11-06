@@ -1,3 +1,5 @@
+import { RouterLink } from '@angular/router';
+import { EntitlementsService } from '../../../core/services/entitlements.service';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { AppContextService } from '../../../core/services/app-context.service';
 import { DataSessionService, ReportsDataService } from '../../../core/services/data';
@@ -13,13 +15,14 @@ import { tw } from '../../../shared/ui/tw';
   selector: 'app-customer-reports',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent, BadgeComponent, StatCardsSkeletonComponent, ListItemsSkeletonComponent],
+  imports: [RouterLink, IconComponent, BadgeComponent, StatCardsSkeletonComponent, ListItemsSkeletonComponent],
   templateUrl: './reports.component.html',
 })
 export class ReportsComponent {
   protected readonly ui = tw;
 
   readonly ctx = inject(AppContextService);
+  readonly ent = inject(EntitlementsService);
   private readonly session = inject(DataSessionService);
   private readonly reportsData = inject(ReportsDataService);
 

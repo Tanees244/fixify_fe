@@ -28,10 +28,11 @@
             [ngModel]="question()"
             (ngModelChange)="question.set($event)"
             (keydown.enter)="askAi()"
+            [disabled]="!ent.canAskAi()"
             placeholder="e.g. Why is my performance score dropping?"
             style="flex: 1; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--acm); background: var(--sr); font-size: 13.5px; outline: none; color: var(--t1)"
           />
-          <button type="button" [class]="ui.btn + ' ' + ui.btnPrimary" (click)="askAi()" [disabled]="loading() || !question().trim()" style="flex-shrink: 0">
+          <button type="button" [class]="ui.btn + ' ' + ui.btnPrimary" (click)="askAi()" [disabled]="loading() || !question().trim() || !ent.canAskAi()" style="flex-shrink: 0">
             @if (loading()) {
               <app-icon name="loader" [size]="14" color="#fff" />
             } @else {
@@ -48,6 +49,18 @@
             >{{ s }}</span>
           }
         </div>
+        @if (ent.limits(); as l) {
+          <div style="margin-top: 10px; font-size: 12px; color: var(--t3)">
+            @if (l.ask_ai_monthly === null) {
+              Unlimited questions
+            } @else {
+              {{ ent.usage()?.askAiUsed ?? 0 }}/{{ l.ask_ai_monthly }} used this month
+              @if (!ent.canAskAi() && !ent.readOnly()) {
+                · <a routerLink="/customer/billing" style="color: var(--acc); font-weight: 600">Upgrade for more</a>
+              }
+            }
+          </div>
+        }
         @if (answer()) {
           <div style="margin-top: 14px; padding: 14px 16px; background: var(--sr); border-radius: 10px; border: 1px solid var(--acm); font-size: 13.5px; color: var(--t1); line-height: 1.75; white-space: pre-line">
             <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px; font-weight: 600; color: var(--acc); font-size: 12px">✦ AI Response</div>
@@ -107,7 +120,7 @@
             Create scheduled workflows that automatically maintain your websites — update plugins, run security scans, generate reports, and more.
           </div>
         </div>
-        <button type="button" [class]="ui.btn + ' ' + ui.btnPrimary" style="flex-shrink: 0" (click)="openCreateProcess()">
+        <button type="button" [class]="ui.btn + ' ' + ui.btnPrimary" style="flex-shrink: 0" (click)="openCreateProcess()" [disabled]="!ent.canCreateAutomation()" [attr.title]="ent.canCreateAutomation() ? null : ent.lockHint('automation')">
           <app-icon name="plus" [size]="13" color="#fff" />
           New Process
         </button>

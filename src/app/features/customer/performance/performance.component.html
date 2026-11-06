@@ -32,7 +32,8 @@
                   </button>
                 }
               </div>
-              <button type="button" [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm" (click)="rescan()" [disabled]="ctx.scanning()">
+              <button type="button" [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm" (click)="rescan()" [disabled]="ctx.scanning() || !ent.can('manual_rescan')" [attr.title]="ent.can('manual_rescan') ? null : ent.lockHint('manual_rescan')">
+                @if (!ent.can('manual_rescan')) { <app-icon name="lock" [size]="12" /> }
                 @if (ctx.scanning()) {
                   <app-icon name="loader" [size]="13" />
                 } @else {
@@ -40,8 +41,8 @@
                 }
                 {{ ctx.scanning() ? 'Scanning…' : 'Re-scan' }}
               </button>
-              <button type="button" [class]="ui.btn + ' ' + ui.btnPrimary + ' ' + ui.btnSm" (click)="exportReport()" [disabled]="loading()">
-                <app-icon name="dl" [size]="13" color="#fff" />
+              <button type="button" [class]="ui.btn + ' ' + ui.btnPrimary + ' ' + ui.btnSm" (click)="exportReport()" [disabled]="loading() || !ent.can('export')" [attr.title]="ent.can('export') ? null : ent.lockHint('export')">
+                @if (!ent.can('export')) { <app-icon name="lock" [size]="12" color="#fff" /> } @else { <app-icon name="dl" [size]="13" color="#fff" /> }
                 Export
               </button>
             </div>

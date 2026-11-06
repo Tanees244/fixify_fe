@@ -1,3 +1,4 @@
+import { EntitlementsService } from '../../../core/services/entitlements.service';
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { AppContextService } from '../../../core/services/app-context.service';
 import { DataSessionService, SitesDataService } from '../../../core/services/data';
@@ -17,6 +18,7 @@ export class UptimeComponent {
   protected readonly ui = tw;
 
   readonly ctx = inject(AppContextService);
+  readonly ent = inject(EntitlementsService);
   private readonly session = inject(DataSessionService);
   private readonly sitesData = inject(SitesDataService);
 

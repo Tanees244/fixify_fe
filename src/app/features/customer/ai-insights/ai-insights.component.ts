@@ -1,3 +1,5 @@
+import { RouterLink } from '@angular/router';
+import { EntitlementsService } from '../../../core/services/entitlements.service';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -24,7 +26,7 @@ type InsightFilter = 'All' | 'Critical' | 'High' | 'Medium' | 'Info';
   selector: 'app-customer-ai-insights',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, IconComponent, BadgeComponent, ProcessCardComponent],
+  imports: [RouterLink, FormsModule, IconComponent, BadgeComponent, ProcessCardComponent],
   templateUrl: './ai-insights.component.html',
 })
 export class AiInsightsComponent {
@@ -34,6 +36,7 @@ export class AiInsightsComponent {
   private readonly sitesData = inject(SitesDataService);
   private readonly ctx = inject(AppContextService);
   private readonly toast = inject(NotificationService);
+  readonly ent = inject(EntitlementsService);
 
   readonly severityBadge = severityBadge;
   readonly severityBg = severityBg;
@@ -87,7 +90,7 @@ export class AiInsightsComponent {
 
   async askAi(): Promise<void> {
     const q = this.question().trim();
-    if (!q) return;
+    if (!q || !this.ent.canAskAi()) return;
 
     this.loading.set(true);
     this.answer.set('');
@@ -97,6 +100,7 @@ export class AiInsightsComponent {
       this.answer.set(resp);
     } finally {
       this.loading.set(false);
+      this.ent.refresh();
     }
   }
 
@@ -116,6 +120,10 @@ export class AiInsightsComponent {
   }
 
   openCreateProcess(): void {
+    if (!this.ent.canCreateAutomation()) {
+      this.toast.show(this.ent.lockHint('automation'), 'warning');
+      return;
+    }
     this.ctx.openModal({
       type: 'createProcess',
       sites: this.sitesData.mySites(),

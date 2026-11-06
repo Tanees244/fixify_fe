@@ -53,6 +53,7 @@ export const CUSTOMER_NAV = [
   { id: 'ai', icon: 'sparkles', label: 'AI Insights' },
   { id: 'tickets', icon: 'clip', label: 'Tickets' },
   { id: 'reports', icon: 'file', label: 'Reports' },
+  { id: 'billing', icon: 'layers', label: 'Billing' },
   { id: 'settings', icon: 'cog', label: 'Settings' },
 ];
 

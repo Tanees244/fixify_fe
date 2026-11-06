@@ -9,6 +9,11 @@ export const appRoutes: Routes = [
       import('./features/auth/auth.routes').then((m) => m.AUTH_ROUTES),
   },
   {
+    path: 'pricing',
+    loadComponent: () =>
+      import('./features/pricing/pricing.component').then((m) => m.PricingComponent),
+  },
+  {
     path: 'customer',
     loadComponent: () =>
       import('./shared/components/fixify-layout/fixify-layout.component').then(
