@@ -103,7 +103,7 @@ import { tw } from '../../../shared/ui/tw';
         </div>
       }
 
-      @if (showPlans() || !ent.subscription()) {
+      @if (showPlans() || (ent.loaded() && !ent.subscription())) {
         <app-plan-picker
           [plans]="plans()"
           [currentPlanId]="currentPlanId()"
@@ -213,7 +213,14 @@ export class BillingComponent implements OnInit {
     this.busy.set(true);
     this.api.portal().subscribe({
       next: (res) => {
-        if (res.data?.url) window.location.href = res.data.url;
+        const data = res.data as { url?: string; mock?: boolean } | undefined;
+        if (data?.mock) {
+          // Demo mode has no Stripe portal; stay on the page instead of reloading it.
+          this.busy.set(false);
+          this.toast.info('Demo mode: the Stripe billing portal is not available.');
+          return;
+        }
+        if (data?.url) window.location.href = data.url;
         else this.busy.set(false);
       },
       error: (err) => {
