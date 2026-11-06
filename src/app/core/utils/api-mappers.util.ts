@@ -113,7 +113,7 @@ export function mapApiSubscriptionPlan(raw: unknown): SubscriptionPlan {
     color: String(p['color'] ?? '#6b88ad'),
     features: Array.isArray(p['features']) ? p['features'].map((f) => String(f)) : [],
     slug: String(p['slug'] ?? ''),
-    priceYearly: num(p['priceYearly'], price * 10),
+    priceYearly: num(p['priceYearly']) > 0 ? num(p['priceYearly']) : price * 10,
     isDefault: p['isDefault'] === true,
     isPublic: p['isPublic'] !== false,
     sortOrder: num(p['sortOrder']),

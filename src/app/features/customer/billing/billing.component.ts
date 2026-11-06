@@ -137,6 +137,9 @@ export class BillingComponent implements OnInit {
     const checkout = this.route.snapshot.queryParamMap.get('checkout');
     if (checkout === 'success') this.toast.success('Payment received — your plan is active');
     if (checkout === 'cancel') this.toast.info('Checkout canceled');
+    if (this.route.snapshot.queryParamMap.get('portal') === 'mock') {
+      this.toast.info('Demo mode: the Stripe billing portal is not available.');
+    }
   }
 
   currentPlanId(): string | null {

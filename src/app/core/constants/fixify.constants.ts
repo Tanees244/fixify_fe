@@ -68,6 +68,7 @@ export const ADMIN_NAV = [
 ];
 
 export const PAGE_TITLES: Record<string, string> = {
+  billing: 'Billing',
   dashboard: 'Dashboard',
   sites: 'My Websites',
   performance: 'Performance',
