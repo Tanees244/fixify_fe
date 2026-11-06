@@ -31,6 +31,14 @@ export class BillingApiService extends ApiBaseService {
     );
   }
 
+  /** Demo only: backend BILLING_MOCK=true. */
+  mockConfirm(planSlug: string, interval: BillingInterval): Observable<ApiEnvelope<unknown>> {
+    return this.http.post<ApiEnvelope<unknown>>(this.url('/api/billing/mock/confirm'), {
+      planSlug,
+      interval,
+    });
+  }
+
   setExtraSites(quantity: number): Observable<ApiEnvelope<unknown>> {
     return this.http.post<ApiEnvelope<unknown>>(this.url('/api/billing/extra-sites'), {
       quantity,

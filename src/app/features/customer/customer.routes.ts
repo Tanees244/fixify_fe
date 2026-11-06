@@ -75,6 +75,11 @@ export const CUSTOMER_ROUTES: Routes = [
       import('./settings/settings.component').then((m) => m.SettingsComponent),
   },
   {
+    path: 'billing/mock-checkout',
+    loadComponent: () =>
+      import('./billing/mock-checkout.component').then((m) => m.MockCheckoutComponent),
+  },
+  {
     path: 'billing',
     loadComponent: () =>
       import('./billing/billing.component').then((m) => m.BillingComponent),
