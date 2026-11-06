@@ -33,7 +33,7 @@
   <div [class]="ui.card + ' ' + ui.cardPad + ' ' + ui.wpFormCard">
     @if (step() === 1 && siteLimitReached()) {
       <div style="padding: 12px 14px; border-radius: 10px; background: #fff7ed; border: 1px solid #fed7aa; color: #c2410c; font-size: 13px; margin-bottom: 16px">
-        {{ ent.readOnly() ? 'Your trial has ended — choose a plan to add sites.' : 'You have reached your plan's website limit.' }}
+        {{ ent.readOnly() ? 'Your trial has ended — choose a plan to add sites.' : 'You have reached the website limit of your plan.' }}
         <a routerLink="/customer/billing" style="font-weight: 700; text-decoration: underline; color: inherit">Upgrade or add a site</a>
       </div>
     }
