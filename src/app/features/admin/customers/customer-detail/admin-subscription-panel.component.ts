@@ -120,7 +120,7 @@ export class AdminSubscriptionPanelComponent implements OnChanges {
     if (!this.customerApiId) return;
     this.run(
       this.api.adminExtendTrial(this.customerApiId, new Date(this.trialDate() + 'T23:59:59').toISOString()),
-      'Trial extended'
+      new Date(this.trialDate() + 'T23:59:59') < new Date() ? 'Trial end set in the past - account is now expired' : 'Trial extended'
     );
   }
 

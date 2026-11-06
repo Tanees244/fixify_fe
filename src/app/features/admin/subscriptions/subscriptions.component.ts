@@ -14,7 +14,9 @@ import {
   CustomersDataService,
   SubscriptionsDataService,
 } from '../../../core/services/data';
-import { Customer } from '../../../core/models/fixify.models';
+import { Customer, SubscriptionPlan } from '../../../core/models/fixify.models';
+import { AppContextService } from '../../../core/services/app-context.service';
+import { NotificationService } from '../../../core/services/notification.service';
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { TableSkeletonComponent } from '../../../shared/components/table-skeleton/table-skeleton.component';
@@ -37,6 +39,8 @@ export class SubscriptionsComponent {
   private readonly subscriptionsData = inject(SubscriptionsDataService);
   private readonly router = inject(Router);
   private readonly billingApi = inject(BillingApiService);
+  private readonly ctx = inject(AppContextService);
+  private readonly toast = inject(NotificationService);
 
   readonly statusFilter = signal('');
   readonly statusRows = signal<AdminSubscriptionRow[]>([]);
@@ -141,8 +145,27 @@ export class SubscriptionsComponent {
     this.search.set(value);
   }
 
+  openCreatePlan(): void {
+    this.ctx.openModal({ type: 'subscriptionPlan' });
+  }
+
+  openEditPlan(plan: SubscriptionPlan): void {
+    this.ctx.openModal({ type: 'subscriptionPlan', data: plan });
+  }
+
+  /** Admin assignment goes through the backend (was a local-only change). Assigning = paid/active. */
   assignPlan(customer: Customer, planId: string): void {
-    this.customersData.assignSubscription(customer.id, planId);
+    if (!customer.apiId) {
+      this.toast.error('Customer is not linked to the backend yet');
+      return;
+    }
+    this.billingApi.adminChangePlan(customer.apiId, { planId, markPaid: true }).subscribe({
+      next: () => {
+        this.customersData.assignSubscription(customer.id, planId);
+        this.loadStatuses();
+      },
+      error: (err) => this.toast.error(err?.error?.message || 'Could not change plan'),
+    });
   }
 
   viewCustomer(id: number): void {

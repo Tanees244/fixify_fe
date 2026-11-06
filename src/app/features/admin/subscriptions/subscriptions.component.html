@@ -1,5 +1,5 @@
 <div>
-  <div [class]="ui.pageHeader">
+  <div [class]="ui.pageHeader" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap">
     <div>
       <div [class]="ui.pageTitle">Subscriptions</div>
       <div [class]="ui.pageSub">
@@ -12,6 +12,10 @@
         }
       </div>
     </div>
+    <button type="button" [class]="ui.btn + ' ' + ui.btnPrimary" (click)="openCreatePlan()">
+      <app-icon name="plus" [size]="14" color="#fff" />
+      Create Subscription Plan
+    </button>
   </div>
 
   <div [class]="ui.adminTabs + ' ' + ui.u">
@@ -55,6 +59,12 @@
             <div style="font-size: 12.5px; color: var(--t3); margin-bottom: 8px">
               <span style="font-weight: 700; color: var(--t1)">{{ planCount(p.id) }}</span> subscribers ·
               Monthly revenue: <strong style="color: var(--t1)">${{ planRevenue(p.id) }}</strong>
+            </div>
+            <div style="margin-bottom: 10px">
+              <button type="button" [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm" (click)="openEditPlan(p)">
+                <app-icon name="edit" [size]="12" />
+                Edit plan
+              </button>
             </div>
             <div style="display: flex; flex-direction: column; gap: 6px">
               @for (feat of p.features; track feat) {
