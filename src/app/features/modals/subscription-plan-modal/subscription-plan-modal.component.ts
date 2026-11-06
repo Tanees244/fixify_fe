@@ -218,6 +218,14 @@ export class SubscriptionPlanModalComponent implements OnChanges {
       this.price.set(this.plan.price);
       this.color.set(this.plan.color);
       this.featuresText.set(this.plan.features.join('\n'));
+      this.priceYearly.set(this.plan.priceYearly);
+      this.slug.set(this.plan.slug || this.plan.id);
+      this.stripeMonthly.set(this.plan.stripePriceMonthlyId);
+      this.stripeYearly.set(this.plan.stripePriceYearlyId);
+      this.sortOrder.set(this.plan.sortOrder);
+      this.isDefault.set(this.plan.isDefault);
+      this.isPublic.set(this.plan.isPublic);
+      this.limits.set({ ...this.plan.limits });
     } else {
       this.name.set('');
       this.price.set(0);

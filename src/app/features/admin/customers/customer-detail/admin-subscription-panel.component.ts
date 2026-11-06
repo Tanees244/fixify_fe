@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, Input, OnChanges, inject, signal } 
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BillingApiService } from '../../../../core/services/api/billing-api.service';
-import { SubscriptionsDataService } from '../../../../core/services/data';
+import { CustomersDataService, DataSessionService, SubscriptionsDataService } from '../../../../core/services/data';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { CustomerSubscription } from '../../../../core/models/billing.models';
 import { mapCustomerSubscription } from '../../../../core/utils/billing-mappers.util';
@@ -56,6 +56,8 @@ export class AdminSubscriptionPanelComponent implements OnChanges {
   protected readonly ui = tw;
   private readonly api = inject(BillingApiService);
   private readonly toast = inject(NotificationService);
+  private readonly customersData = inject(CustomersDataService);
+  private readonly session = inject(DataSessionService);
   readonly plans = inject(SubscriptionsDataService).subscriptionPlans;
 
   @Input() customerApiId: string | undefined;
@@ -86,6 +88,9 @@ export class AdminSubscriptionPanelComponent implements OnChanges {
       next: (res) => {
         const s = res.data ? mapCustomerSubscription(res.data) : null;
         this.sub.set(s);
+        if (s && this.customerApiId && this.customersData.setPlanByApiId(this.customerApiId, s.plan.slug)) {
+          this.session.bump();
+        }
         if (s) this.planId.set(s.plan.id);
         this.loading.set(false);
       },
