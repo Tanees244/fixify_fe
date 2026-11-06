@@ -43,7 +43,7 @@
         <div [class]="ui.statCard">
           <div [class]="ui.statLbl">Status</div>
           <div [class]="ui.statVal" [style.color]="isOnline() ? 'var(--ok)' : 'var(--er)'" style="text-transform: capitalize">{{ d.status }}</div>
-          <div [class]="ui.statSub">{{ endpoints().length }} endpoints monitored</div>
+          <div [class]="ui.statSub">{{ endpoints().length }} {{ endpoints().length === 1 ? 'endpoint' : 'endpoints' }} monitored</div>
         </div>
       </div>
 
