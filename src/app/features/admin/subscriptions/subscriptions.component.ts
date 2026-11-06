@@ -56,6 +56,12 @@ export class SubscriptionsComponent {
       next: (res) => {
         const l = mapAdminSubscriptionsList(res.data);
         this.statusRows.set(l.items);
+        // The customer list carries the profile plan, which can lag behind the real subscription.
+        let changed = false;
+        for (const row of l.items) {
+          changed = this.customersData.setPlanByApiId(row.customerId, row.planId) || changed;
+        }
+        if (changed) this.session.bump();
         this.trialsEndingSoon.set(l.trialsEndingSoon);
       },
       error: () => undefined,

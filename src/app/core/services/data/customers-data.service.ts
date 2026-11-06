@@ -244,6 +244,14 @@ export class CustomersDataService {
     this.toast.info(`${this.customers[idx].name} onboarding rejected`);
   }
 
+  /** Align the displayed plan with the real subscription (no toast). Returns true if anything changed. */
+  setPlanByApiId(apiId: string, plan: string): boolean {
+    const idx = this.customers.findIndex((c) => c.apiId === apiId);
+    if (idx < 0 || this.customers[idx].plan === plan) return false;
+    this.customers[idx] = { ...this.customers[idx], plan };
+    return true;
+  }
+
   assignSubscription(customerId: number, plan: string): void {
     const idx = this.customers.findIndex((c) => c.id === customerId);
     if (idx < 0) return;

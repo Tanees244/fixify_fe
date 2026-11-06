@@ -12,7 +12,7 @@
         <div [class]="ui.grid4 + ' ' + ui.u">
           @for (stat of [
             { l: 'Security Score', v: screen()?.score ?? site.sec, col: scoreColor(screen()?.score ?? site.sec), sub: (criticalCount() ? criticalCount() + ' critical' : 'No critical issues') },
-            { l: 'SSL Certificate', v: ssl()?.valid ? 'Valid' : 'Invalid', col: ssl()?.valid ? 'var(--ok)' : 'var(--er)', sub: sslExpiryLabel() + ' remaining' },
+            { l: 'SSL Certificate', v: sslValid() ? 'Valid' : 'Invalid', col: sslValid() ? 'var(--ok)' : 'var(--er)', sub: sslExpiryLabel() },
             { l: 'Vulnerabilities', v: activeVulns().length, col: activeVulns().length > 0 ? 'var(--er)' : 'var(--ok)', sub: criticalCount() + ' critical' },
             { l: 'Last Scan', v: site.scan, col: 'var(--acc)', sub: 'On-demand scans available' }
           ]; track stat.l) {
