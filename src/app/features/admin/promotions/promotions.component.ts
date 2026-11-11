@@ -68,6 +68,49 @@ const toDateInput = (iso: string | null) => (iso ? iso.slice(0, 10) : '');
         </div>
       </div>
 
+      <div [class]="ui.card + ' ' + ui.u" style="margin-bottom: 22px; overflow: hidden">
+        <div style="padding: 14px 16px 10px; display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap">
+          <div style="font-weight: 700; font-size: 15px">How customers see it</div>
+          <div style="font-size: 12px; color: var(--t3)">Live preview of what is switched on right now</div>
+        </div>
+        @if (loading()) {
+          <div style="padding: 0 16px 16px">
+            <div [class]="ui.skelBlock" style="height: 34px; margin-bottom: 12px"></div>
+            <div [class]="ui.skelBlock" style="height: 150px"></div>
+          </div>
+        } @else if (!liveTicker().length && !liveHero().length) {
+          <div style="padding: 0 16px 18px; font-size: 13px; color: var(--t3)">
+            Nothing is live. Customers see no top bar and no dashboard banner. Add one above to preview it here.
+          </div>
+        } @else {
+          @if (liveTicker().length) {
+            <div class="promo-ticker" [attr.data-theme]="liveTicker()[0].theme">
+              <div class="promo-track" [style.animation-duration.s]="previewDuration()">
+                @for (half of [0, 1]; track half) {
+                  <span class="promo-item" [attr.aria-hidden]="half ? 'true' : null">
+                    @for (t of liveTicker(); track t.id) {
+                      <span>{{ t.title }}</span><span>%</span>
+                    }
+                  </span>
+                }
+              </div>
+            </div>
+          }
+          <div style="padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 14px; background: var(--bg)">
+            @for (h of liveHero(); track h.id) {
+              <section class="promo-hero" [attr.data-theme]="h.theme">
+                <h2 class="promo-hero-title">{{ h.title }}</h2>
+                @if (h.badge) { <div class="promo-hero-badge">{{ h.badge }}</div> }
+                @if (h.subtitle) { <p class="promo-hero-sub">{{ h.subtitle }}</p> }
+                @if (h.ctaLabel) { <span class="promo-hero-cta">{{ h.ctaLabel }}</span> }
+              </section>
+            } @empty {
+              <div style="font-size: 12.5px; color: var(--t3)">No dashboard banner is live.</div>
+            }
+          </div>
+        }
+      </div>
+
       @if (draft(); as d) {
         <div [class]="ui.card + ' ' + ui.cardPad + ' ' + ui.u" style="margin-bottom: 22px">
           <div style="font-weight: 700; font-size: 15px; margin-bottom: 14px">
@@ -148,7 +191,13 @@ const toDateInput = (iso: string | null) => (iso ? iso.slice(0, 10) : '');
             <div style="margin-bottom: 14px">
               <div [class]="ui.label" style="margin-bottom: 6px">Preview</div>
               <div class="promo-ticker" [attr.data-theme]="d.theme" style="border-radius: 8px">
-                <div style="padding: 8px 14px">{{ d.title }}</div>
+                <div class="promo-track" style="animation-duration: 14s">
+                  @for (half of [0, 1]; track half) {
+                    <span class="promo-item" [attr.aria-hidden]="half ? 'true' : null">
+                      <span>{{ d.title }}</span><span>%</span><span>{{ d.title }}</span><span>✦</span>
+                    </span>
+                  }
+                </div>
               </div>
             </div>
           }
@@ -238,6 +287,20 @@ export class PromotionsAdminComponent {
     ticker: this.items().filter((i) => i.kind === 'ticker'),
     hero: this.items().filter((i) => i.kind === 'hero'),
   }));
+
+  /** What customers get right now: switched on and inside the schedule window. */
+  private readonly liveItems = computed(() => {
+    const now = Date.now();
+    return this.items().filter(
+      (p) =>
+        p.isActive &&
+        (!p.startsAt || new Date(p.startsAt).getTime() <= now) &&
+        (!p.endsAt || new Date(p.endsAt).getTime() >= now)
+    );
+  });
+  readonly liveTicker = computed(() => this.liveItems().filter((p) => p.kind === 'ticker'));
+  readonly liveHero = computed(() => this.liveItems().filter((p) => p.kind === 'hero'));
+  readonly previewDuration = computed(() => Math.max(14, this.liveTicker().length * 7));
 
   constructor() {
     this.reload();
