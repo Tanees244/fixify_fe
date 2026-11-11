@@ -1,25 +1,27 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { tw } from '../../ui/tw';
 
+/**
+ * Skeleton rows for a table. Use it AS the table body:
+ *   <tbody app-table-skeleton [rows]="6" [cols]="7"></tbody>
+ * An element wrapper between <table> and <tbody> makes the browser wrap the rows in an
+ * anonymous cell, which collapses every column to zero width.
+ */
 @Component({
-  selector: 'app-table-skeleton',
+  selector: 'tbody[app-table-skeleton]',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  // The element sits between <table> and its rows, so it must behave like a <tbody>
-  // or the table layout collapses and the skeleton rows shrink or vanish.
-  host: { style: 'display: table-row-group' },
+  host: { 'aria-busy': 'true', 'aria-label': 'Loading' },
   template: `
-    <tbody>
-      @for (row of rowIndexes(); track row) {
-        <tr>
-          @for (col of colIndexes(); track col) {
-            <td>
-              <div [class]="ui.skelCell" [style.width.%]="cellWidth(col)"></div>
-            </td>
-          }
-        </tr>
-      }
-    </tbody>
+    @for (row of rowIndexes(); track row) {
+      <tr>
+        @for (col of colIndexes(); track col) {
+          <td [class]="ui.td">
+            <div [class]="ui.skelCell" style="height: 14px" [style.width.%]="cellWidth(col)"></div>
+          </td>
+        }
+      </tr>
+    }
   `,
 })
 export class TableSkeletonComponent {

@@ -80,12 +80,12 @@ export class FixifyLayoutComponent implements OnInit {
   constructor() {
     // Raise the loading flag before the page's first frame so tables and stat cards show
     // skeletons instead of empty rows and zeros; the route loader clears it when data lands.
-    if (this.auth.getToken()) this.session.beginLoad();
+    if (this.auth.getToken()) this.session.beginNav();
     this.router.events
       .pipe(takeUntilDestroyed())
       .subscribe((e) => {
-        if (e instanceof NavigationStart && this.auth.getToken()) this.session.beginLoad();
-        if (e instanceof NavigationCancel || e instanceof NavigationError) this.session.endLoad();
+        if (e instanceof NavigationStart && this.auth.getToken()) this.session.beginNav();
+        if (e instanceof NavigationCancel || e instanceof NavigationError) this.session.endNav();
       });
     this.router.events
       .pipe(

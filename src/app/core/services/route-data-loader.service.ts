@@ -31,8 +31,9 @@ export class RouteDataLoaderService {
   /** Load API data for the current route (sidebar tab, inner tab, or site manage screen). */
   loadForUrl(url: string): void {
     if (url === this.lastUrl) {
-      // The layout raised the loading flag at navigation start; nothing will fetch, so clear it.
-      this.session.endLoad();
+      // Same URL as the load already started (or finished): only clear the "navigating" flag.
+      // Requests still in flight keep their own loading state.
+      this.session.endNav();
       return;
     }
     this.lastUrl = url;
@@ -115,6 +116,12 @@ export class RouteDataLoaderService {
           this.tick();
         }
       });
+      return;
+    }
+    // Billing and Settings show no site data, but the sidebar website picker needs the list
+    // (otherwise it is empty when these pages are opened directly).
+    if (path.startsWith('/customer/billing') || path.startsWith('/customer/settings')) {
+      this.sitesData.ensureCustomerWebsites(() => this.tick());
       return;
     }
     if (path.startsWith('/customer/add-wordpress')) {
@@ -268,8 +275,8 @@ export class RouteDataLoaderService {
   }
 
   private tick(): void {
-    // Every route ends here, so this also clears the flag raised at navigation start.
-    this.session.endLoad();
+    // Every route ends here, so this clears the flag raised at navigation start.
+    this.session.endNav();
     this.appRef.tick();
   }
 }

@@ -241,7 +241,7 @@
             </tr>
           </thead>
           @if (loading()) {
-            <app-table-skeleton [rows]="3" [cols]="5" />
+            <tbody app-table-skeleton [rows]="3" [cols]="5" ></tbody>
           } @else {
             <tbody>
               @for (t of recentTickets(); track t.id) {

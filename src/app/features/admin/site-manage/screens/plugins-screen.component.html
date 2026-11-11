@@ -50,7 +50,7 @@
           </tr>
         </thead>
         @if (loading()) {
-          <app-table-skeleton [rows]="6" [cols]="facade.isCustomer() ? 5 : 6" />
+          <tbody app-table-skeleton [rows]="6" [cols]="facade.isCustomer() ? 5 : 6" ></tbody>
         } @else {
           <tbody>
             @for (p of filteredPlugins(); track p.id) {

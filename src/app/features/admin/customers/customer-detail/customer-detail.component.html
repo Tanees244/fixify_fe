@@ -115,7 +115,7 @@
               </tr>
             </thead>
             @if (loading()) {
-              <app-table-skeleton [rows]="4" [cols]="7" />
+              <tbody app-table-skeleton [rows]="4" [cols]="7" ></tbody>
             } @else {
               <tbody>
                 @for (s of sites(); track s.id) {

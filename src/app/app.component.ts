@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { CustomSelectService } from './core/services/custom-select.service';
 import { ToastContainerComponent } from './shared/components/toast-container/toast-container.component';
 
 @Component({
@@ -11,4 +12,9 @@ import { ToastContainerComponent } from './shared/components/toast-container/toa
   `,
   styleUrl: './app.component.css',
 })
-export class AppComponent {}
+export class AppComponent {
+  constructor() {
+    // Upgrades every <select> in the app to the shared custom dropdown.
+    inject(CustomSelectService).start();
+  }
+}

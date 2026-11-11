@@ -76,7 +76,7 @@
         </tr>
       </thead>
       @if (loading()) {
-        <app-table-skeleton [rows]="6" [cols]="7" />
+        <tbody app-table-skeleton [rows]="6" [cols]="7" ></tbody>
       } @else {
         <tbody>
           @if (filteredTickets().length === 0) {

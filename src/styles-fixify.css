@@ -94,3 +94,62 @@ select:focus { border-color: var(--acc); box-shadow: 0 0 0 3px rgba(29, 111, 224
 select:disabled { cursor: not-allowed; opacity: 0.6; }
 select option { font-weight: 500; color: var(--t1); }
 input[type='date'] { color-scheme: light; font-family: inherit; }
+
+/* —— Custom dropdown (see CustomSelectService): trigger button + floating list —— */
+.cs-trigger {
+  display: inline-flex;
+  align-items: center;
+  text-align: left;
+  cursor: pointer;
+  min-height: 38px;
+  max-width: 100%;
+  overflow: hidden;
+  border-radius: 10px;
+  font-weight: 500;
+  color: var(--t1);
+  background-color: #fff;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236b88ad' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 11px center;
+  background-size: 14px;
+  padding-right: 34px !important;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.cs-trigger .cs-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cs-trigger .cs-placeholder { color: var(--t3); }
+.cs-trigger:hover:not(:disabled) { border-color: var(--acm); }
+.cs-trigger:focus-visible,
+.cs-trigger[aria-expanded='true'] { border-color: var(--acc); box-shadow: 0 0 0 3px rgba(29, 111, 224, 0.12); outline: none; }
+.cs-trigger[aria-expanded='true'] { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%231d6fe0' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='18 15 12 9 6 15'/%3E%3C/svg%3E"); }
+.cs-trigger:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.cs-menu {
+  position: fixed;
+  z-index: 700;
+  max-height: 288px;
+  overflow-y: auto;
+  padding: 6px;
+  background: #fff;
+  border: 1px solid var(--bd);
+  border-radius: 12px;
+  box-shadow: 0 14px 34px rgba(13, 30, 61, 0.18);
+  font-size: 13.5px;
+  animation: cs-pop 0.12s ease-out;
+}
+@keyframes cs-pop { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+.cs-opt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  color: var(--t1);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.cs-opt.cs-active { background: var(--acs); }
+.cs-opt.cs-selected { color: var(--acc); font-weight: 600; }
+.cs-opt.cs-disabled { color: var(--t3); cursor: not-allowed; opacity: 0.6; }
+.cs-tick { color: var(--acc); font-size: 12px; }
+@media (prefers-reduced-motion: reduce) { .cs-menu { animation: none; } }

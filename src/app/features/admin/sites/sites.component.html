@@ -3,7 +3,9 @@
     <div [class]="ui.pageHeaderRow">
       <div>
         <div [class]="ui.pageTitle">All Websites</div>
-        <div [class]="ui.pageSub">{{ sitesTotal() || sites.length }} websites</div>
+        <div [class]="ui.pageSub">
+          @if (loading()) { Loading websites… } @else { {{ sitesTotal() || sites.length }} websites }
+        </div>
       </div>
       <div [class]="ui.pageHeaderActions">
         <button [class]="ui.btn + ' ' + ui.btnGhost" type="button" (click)="scanAll()">
@@ -54,7 +56,7 @@
         </tr>
       </thead>
       @if (loading()) {
-        <app-table-skeleton [rows]="6" [cols]="8" />
+        <tbody app-table-skeleton [rows]="6" [cols]="8" ></tbody>
       } @else {
         <tbody>
           @for (s of filteredSites(); track s.id) {

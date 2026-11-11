@@ -78,7 +78,7 @@
         </tr>
       </thead>
       @if (loading()) {
-        <app-table-skeleton [rows]="6" [cols]="5" />
+        <tbody app-table-skeleton [rows]="6" [cols]="5" ></tbody>
       } @else {
         <tbody>
           @for (c of filteredCustomers(); track c.id) {

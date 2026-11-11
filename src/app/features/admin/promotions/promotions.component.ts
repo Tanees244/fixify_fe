@@ -232,7 +232,7 @@ const toDateInput = (iso: string | null) => {
               </tr>
             </thead>
             @if (loading()) {
-              <app-table-skeleton [rows]="3" [cols]="6" />
+              <tbody app-table-skeleton [rows]="3" [cols]="6" ></tbody>
             } @else {
               <tbody>
                 @for (p of byKind(section.kind); track p.id) {

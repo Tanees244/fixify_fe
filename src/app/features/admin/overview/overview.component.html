@@ -93,7 +93,7 @@
         </tr>
       </thead>
       @if (loading()) {
-        <app-table-skeleton [rows]="4" [cols]="6" />
+        <tbody app-table-skeleton [rows]="4" [cols]="6" ></tbody>
       } @else {
         <tbody>
           @for (t of recentActivity(); track t.id) {

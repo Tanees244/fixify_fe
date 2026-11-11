@@ -117,7 +117,7 @@
             </tr>
           </thead>
           @if (loading()) {
-            <app-table-skeleton [rows]="5" [cols]="7" />
+            <tbody app-table-skeleton [rows]="5" [cols]="7" ></tbody>
           } @else {
             <tbody>
               @for (c of filteredAssignments(); track c.id) {
