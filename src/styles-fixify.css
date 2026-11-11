@@ -74,12 +74,23 @@ select {
   -webkit-appearance: none;
   appearance: none;
   cursor: pointer;
+  background-color: #fff;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236b88ad' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 10px center;
+  background-position: right 11px center;
   background-size: 14px;
-  padding-right: 32px;
+  /* !important: many selects set inline padding, which would put the text under the arrow */
+  padding-right: 34px !important;
+  min-height: 38px;
+  border-radius: 10px;
+  font-weight: 500;
+  color: var(--t1);
   text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
-select:disabled { cursor: not-allowed; }
+select:hover:not(:disabled) { border-color: var(--acm); }
+select:focus { border-color: var(--acc); box-shadow: 0 0 0 3px rgba(29, 111, 224, 0.12); outline: none; }
+select:disabled { cursor: not-allowed; opacity: 0.6; }
+select option { font-weight: 500; color: var(--t1); }
 input[type='date'] { color-scheme: light; font-family: inherit; }

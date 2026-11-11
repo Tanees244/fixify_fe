@@ -5,6 +5,9 @@ import { tw } from '../../ui/tw';
   selector: 'app-table-skeleton',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  // The element sits between <table> and its rows, so it must behave like a <tbody>
+  // or the table layout collapses and the skeleton rows shrink or vanish.
+  host: { style: 'display: table-row-group' },
   template: `
     <tbody>
       @for (row of rowIndexes(); track row) {
