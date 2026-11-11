@@ -30,21 +30,31 @@ import { tw } from '../../../../shared/ui/tw';
           <div><span [class]="ui.adminInfoLabel">Sites</span><span>{{ s.usage.sitesUsed }} / {{ s.limits.max_sites ?? '∞' }} (+{{ s.extraSites }})</span></div>
         </div>
 
-        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; align-items: center">
-          <select [class]="ui.input" style="width: auto" [ngModel]="planId()" (ngModelChange)="planId.set($event)">
-            @for (p of plans; track p.id) {
-              <option [value]="p.id">{{ p.name }}</option>
-            }
-          </select>
-          <label style="font-size: 12.5px; display: flex; gap: 6px; align-items: center">
-            <input type="checkbox" [ngModel]="markPaid()" (ngModelChange)="markPaid.set($event)" /> Mark paid
-          </label>
-          <button type="button" [class]="ui.btn + ' ' + ui.btnPrimary + ' ' + ui.btnSm" [disabled]="busy() || !planId()" (click)="changePlan()">Change plan</button>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--b2)">
+          <div>
+            <div [class]="ui.adminInfoLabel" style="margin-bottom: 6px">Change plan</div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center">
+              <select [class]="ui.input + ' ' + ui.adminInlineSelect" style="width: auto; min-width: 150px" [ngModel]="planId()" (ngModelChange)="planId.set($event)">
+                @for (p of plans; track p.id) {
+                  <option [value]="p.id">{{ p.name }}</option>
+                }
+              </select>
+              <label style="font-size: 12.5px; display: flex; gap: 6px; align-items: center; cursor: pointer">
+                <input type="checkbox" [ngModel]="markPaid()" (ngModelChange)="markPaid.set($event)" /> Mark paid
+              </label>
+              <button type="button" [class]="ui.btn + ' ' + ui.btnPrimary + ' ' + ui.btnSm" [disabled]="busy() || !planId()" (click)="changePlan()">Apply</button>
+            </div>
+          </div>
+          <div>
+            <div [class]="ui.adminInfoLabel" style="margin-bottom: 6px">Extend trial until</div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center">
+              <input type="date" [class]="ui.input + ' ' + ui.adminInlineSelect" style="width: auto" [ngModel]="trialDate()" (ngModelChange)="trialDate.set($event)" />
+              <button type="button" [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm" [disabled]="busy() || !trialDate()" (click)="extendTrial()">Extend trial</button>
+            </div>
+          </div>
         </div>
-        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; align-items: center">
-          <input type="date" [class]="ui.input" style="width: auto" [ngModel]="trialDate()" (ngModelChange)="trialDate.set($event)" />
-          <button type="button" [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm" [disabled]="busy() || !trialDate()" (click)="extendTrial()">Extend trial</button>
-          <button type="button" [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm" [disabled]="busy() || s.status === 'canceled' || s.status === 'expired'" (click)="cancel()">Cancel subscription</button>
+        <div style="margin-top: 14px">
+          <button type="button" [class]="ui.btn + ' ' + ui.btnDanger + ' ' + ui.btnSm" [disabled]="busy() || s.status === 'canceled' || s.status === 'expired'" (click)="cancel()">Cancel subscription</button>
         </div>
       } @else {
         @if (loading()) {

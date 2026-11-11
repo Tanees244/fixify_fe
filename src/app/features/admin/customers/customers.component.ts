@@ -13,6 +13,8 @@ import {
   SubscriptionsDataService,
 } from '../../../core/services/data';
 import { AppContextService } from '../../../core/services/app-context.service';
+import { BillingApiService } from '../../../core/services/api/billing-api.service';
+import { mapAdminSubscriptionsList } from '../../../core/utils/billing-mappers.util';
 import { Customer } from '../../../core/models/fixify.models';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { TableSkeletonComponent } from '../../../shared/components/table-skeleton/table-skeleton.component';
@@ -43,6 +45,23 @@ export class CustomersComponent {
 
   readonly search = signal('');
   readonly tab = signal<CustomerTab>('all');
+
+  private readonly billingApi = inject(BillingApiService);
+
+  constructor() {
+    // The customer list carries the profile plan, which can lag behind the real subscription
+    // (the Subscriptions page already corrects it; do the same so both pages agree).
+    this.billingApi.adminList().subscribe({
+      next: (res) => {
+        let changed = false;
+        for (const row of mapAdminSubscriptionsList(res.data).items) {
+          changed = this.customersData.setPlanByApiId(row.customerId, row.planId) || changed;
+        }
+        if (changed) this.session.bump();
+      },
+      error: () => undefined,
+    });
+  }
 
   plans() {
     return this.subscriptionsData.subscriptionPlans;

@@ -116,4 +116,18 @@
     }
     }
   </div>
+} @else if (loading()) {
+  <div aria-busy="true" aria-label="Loading reports">
+    <div [class]="ui.pageHeader">
+      <div [class]="ui.skelBlock" style="height: 22px; width: 160px; margin-bottom: 10px"></div>
+      <div [class]="ui.skelBlock" style="height: 13px; width: 300px"></div>
+    </div>
+    @for (i of [1, 2, 3]; track i) {
+      <div [class]="ui.card + ' ' + ui.cardPad" style="margin-bottom: 14px">
+        <div [class]="ui.skelBlock" style="height: 14px; width: 40%; margin-bottom: 14px"></div>
+        <div [class]="ui.skelBlock" style="height: 12px; width: 90%; margin-bottom: 10px"></div>
+        <div [class]="ui.skelBlock" style="height: 12px; width: 70%"></div>
+      </div>
+    }
+  </div>
 }

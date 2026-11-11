@@ -4,8 +4,12 @@
       <div>
         <div [class]="ui.pageTitle">Customers</div>
         <div [class]="ui.pageSub">
-          {{ customers.length }} total · {{ activeCount() }} active
-          @if (pendingCount()) {
+          @if (loading()) {
+            Loading customers…
+          } @else {
+            {{ customers.length }} total · {{ activeCount() }} active
+          }
+          @if (!loading() && pendingCount()) {
             · <span style="color: var(--wn); font-weight: 600">{{ pendingCount() }} pending approval</span>
           }
         </div>
@@ -23,8 +27,13 @@
     @for (item of plans(); track item.id) {
       <div [class]="ui.statCard">
         <div [class]="ui.statLbl" [style.color]="item.color">{{ item.name }} · {{ item.priceLabel }}</div>
-        <div [class]="ui.statVal" [style.color]="item.color">{{ planCount(item.id) }}</div>
-        <div [class]="ui.statSub">{{ planCount(item.id) === 1 ? 'subscriber' : 'subscribers' }}</div>
+        @if (loading()) {
+          <div [class]="ui.skelCell" style="height: 28px; width: 40%; margin: 6px 0 8px"></div>
+          <div [class]="ui.skelCell" style="height: 12px; width: 60%"></div>
+        } @else {
+          <div [class]="ui.statVal" [style.color]="item.color">{{ planCount(item.id) }}</div>
+          <div [class]="ui.statSub">{{ planCount(item.id) === 1 ? 'subscriber' : 'subscribers' }}</div>
+        }
       </div>
     }
   </div>

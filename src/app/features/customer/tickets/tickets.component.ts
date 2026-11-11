@@ -57,9 +57,23 @@ export class TicketsComponent {
     return this.ticketsData.tickets;
   });
 
+  /** Tickets for the website picked in the sidebar (all of them when none is picked). */
+  readonly siteTickets = computed(() => {
+    const site = this.ctx.selectedSite();
+    const all = this.tickets();
+    if (!site) return all;
+    return all.filter((t) =>
+      t.websiteApiId && site.apiId ? t.websiteApiId === site.apiId : t.site === site.name
+    );
+  });
+
+  readonly headerTotal = computed(() =>
+    this.ctx.selectedSite() ? this.siteTickets().length : this.ticketsTotal() || this.tickets().length
+  );
+
   readonly openCount = computed(() => {
     this.session.dataRevision();
-    return this.tickets().filter((t) => t.status !== 'resolved' && t.status !== 'closed').length;
+    return this.siteTickets().filter((t) => t.status !== 'resolved' && t.status !== 'closed').length;
   });
 
   readonly totalPages = computed(() => {
@@ -82,7 +96,7 @@ export class TicketsComponent {
     const status = this.statusFilter();
     const priority = this.priorityFilter();
 
-    return this.tickets().filter(
+    return this.siteTickets().filter(
       (t) =>
         (status === 'all' || t.status === status) &&
         (priority === 'all' || t.pri === priority) &&

@@ -3,7 +3,7 @@
     <div [class]="ui.pageHeaderRow">
       <div>
         <div [class]="ui.pageTitle">All Tickets</div>
-        <div [class]="ui.pageSub">{{ ticketsTotal() }} total · {{ openCount() }} open on this page</div>
+        <div [class]="ui.pageSub">@if (loading()) { Loading tickets… } @else { {{ ticketsTotal() }} total · {{ openCount() }} open on this page }</div>
       </div>
       <div [class]="ui.pageHeaderActions">
         <button [class]="ui.btn + ' ' + ui.btnPrimary" type="button" (click)="createTicket()">

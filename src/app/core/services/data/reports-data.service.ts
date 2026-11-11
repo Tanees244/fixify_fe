@@ -356,9 +356,11 @@ export class ReportsDataService {
         this.session.endLoad();
         done?.();
       },
-      error: () => {
+      error: (err) => {
         this.session.endLoad();
-        this.toast.error('Failed to load reports');
+        // A plan restriction is already explained by the "available on Pro" notice;
+        // a second red "Failed to load" would be wrong.
+        if (err?.error?.code !== 'FEATURE_LOCKED') this.toast.error('Failed to load reports');
         done?.();
       },
     });

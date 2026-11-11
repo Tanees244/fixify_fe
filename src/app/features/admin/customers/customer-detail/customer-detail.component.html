@@ -166,6 +166,17 @@
       </div>
     }
   </div>
+} @else if (loading()) {
+  <!-- A reload on /admin/customers/:id has no customer until the list arrives; do not flash "not found". -->
+  <div aria-busy="true" aria-label="Loading customer">
+    <div [class]="ui.skelBlock" style="height: 24px; width: 220px; margin-bottom: 12px"></div>
+    <div [class]="ui.skelBlock" style="height: 13px; width: 320px; margin-bottom: 22px"></div>
+    <div [class]="ui.card + ' ' + ui.cardPad">
+      <div [class]="ui.skelBlock" style="height: 14px; width: 40%; margin-bottom: 14px"></div>
+      <div [class]="ui.skelBlock" style="height: 12px; width: 90%; margin-bottom: 10px"></div>
+      <div [class]="ui.skelBlock" style="height: 12px; width: 70%"></div>
+    </div>
+  </div>
 } @else {
   <div [class]="ui.u">
     <div [class]="ui.card" style="padding: 40px; text-align: center">

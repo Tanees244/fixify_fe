@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { BillingApiService } from '../../../core/services/api/billing-api.service';
 import { EntitlementsService } from '../../../core/services/entitlements.service';
 import { NotificationService } from '../../../core/services/notification.service';
@@ -90,7 +90,7 @@ import { tw } from '../../../shared/ui/tw';
           >
             Manage billing
           </button>
-          @if (s.cancelAtPeriodEnd && s.status !== 'expired') {
+          @if (s.cancelAtPeriodEnd && (s.status === 'active' || s.status === 'past_due')) {
             <button type="button" [class]="ui.btn + ' ' + ui.btnPrimary" [disabled]="busy()" (click)="resume()">
               Resume plan
             </button>
@@ -140,6 +140,7 @@ export class BillingComponent implements OnInit {
   private readonly api = inject(BillingApiService);
   private readonly toast = inject(NotificationService);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
 
   readonly plans = signal<SubscriptionPlan[]>([]);
   readonly showPlans = signal(false);
@@ -210,7 +211,7 @@ export class BillingComponent implements OnInit {
       next: (res) => {
         const url = (res.data as { url?: string } | undefined)?.url;
         if (url) {
-          window.location.href = url;
+          this.goTo(url);
           return;
         }
         this.busy.set(false);
@@ -227,6 +228,26 @@ export class BillingComponent implements OnInit {
     });
   }
 
+  /**
+   * The backend builds return URLs from its FRONTEND_URL setting, which can point at another
+   * deployment (e.g. production while testing on localhost). Billing pages of this app are
+   * opened in place; anything else (Stripe) is a normal redirect.
+   */
+  private goTo(url: string): void {
+    try {
+      const u = new URL(url, window.location.origin);
+      if (u.origin !== window.location.origin && u.pathname.startsWith('/customer/billing')) {
+        this.router.navigateByUrl(u.pathname + u.search + u.hash);
+        this.busy.set(false);
+        this.busyPlanId.set(null);
+        return;
+      }
+    } catch {
+      /* fall through to a plain redirect */
+    }
+    window.location.href = url;
+  }
+
   openPortal(): void {
     this.busy.set(true);
     this.api.portal().subscribe({
@@ -238,7 +259,7 @@ export class BillingComponent implements OnInit {
           this.toast.info('Demo mode: the Stripe billing portal is not available.');
           return;
         }
-        if (data?.url) window.location.href = data.url;
+        if (data?.url) this.goTo(data.url);
         else this.busy.set(false);
       },
       error: (err) => {

@@ -173,7 +173,8 @@ export const tw = {
   toolbar: 'mb-4 flex flex-wrap items-center gap-2.5 sm:gap-3',
 
   /** Horizontal scroll for wide tables on small screens. */
-  tableScroll: 'w-full overflow-x-auto',
+  // Rounded so the grey header row is clipped to the card's corners and the card border stays visible.
+  tableScroll: 'w-full overflow-x-auto rounded-[13px]',
 
   sectionHead:
     'mb-3.5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between',
@@ -311,7 +312,7 @@ export const tw = {
 
   tabActive:
 
-    'border-b-fixify-accent font-semibold text-fixify-accent',
+    'border-b-fixify-accent! font-semibold text-fixify-accent!',
 
 
 
@@ -494,7 +495,7 @@ export const tw = {
 
   adminTabActive:
 
-    'border-b-fixify-accent font-semibold text-fixify-accent',
+    'border-b-fixify-accent! font-semibold text-fixify-accent!',
 
   adminTabBadge:
 

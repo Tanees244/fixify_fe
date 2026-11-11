@@ -31,6 +31,8 @@ export class RouteDataLoaderService {
   /** Load API data for the current route (sidebar tab, inner tab, or site manage screen). */
   loadForUrl(url: string): void {
     if (url === this.lastUrl) {
+      // The layout raised the loading flag at navigation start; nothing will fetch, so clear it.
+      this.session.endLoad();
       return;
     }
     this.lastUrl = url;
@@ -149,12 +151,15 @@ export class RouteDataLoaderService {
       return;
     }
     if (path.startsWith('/admin/tickets')) {
-      let pending = 2;
+      let pending = 3;
       const done = () => {
         if (--pending === 0) this.tick();
       };
       this.sitesData.fetchWebsites({ page: 1, limit: 100 }, done);
       this.ticketsData.fetchTickets({ page: 1, limit: 50 }, done);
+      // Tickets only carry a customer id; the customer list resolves it to a name
+      // and fills the "All Customers" filter.
+      this.customersData.fetchClients(done);
       return;
     }
     if (path === '/admin/subscriptions') {
@@ -263,6 +268,8 @@ export class RouteDataLoaderService {
   }
 
   private tick(): void {
+    // Every route ends here, so this also clears the flag raised at navigation start.
+    this.session.endLoad();
     this.appRef.tick();
   }
 }

@@ -4,11 +4,15 @@
       <div>
         <div [class]="ui.pageTitle">Tickets</div>
         <div [class]="ui.pageSub">
-          {{ ticketsTotal() || tickets().length }} total · {{ openCount() }} open
+          @if (loading()) {
+            Loading tickets…
+          } @else {
+            {{ headerTotal() }} total · {{ openCount() }} open
+          }
         </div>
       </div>
       <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px">
-        <button type="button" [class]="ui.btn + ' ' + ui.btnPrimary" (click)="createTicket()" [disabled]="!ent.canCreateTicket()">
+        <button type="button" [class]="ui.btn + ' ' + ui.btnPrimary" (click)="createTicket()" [disabled]="loading() || !ent.canCreateTicket()">
           <app-icon [name]="ent.canCreateTicket() ? 'plus' : 'lock'" [size]="14" color="#fff" />
           New Ticket
         </button>

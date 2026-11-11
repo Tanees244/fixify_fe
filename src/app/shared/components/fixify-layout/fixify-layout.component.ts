@@ -4,13 +4,20 @@ import {
   inject,
   OnInit,
 } from '@angular/core';
-import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
+import {
+  Router,
+  RouterOutlet,
+  NavigationCancel,
+  NavigationEnd,
+  NavigationError,
+  NavigationStart,
+} from '@angular/router';
 import { filter } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ModalHostComponent } from '../modal-host/modal-host.component';
 import { FixifySidebarComponent } from './fixify-sidebar.component';
 import { FixifyTopbarComponent } from './fixify-topbar.component';
-import { SitesDataService } from '../../../core/services/data';
+import { DataSessionService, SitesDataService } from '../../../core/services/data';
 import { AppContextService } from '../../../core/services/app-context.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { RouteDataLoaderService } from '../../../core/services/route-data-loader.service';
@@ -67,9 +74,19 @@ export class FixifyLayoutComponent implements OnInit {
   protected readonly auth = inject(AuthService);
   protected readonly ent = inject(EntitlementsService);
   private readonly promotions = inject(PromotionsService);
+  private readonly session = inject(DataSessionService);
   private readonly router = inject(Router);
 
   constructor() {
+    // Raise the loading flag before the page's first frame so tables and stat cards show
+    // skeletons instead of empty rows and zeros; the route loader clears it when data lands.
+    if (this.auth.getToken()) this.session.beginLoad();
+    this.router.events
+      .pipe(takeUntilDestroyed())
+      .subscribe((e) => {
+        if (e instanceof NavigationStart && this.auth.getToken()) this.session.beginLoad();
+        if (e instanceof NavigationCancel || e instanceof NavigationError) this.session.endLoad();
+      });
     this.router.events
       .pipe(
         filter((e) => e instanceof NavigationEnd),
