@@ -8,13 +8,14 @@ import { SubscriptionPlan } from '../../../core/models/fixify.models';
 import { mapApiSubscriptionPlan } from '../../../core/utils/api-mappers.util';
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
 import { PlanPickerComponent, PlanPick } from '../../../shared/components/plan-picker/plan-picker.component';
+import { StatCardsSkeletonComponent } from '../../../shared/components/stat-cards-skeleton/stat-cards-skeleton.component';
 import { tw } from '../../../shared/ui/tw';
 
 @Component({
   selector: 'app-customer-billing',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DatePipe, BadgeComponent, PlanPickerComponent],
+  imports: [DatePipe, BadgeComponent, PlanPickerComponent, StatCardsSkeletonComponent],
   template: `
     <div data-allow>
       <div [class]="ui.pageHeader">
@@ -101,7 +102,18 @@ import { tw } from '../../../shared/ui/tw';
           }
         </div>
       } @else if (ent.loading()) {
-        <div [class]="ui.card + ' ' + ui.cardPad" style="color: var(--t3)">Loading billing…</div>
+        <div [class]="ui.u" style="margin-bottom: 22px" aria-busy="true" aria-label="Loading billing">
+          <app-stat-cards-skeleton [count]="3" [gridClass]="ui.grid3" />
+        </div>
+        <div [class]="ui.card + ' ' + ui.cardPad + ' ' + ui.u" style="margin-bottom: 22px">
+          <div [class]="ui.skelCell" style="height: 16px; width: 30%; margin-bottom: 18px"></div>
+          @for (i of [1, 2, 3, 4]; track i) {
+            <div style="margin-bottom: 14px">
+              <div [class]="ui.skelCell" style="height: 12px; width: 100%; margin-bottom: 8px"></div>
+              <div [class]="ui.skelBlock" style="height: 8px; width: 100%"></div>
+            </div>
+          }
+        </div>
       } @else {
         <div [class]="ui.card + ' ' + ui.cardPad" style="margin-bottom: 22px; color: var(--t3)">
           Billing information is not available yet.

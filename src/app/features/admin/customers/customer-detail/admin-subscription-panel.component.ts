@@ -47,7 +47,16 @@ import { tw } from '../../../../shared/ui/tw';
           <button type="button" [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm" [disabled]="busy() || s.status === 'canceled' || s.status === 'expired'" (click)="cancel()">Cancel subscription</button>
         </div>
       } @else {
-        <div style="font-size: 13px; color: var(--t3)">{{ loading() ? 'Loading…' : 'No subscription data available.' }}</div>
+        @if (loading()) {
+          <div aria-busy="true" aria-label="Loading subscription">
+            <div [class]="ui.skelCell" style="height: 14px; width: 35%; margin-bottom: 14px"></div>
+            <div [class]="ui.skelCell" style="height: 12px; width: 80%; margin-bottom: 10px"></div>
+            <div [class]="ui.skelCell" style="height: 12px; width: 60%; margin-bottom: 16px"></div>
+            <div [class]="ui.skelBlock" style="height: 32px; width: 100%"></div>
+          </div>
+        } @else {
+          <div style="font-size: 13px; color: var(--t3)">No subscription data available.</div>
+        }
       }
     </div>
   `,

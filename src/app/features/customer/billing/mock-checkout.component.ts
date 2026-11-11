@@ -30,7 +30,10 @@ import { tw } from '../../../shared/ui/tw';
             <span style="font-size: 13px; color: var(--t3); font-weight: 500">/{{ interval() }}</span>
           </div>
         } @else {
-          <div style="margin-bottom: 16px; color: var(--t3)">Loading plan…</div>
+          <div style="margin-bottom: 16px" aria-busy="true" aria-label="Loading plan">
+            <div [class]="ui.skelCell" style="height: 20px; width: 45%; margin-bottom: 12px"></div>
+            <div [class]="ui.skelCell" style="height: 28px; width: 30%"></div>
+          </div>
         }
 
         <div [class]="ui.fld">
