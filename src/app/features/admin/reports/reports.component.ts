@@ -17,8 +17,8 @@ import { scoreColor } from '../../../core/utils/fixify.utils';
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { ToggleComponent } from '../../../shared/components/toggle/toggle.component';
-import { ListItemsSkeletonComponent } from '../../../shared/components/list-items-skeleton/list-items-skeleton.component';
 import { StatCardsSkeletonComponent } from '../../../shared/components/stat-cards-skeleton/stat-cards-skeleton.component';
+import { ListItemsSkeletonComponent } from '../../../shared/components/list-items-skeleton/list-items-skeleton.component';
 import { tw } from '../../../shared/ui/tw';
 
 function buildMonthOptions(count = 12): { key: string; label: string }[] {
@@ -60,6 +60,7 @@ export class ReportsComponent {
   readonly sites = this.sitesData.sites;
   readonly customers = this.customersData.customers;
 
+  readonly generateOpen = signal(false);
   readonly generating = signal(false);
   readonly sendingId = signal<number | null>(null);
   readonly expandedReportId = signal<number | null>(null);
@@ -92,6 +93,46 @@ export class ReportsComponent {
     };
   });
 
+  /** Slim summary strip shown above the list. */
+  readonly statItems = computed(() => {
+    const s = this.stats();
+    return [
+      { label: 'Total reports', value: String(s.total), sub: `On file for ${this.yearFilter()}`, color: 'var(--acc)', small: false },
+      { label: 'Draft', value: String(s.draft), sub: 'Awaiting review or send', color: 'var(--wn)', small: false },
+      { label: 'Sites covered', value: String(s.sites), sub: 'With at least one report', color: 'var(--t1)', small: false },
+      { label: 'Latest report', value: s.latest, sub: 'Most recent month', color: 'var(--t1)', small: true },
+    ];
+  });
+
+  readonly filtersActive = computed(
+    () =>
+      this.yearFilter() !== new Date().getFullYear() ||
+      this.siteFilter() !== 'all' ||
+      this.customerFilter() !== 'all'
+  );
+
+  setYear(v: string | number): void {
+    this.yearFilter.set(+v);
+    this.applyFilters();
+  }
+
+  setCustomer(v: string): void {
+    this.customerFilter.set(v);
+    this.applyFilters();
+  }
+
+  setSite(v: string): void {
+    this.siteFilter.set(v);
+    this.applyFilters();
+  }
+
+  resetFilters(): void {
+    this.yearFilter.set(new Date().getFullYear());
+    this.siteFilter.set('all');
+    this.customerFilter.set('all');
+    this.applyFilters();
+  }
+
   generateReport(): void {
     const siteId = Number(this.selectedSiteId());
     if (!siteId || this.generating()) return;
@@ -104,7 +145,11 @@ export class ReportsComponent {
         remarks: this.remarks().trim() || undefined,
         autoSendToClient: this.autoSend(),
       },
-      () => this.generating.set(false)
+      () => {
+        this.generating.set(false);
+        this.generateOpen.set(false);
+        this.remarks.set('');
+      }
     );
   }
 
