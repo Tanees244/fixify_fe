@@ -45,7 +45,13 @@ const blank = (kind: PromotionKind = 'ticker'): Draft => ({
   endsAt: '',
 });
 
-const toDateInput = (iso: string | null) => (iso ? iso.slice(0, 10) : '');
+/** yyyy-MM-dd in the admin's own timezone (the date picker works in local days). */
+const toDateInput = (iso: string | null) => {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+};
 
 /** Admin: add, edit, reorder-by-number, hide and remove the customer top bar and dashboard banners. */
 @Component({
@@ -238,10 +244,10 @@ const toDateInput = (iso: string | null) => (iso ? iso.slice(0, 10) : '');
                     <td [class]="ui.td">{{ p.theme }}</td>
                     <td [class]="ui.td">{{ p.sortOrder }}</td>
                     <td [class]="ui.td" style="font-size: 12px">
-                      {{ p.startsAt ? (p.startsAt.slice(0, 10)) : 'Now' }} → {{ p.endsAt ? p.endsAt.slice(0, 10) : 'No end' }}
+                      {{ p.startsAt ? day(p.startsAt) : 'Now' }} → {{ p.endsAt ? day(p.endsAt) : 'No end' }}
                     </td>
                     <td [class]="ui.td">
-                      <app-badge [variant]="p.isActive ? 'bok' : 'bgr'">{{ p.isActive ? 'Live' : 'Hidden' }}</app-badge>
+                      <app-badge [variant]="status(p).variant">{{ status(p).label }}</app-badge>
                     </td>
                     <td [class]="ui.td" style="text-align: right; white-space: nowrap">
                       <button type="button" [class]="ui.btn + ' ' + ui.btnGhost + ' ' + ui.btnSm" [disabled]="busy()" (click)="toggle(p)">
@@ -306,6 +312,19 @@ export class PromotionsAdminComponent {
     this.reload();
   }
 
+  day(iso: string): string {
+    return toDateInput(iso);
+  }
+
+  /** What customers actually get: switched off, waiting for its start date, past its end date, or live. */
+  status(p: Promotion): { label: string; variant: 'bok' | 'bwn' | 'ber' | 'bgr' } {
+    const now = Date.now();
+    if (!p.isActive) return { label: 'Hidden', variant: 'bgr' };
+    if (p.startsAt && new Date(p.startsAt).getTime() > now) return { label: 'Scheduled', variant: 'bwn' };
+    if (p.endsAt && new Date(p.endsAt).getTime() < now) return { label: 'Ended', variant: 'ber' };
+    return { label: 'Live', variant: 'bok' };
+  }
+
   byKind(kind: PromotionKind): Promotion[] {
     return this.byKindMap()[kind];
   }
@@ -363,7 +382,8 @@ export class PromotionsAdminComponent {
       isActive: d.isActive,
       sortOrder: d.sortOrder,
       // null clears the schedule on the server.
-      startsAt: d.startsAt ? new Date(d.startsAt).toISOString() : null,
+      // Local midnight, not UTC midnight, so "from today" is live straight away for the admin's own day.
+      startsAt: d.startsAt ? new Date(d.startsAt + 'T00:00:00').toISOString() : null,
       endsAt: d.endsAt ? new Date(d.endsAt + 'T23:59:59').toISOString() : null,
     };
     this.busy.set(true);
