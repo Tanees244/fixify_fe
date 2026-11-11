@@ -48,6 +48,11 @@ export const ADMIN_ROUTES: Routes = [
       ),
   },
   {
+    path: 'promotions',
+    loadComponent: () =>
+      import('./promotions/promotions.component').then((m) => m.PromotionsAdminComponent),
+  },
+  {
     path: 'subscriptions',
     loadComponent: () =>
       import('./subscriptions/subscriptions.component').then(

@@ -4,6 +4,8 @@
     <div [class]="ui.pageSub">Website health overview · {{ formatDateLong() }}</div>
   </div>
 
+  <app-promo-hero />
+
   <div [class]="ui.pageBody">
     @if (loading()) {
       <app-stat-cards-skeleton />

@@ -16,6 +16,8 @@ import { AuthService } from '../../../core/services/auth.service';
 import { RouteDataLoaderService } from '../../../core/services/route-data-loader.service';
 import { EntitlementsService } from '../../../core/services/entitlements.service';
 import { SubscriptionBannerComponent } from '../subscription-banner/subscription-banner.component';
+import { PromoTickerComponent } from '../promo-ticker/promo-ticker.component';
+import { PromotionsService } from '../../../core/services/promotions.service';
 import { tw } from '../../ui/tw';
 
 @Component({
@@ -27,6 +29,7 @@ import { tw } from '../../ui/tw';
     FixifyTopbarComponent,
     ModalHostComponent,
     SubscriptionBannerComponent,
+    PromoTickerComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -40,6 +43,9 @@ import { tw } from '../../ui/tw';
       }
       <app-fixify-sidebar />
       <div [class]="ui.mainCol" [attr.data-readonly]="ent.readOnly() ? 'true' : null">
+        @if (auth.user()?.role === 'customer') {
+          <app-promo-ticker />
+        }
         <app-fixify-topbar />
         @if (auth.user()?.role === 'customer') {
           <app-subscription-banner />
@@ -60,6 +66,7 @@ export class FixifyLayoutComponent implements OnInit {
   private readonly routeLoader = inject(RouteDataLoaderService);
   protected readonly auth = inject(AuthService);
   protected readonly ent = inject(EntitlementsService);
+  private readonly promotions = inject(PromotionsService);
   private readonly router = inject(Router);
 
   constructor() {
@@ -79,6 +86,7 @@ export class FixifyLayoutComponent implements OnInit {
     this.auth.restoreSession().subscribe(() => {
       this.syncModeFromAuth();
       this.ent.load();
+      if (this.auth.getCurrentUser()?.role === 'customer') this.promotions.load();
       this.syncModeFromUrl();
       this.routeLoader.loadForUrl(this.router.url);
     });

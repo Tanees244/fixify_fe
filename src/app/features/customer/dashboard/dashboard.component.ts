@@ -18,6 +18,7 @@ import { ProgressBarComponent } from '../../../shared/components/progress-bar/pr
 import { SiteAvatarComponent } from '../../../shared/components/site-avatar/site-avatar.component';
 import { TableSkeletonComponent } from '../../../shared/components/table-skeleton/table-skeleton.component';
 import { StatCardsSkeletonComponent } from '../../../shared/components/stat-cards-skeleton/stat-cards-skeleton.component';
+import { PromoHeroComponent } from '../../../shared/components/promo-hero/promo-hero.component';
 import { ListItemsSkeletonComponent } from '../../../shared/components/list-items-skeleton/list-items-skeleton.component';
 import {
   formatDateLong,
@@ -44,6 +45,7 @@ import { tw } from '../../../shared/ui/tw';
     RouterLink,
     TableSkeletonComponent,
     StatCardsSkeletonComponent,
+    PromoHeroComponent,
     ListItemsSkeletonComponent,
   ],
   templateUrl: './dashboard.component.html',

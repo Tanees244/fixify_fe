@@ -83,3 +83,79 @@ app-root {
   pointer-events: none;
   cursor: not-allowed;
 }
+
+/* —— Promotions: scrolling top bar + hero banners —— */
+@keyframes promo-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.promo-ticker {
+  --promo-bg: #f4553f;
+  --promo-fg: #fff;
+  overflow: hidden;
+  background: var(--promo-bg);
+  color: var(--promo-fg);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.promo-ticker[data-theme='purple'] { --promo-bg: #5b2fd1; }
+.promo-ticker[data-theme='blue'] { --promo-bg: #1f6feb; }
+.promo-ticker[data-theme='green'] { --promo-bg: #198754; }
+.promo-ticker[data-theme='dark'] { --promo-bg: #111827; }
+.promo-track {
+  display: inline-flex;
+  min-width: max-content;
+  padding: 8px 0;
+  animation: promo-marquee 40s linear infinite;
+}
+.promo-ticker:hover .promo-track { animation-play-state: paused; }
+.promo-item { display: inline-flex; align-items: center; gap: 28px; padding-right: 28px; color: inherit; text-decoration: none; }
+a.promo-item:hover { text-decoration: underline; }
+.promo-sep { opacity: 0.9; }
+@media (prefers-reduced-motion: reduce) {
+  .promo-track { animation: none; }
+  .promo-ticker { overflow-x: auto; }
+}
+
+.promo-hero {
+  --hero-a: #1a0b3b;
+  --hero-b: #6d4cff;
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px;
+  padding: 36px 24px;
+  text-align: center;
+  color: #fff;
+  background: radial-gradient(120% 140% at 50% 120%, var(--hero-b) 0%, var(--hero-a) 62%);
+}
+.promo-hero[data-theme='coral'] { --hero-a: #3b0d12; --hero-b: #f4553f; }
+.promo-hero[data-theme='blue'] { --hero-a: #08183b; --hero-b: #2f7bff; }
+.promo-hero[data-theme='green'] { --hero-a: #07241a; --hero-b: #26b37a; }
+.promo-hero[data-theme='dark'] { --hero-a: #05060a; --hero-b: #3a3f55; }
+.promo-hero-title { font-size: clamp(28px, 5vw, 52px); font-weight: 800; line-height: 1.05; letter-spacing: -0.02em; margin: 0; }
+.promo-hero-badge {
+  display: inline-block;
+  margin: 14px 0 4px;
+  padding: 4px 18px;
+  border-radius: 14px;
+  background: #f4553f;
+  color: #fff;
+  font-size: clamp(26px, 4.5vw, 46px);
+  font-weight: 800;
+  line-height: 1.1;
+}
+.promo-hero-sub { margin: 10px auto 0; max-width: 620px; font-size: 15px; opacity: 0.92; }
+.promo-hero-cta {
+  display: inline-block;
+  margin-top: 18px;
+  padding: 11px 22px;
+  border-radius: 10px;
+  background: #fff;
+  color: #111827;
+  font-weight: 700;
+  font-size: 14px;
+  text-decoration: none;
+}
+.promo-hero-cta:hover { background: #f3f4f6; }

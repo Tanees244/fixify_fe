@@ -42,6 +42,8 @@ function resolvePageKey(url: string): string {
 
   if (url.includes('/admin/subscriptions')) return 'admin-subs';
 
+  if (url.includes('/admin/promotions')) return 'admin-promos';
+
   if (url.includes('/admin/onboard')) return 'admin-onboard';
 
   if (url.includes('/admin/tickets')) return 'admin-tickets';
