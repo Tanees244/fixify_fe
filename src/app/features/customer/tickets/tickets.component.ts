@@ -71,6 +71,18 @@ export class TicketsComponent {
     this.ctx.selectedSite() ? this.siteTickets().length : this.ticketsTotal() || this.tickets().length
   );
 
+  /** Footer range that matches the rows actually shown (server page, or the picked website's tickets). */
+  readonly footerRange = computed(() => {
+    const total = this.headerTotal();
+    if (total === 0) return { from: 0, to: 0, total: 0 };
+    if (this.ctx.selectedSite()) return { from: 1, to: total, total };
+    return {
+      from: (this.ticketsPage() - 1) * this.ticketsLimit() + 1,
+      to: Math.min(this.ticketsPage() * this.ticketsLimit(), total),
+      total,
+    };
+  });
+
   readonly openCount = computed(() => {
     this.session.dataRevision();
     return this.siteTickets().filter((t) => t.status !== 'resolved' && t.status !== 'closed').length;

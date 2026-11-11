@@ -107,6 +107,8 @@ export class CustomersComponent {
   });
 
   planCount(planId: string): number {
+    // Read the revision so this OnPush view re-renders when plans are synced from subscriptions.
+    this.session.dataRevision();
     return this.customers.filter(
       (c) => c.plan === planId && c.approvalStatus === 'approved'
     ).length;

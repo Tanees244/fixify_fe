@@ -110,7 +110,12 @@ export class CustomerDetailComponent {
 
   readonly customerId = computed(() => Number(this.route.snapshot.paramMap.get('id')));
 
-  readonly customer = computed(() => this.customersData.getCustomer(this.customerId()));
+  // The customer list is a plain array, so depend on the revision signal; without it this
+  // computed caches "not found" from before the list arrived and never updates (deep links, reloads).
+  readonly customer = computed(() => {
+    this.session.dataRevision();
+    return this.customersData.getCustomer(this.customerId());
+  });
 
   readonly loading = this.session.loading;
   readonly scoreColor = scoreColor;

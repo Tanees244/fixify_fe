@@ -129,11 +129,7 @@
       style="display: flex; align-items: center; justify-content: space-between; margin-top: 14px; flex-wrap: wrap; gap: 10px"
     >
       <div style="font-size: 13px; color: var(--t3)">
-        Showing
-        {{ (ticketsPage() - 1) * ticketsLimit() + 1 }}–{{
-          Math.min(ticketsPage() * ticketsLimit(), ticketsTotal() || tickets().length)
-        }}
-        of {{ ticketsTotal() || tickets().length }}
+        Showing {{ footerRange().from }}–{{ footerRange().to }} of {{ footerRange().total }}
       </div>
       <div style="display: flex; align-items: center; gap: 8px">
         <button

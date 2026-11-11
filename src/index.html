@@ -7,8 +7,43 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/png" href="favicon.png">
   <link rel="apple-touch-icon" href="favicon.png">
+  <style>
+    /* Shown only until Angular boots and replaces the contents of <app-root>. */
+    body { margin: 0; background: #f0f6ff; }
+    .boot { display: flex; min-height: 100vh; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; }
+    .boot-side { width: 220px; flex-shrink: 0; background: #fff; border-right: 1px solid #c7deff; padding: 18px 14px; box-sizing: border-box; }
+    .boot-main { flex: 1; min-width: 0; }
+    .boot-top { height: 60px; background: #fff; border-bottom: 1px solid #c7deff; }
+    .boot-body { padding: 28px 30px; }
+    .boot-b { border-radius: 8px; background: linear-gradient(90deg, #e4ecf8 25%, #ccdaef 50%, #e4ecf8 75%); background-size: 200% 100%; animation: boot-shimmer 1.2s ease-in-out infinite; }
+    @keyframes boot-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    @media (max-width: 800px) { .boot-side { display: none; } }
+    @media (prefers-reduced-motion: reduce) { .boot-b { animation: none; } }
+  </style>
 </head>
 <body>
-  <app-root></app-root>
+  <app-root>
+    <div class="boot" aria-busy="true" aria-label="Loading Fixify">
+      <div class="boot-side">
+        <div class="boot-b" style="height: 28px; width: 110px; margin-bottom: 28px"></div>
+        <div class="boot-b" style="height: 36px; margin-bottom: 10px"></div>
+        <div class="boot-b" style="height: 36px; margin-bottom: 10px"></div>
+        <div class="boot-b" style="height: 36px; margin-bottom: 10px"></div>
+        <div class="boot-b" style="height: 36px; margin-bottom: 10px"></div>
+      </div>
+      <div class="boot-main">
+        <div class="boot-top"></div>
+        <div class="boot-body">
+          <div class="boot-b" style="height: 26px; width: 220px; margin-bottom: 26px"></div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 18px; margin-bottom: 22px">
+            <div class="boot-b" style="height: 96px"></div>
+            <div class="boot-b" style="height: 96px"></div>
+            <div class="boot-b" style="height: 96px"></div>
+          </div>
+          <div class="boot-b" style="height: 220px"></div>
+        </div>
+      </div>
+    </div>
+  </app-root>
 </body>
 </html>

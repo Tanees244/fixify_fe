@@ -6,7 +6,7 @@ import {
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { ADMIN_NAV, CUSTOMER_NAV } from '../../../core/constants/fixify.constants';
 import { AppContextService } from '../../../core/services/app-context.service';
-import { SitesDataService } from '../../../core/services/data';
+import { DataSessionService, SitesDataService } from '../../../core/services/data';
 import { AuthService } from '../../../core/services/auth.service';
 import { RouteDataLoaderService } from '../../../core/services/route-data-loader.service';
 import { IconComponent } from '../icon/icon.component';
@@ -71,6 +71,8 @@ const ADMIN_ROUTES: Record<string, string> = {
             >
               @for (site of mySites; track site.id) {
                 <option [value]="site.id">{{ site.name }}</option>
+              } @empty {
+                <option value="">{{ session.loading() ? 'Loading websites…' : 'No websites yet' }}</option>
               }
             </select>
           </div>
@@ -154,6 +156,7 @@ export class FixifySidebarComponent {
   protected readonly ui = tw;
   protected readonly ctx = inject(AppContextService);
   protected readonly sitesData = inject(SitesDataService);
+  protected readonly session = inject(DataSessionService);
   protected readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly routeLoader = inject(RouteDataLoaderService);

@@ -15,6 +15,7 @@ import { ListItemsSkeletonComponent } from '../../../shared/components/list-item
 import { scoreColor } from '../../../core/utils/fixify.utils';
 
 import { tw } from '../../../shared/ui/tw';
+import { SitePageFallbackComponent } from '../../../shared/components/site-page-fallback/site-page-fallback.component';
 
 
 
@@ -27,6 +28,7 @@ import { tw } from '../../../shared/ui/tw';
   changeDetection: ChangeDetectionStrategy.OnPush,
 
   imports: [
+    SitePageFallbackComponent,
     BadgeComponent,
     IconComponent,
     ProgressBarComponent,

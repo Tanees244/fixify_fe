@@ -25,7 +25,8 @@ import { tw } from '../../../shared/ui/tw';
         </div>
       </div>
 
-      @if (ent.subscription(); as s) {
+      <!-- While the plan is being (re)loaded, show skeletons instead of the previous plan's numbers. -->
+      @if (ent.loading() ? null : ent.subscription(); as s) {
         <div [class]="ui.grid3 + ' ' + ui.u" style="margin-bottom: 22px">
           <div [class]="ui.statCard">
             <div [class]="ui.statLbl">Current plan</div>

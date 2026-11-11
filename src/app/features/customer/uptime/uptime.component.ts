@@ -6,12 +6,14 @@ import { BadgeComponent } from '../../../shared/components/badge/badge.component
 import { SparkLineComponent } from '../../../shared/components/spark-line/spark-line.component';
 import { UptimeHistoryDay } from '../../../core/models/site-screens.models';
 import { tw } from '../../../shared/ui/tw';
+import { SitePageFallbackComponent } from '../../../shared/components/site-page-fallback/site-page-fallback.component';
 
 @Component({
   selector: 'app-customer-uptime',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [BadgeComponent, SparkLineComponent],
+  imports: [
+    SitePageFallbackComponent,BadgeComponent, SparkLineComponent],
   templateUrl: './uptime.component.html',
 })
 export class UptimeComponent {

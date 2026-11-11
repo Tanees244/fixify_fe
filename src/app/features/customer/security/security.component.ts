@@ -14,6 +14,7 @@ import { ListItemsSkeletonComponent } from '../../../shared/components/list-item
 import { scoreColor, severityBadge, severityBg, severityIcon } from '../../../core/utils/fixify.utils';
 
 import { tw } from '../../../shared/ui/tw';
+import { SitePageFallbackComponent } from '../../../shared/components/site-page-fallback/site-page-fallback.component';
 
 
 
@@ -26,6 +27,7 @@ import { tw } from '../../../shared/ui/tw';
   changeDetection: ChangeDetectionStrategy.OnPush,
 
   imports: [
+    SitePageFallbackComponent,
     IconComponent,
     BadgeComponent,
     StatCardsSkeletonComponent,
